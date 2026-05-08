@@ -1,0 +1,101 @@
+@reference "tailwindcss";
+
+.detail-topnav {
+  @apply sticky top-0 z-10 bg-slate-950/80 backdrop-blur-sm px-8 py-3 border-b border-slate-800 flex items-center justify-between;
+}
+
+.detail-back-btn {
+  @apply flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors;
+}
+
+.detail-edit-btn {
+  @apply flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors;
+}
+
+.detail-logo {
+  @apply w-14 h-14 rounded-xl object-contain bg-white/5 border border-slate-700 shrink-0;
+}
+
+.detail-logo-fallback {
+  @apply w-14 h-14 rounded-xl bg-slate-700 shrink-0 flex items-center justify-center text-slate-300 font-bold text-xl;
+}
+
+.detail-action-card {
+  @apply bg-slate-900 border border-slate-800 rounded-xl p-4;
+}
+
+.detail-action-icon-violet {
+  @apply w-7 h-7 rounded-lg bg-violet-500/20 flex items-center justify-center;
+}
+
+.detail-action-icon-green {
+  @apply w-7 h-7 rounded-lg bg-green-500/20 flex items-center justify-center;
+}
+
+.detail-action-icon-blue {
+  @apply w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center;
+}
+
+.detail-action-btn-violet {
+  @apply w-full flex items-center justify-center gap-1.5 py-1.5 bg-violet-600/20 hover:bg-violet-600/30 text-violet-400 text-xs font-medium rounded-lg transition-colors disabled:opacity-50;
+}
+
+.detail-action-btn-green {
+  @apply w-full flex items-center justify-center gap-1.5 py-1.5 bg-green-600/20 hover:bg-green-600/30 text-green-400 text-xs font-medium rounded-lg transition-colors disabled:opacity-50;
+}
+
+.detail-action-btn-blue {
+  @apply w-full flex items-center justify-center gap-1.5 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs font-medium rounded-lg transition-colors;
+}
+
+.detail-section-card {
+  @apply bg-slate-900 border border-slate-800 rounded-xl p-5;
+}
+
+.detail-section-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.detail-section-title {
+  @apply flex items-center gap-2;
+}
+
+.detail-section-badge {
+  @apply text-[10px] font-semibold text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded-full;
+}
+
+.detail-round-row {
+  @apply flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl;
+}
+
+.detail-round-form {
+  @apply bg-slate-800/60 border border-slate-700 rounded-xl p-3 space-y-2;
+}
+
+.detail-form-select {
+  @apply bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-violet-500;
+}
+
+.detail-form-textarea {
+  @apply w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500 resize-none;
+}
+
+.detail-generate-btn {
+  @apply w-full flex items-center justify-center gap-2 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors mb-5;
+}
+
+.detail-sidebar-card {
+  @apply bg-slate-900 border border-slate-800 rounded-xl p-4;
+}
+
+.detail-sidebar-label {
+  @apply text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-3;
+}
+
+.detail-danger-card {
+  @apply bg-slate-900 border border-red-500/20 rounded-xl p-4;
+}
+
+.detail-skill-tag {
+  @apply text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md;
+}

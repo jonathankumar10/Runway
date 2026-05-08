@@ -1,0 +1,41 @@
+@reference "tailwindcss";
+
+.qv-panel {
+  @apply w-72 shrink-0 border-l border-slate-800 bg-slate-900 flex flex-col overflow-y-auto;
+}
+
+.qv-header {
+  @apply flex items-center justify-between px-4 py-3 border-b border-slate-800;
+}
+
+.qv-logo {
+  @apply w-9 h-9 rounded-lg object-contain bg-white/5 border border-slate-700 shrink-0;
+}
+
+.qv-logo-fallback {
+  @apply w-9 h-9 rounded-lg bg-slate-700 shrink-0 flex items-center justify-center text-slate-300 font-bold text-sm;
+}
+
+.qv-section-label {
+  @apply text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5;
+}
+
+.qv-skill-tag {
+  @apply text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded;
+}
+
+.qv-next-action {
+  @apply p-3 rounded-xl border;
+}
+
+.qv-next-action-label {
+  @apply text-[10px] font-semibold uppercase tracking-wide mb-1;
+}
+
+.qv-footer {
+  @apply mt-auto px-4 py-3 border-t border-slate-800 flex items-center gap-2;
+}
+
+.qv-footer-btn {
+  @apply flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors;
+}

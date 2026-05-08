@@ -1,0 +1,29 @@
+@reference "tailwindcss";
+
+.jd-overlay {
+  @apply fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+}
+
+.jd-box {
+  @apply w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl;
+}
+
+.jd-header {
+  @apply flex items-center justify-between px-5 py-4 border-b border-slate-800;
+}
+
+.jd-footer {
+  @apply flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-800;
+}
+
+.jd-textarea {
+  @apply w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500 resize-none;
+}
+
+.jd-submit-btn {
+  @apply flex items-center gap-1.5 px-4 py-1.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors;
+}
+
+.jd-cancel-btn {
+  @apply px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors;
+}

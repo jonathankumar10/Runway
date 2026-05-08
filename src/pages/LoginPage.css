@@ -1,0 +1,41 @@
+@reference "tailwindcss";
+
+.login-root {
+  @apply relative flex flex-1 items-center justify-center min-h-screen overflow-hidden bg-slate-950;
+}
+
+.login-orbs {
+  @apply absolute inset-0 overflow-hidden pointer-events-none;
+}
+
+.login-orb-tl {
+  @apply absolute -top-48 -left-48 w-[500px] h-[500px] rounded-full bg-violet-600/15 blur-3xl;
+}
+
+.login-orb-br {
+  @apply absolute -bottom-48 -right-48 w-[500px] h-[500px] rounded-full bg-indigo-600/15 blur-3xl;
+}
+
+.login-orb-center {
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-violet-900/10 blur-[80px];
+}
+
+.login-card {
+  @apply flex flex-col items-center gap-8 p-8 rounded-2xl border border-slate-700/40 bg-slate-900/75 backdrop-blur-xl shadow-2xl shadow-black/50;
+}
+
+.login-logo-icon {
+  @apply w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shadow-violet-900/50;
+}
+
+.login-google-btn {
+  @apply w-full flex items-center justify-center gap-3 px-4 py-3 bg-white hover:bg-slate-50 text-slate-900 font-semibold text-sm rounded-xl transition-all duration-150 hover:shadow-lg hover:shadow-black/30 hover:scale-[1.015] active:scale-[0.985] cursor-pointer;
+}
+
+.login-feature-pill {
+  @apply flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/70 border border-slate-700/50 text-slate-400 text-xs;
+}
+
+.login-tos {
+  @apply text-center text-slate-600 text-xs mt-5;
+}

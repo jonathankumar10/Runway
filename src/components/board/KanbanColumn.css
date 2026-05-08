@@ -1,0 +1,21 @@
+@reference "tailwindcss";
+
+.kanban-col {
+  @apply flex flex-col w-64 shrink-0 transition-opacity;
+}
+
+.kanban-col-header {
+  @apply flex items-center gap-2 mb-2 px-1;
+}
+
+.kanban-col-count {
+  @apply ml-auto text-xs text-slate-500 bg-slate-800 rounded-full px-1.5 py-0.5;
+}
+
+.kanban-col-drop {
+  @apply flex-1 min-h-24 rounded-xl border transition-colors;
+}
+
+.kanban-col-cards {
+  @apply flex flex-col gap-2 p-1;
+}

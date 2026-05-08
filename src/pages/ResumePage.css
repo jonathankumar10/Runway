@@ -1,0 +1,49 @@
+@reference "tailwindcss";
+
+.resume-page {
+  @apply flex-1 overflow-y-auto px-8 py-6 max-w-3xl;
+}
+
+.resume-library-card {
+  @apply bg-slate-900 border border-slate-800 rounded-2xl p-6;
+}
+
+.resume-row {
+  @apply flex items-center gap-4 p-4 rounded-xl border transition-colors;
+}
+
+.resume-row-default {
+  @apply bg-violet-500/5 border-violet-500/20;
+}
+
+.resume-row-normal {
+  @apply bg-slate-800/50 border-slate-700;
+}
+
+.resume-row-icon {
+  @apply w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center shrink-0;
+}
+
+.resume-default-badge {
+  @apply flex items-center gap-1 text-[10px] font-semibold text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded-full shrink-0;
+}
+
+.resume-upload-zone {
+  @apply flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-xl py-8 cursor-pointer transition-colors;
+}
+
+.resume-upload-zone-idle {
+  @apply border-slate-700 hover:border-slate-600 hover:bg-slate-800/30;
+}
+
+.resume-upload-zone-drag {
+  @apply border-violet-500 bg-violet-500/5;
+}
+
+.resume-action-btn {
+  @apply flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-slate-200;
+}
+
+.resume-action-btn-danger {
+  @apply flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors text-red-400 border-red-500/20 hover:bg-red-500/10;
+}

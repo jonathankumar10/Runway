@@ -1,0 +1,13 @@
+@reference "tailwindcss";
+
+.coaching-panel {
+  @apply border-t border-slate-800 px-3 pb-3 pt-2 bg-slate-950/40;
+}
+
+.coaching-draft-box {
+  @apply mt-2 p-2.5 bg-slate-800 rounded-lg;
+}
+
+.coaching-follow-up-btn {
+  @apply flex items-center gap-1.5 mt-3 text-xs text-slate-400 hover:text-slate-200 transition-colors disabled:opacity-50;
+}

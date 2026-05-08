@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: #020617;
+  color: #f1f5f9;
+  font-family: system-ui, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+/* Login page dot-grid background */
+.dot-grid {
+  background-image: radial-gradient(circle, #ffffff 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Chart / funnel bars — height/width driven by --bar-h / --bar-w CSS custom props */
+.weekly-bar {
+  height: var(--bar-h);
+  min-height: var(--bar-min-h, 0);
+}
+
+.pipeline-bar {
+  width: var(--bar-w);
+}
+
+/* Skeleton loading lines — width driven by --skeleton-w */
+.skeleton-line {
+  width: var(--skeleton-w);
+}
+
+/* To-do progress bar — width driven by --progress-w */
+.todo-progress {
+  width: var(--progress-w);
+}

@@ -1,0 +1,63 @@
+import { getFunctions, httpsCallable } from 'firebase/functions'
+import { doc, getDoc, getDocs, collection, query, where, limit } from 'firebase/firestore'
+import { db } from '../lib/firebase'
+import { useAuth } from '../context/AuthContext'
+import app from '../lib/firebase'
+
+const functions = getFunctions(app)
+
+export function useAI() {
+  const { user } = useAuth()
+
+  async function parseJD(text) {
+    const fn = httpsCallable(functions, 'parseJD')
+    const result = await fn({ text })
+    return result.data
+  }
+
+  async function getCoaching(stage, company, role) {
+    const fn = httpsCallable(functions, 'getCoaching')
+    const result = await fn({ stage, company, role })
+    return result.data
+  }
+
+  async function draftFollowUp(payload) {
+    const fn = httpsCallable(functions, 'draftFollowUp')
+    const result = await fn(payload)
+    return result.data
+  }
+
+  async function matchResume(jobId, company, role, keySkills, notes) {
+    // Read default resume from new resumes subcollection
+    const resumesSnap = await getDocs(
+      query(collection(db, 'users', user.uid, 'resumes'), where('isDefault', '==', true), limit(1))
+    )
+    let resumeText = resumesSnap.docs[0]?.data()?.resumeText
+
+    // Fall back to legacy settings/resume and settings/preferences docs
+    if (!resumeText) {
+      resumeText = (await getDoc(doc(db, 'users', user.uid, 'settings', 'resume'))).data()?.resumeText
+        ?? (await getDoc(doc(db, 'users', user.uid, 'settings', 'preferences'))).data()?.resumeText
+    }
+
+    if (!resumeText) throw new Error('No resume saved. Add your resume from the Resumes page first.')
+
+    const fn = httpsCallable(functions, 'matchResume')
+    const result = await fn({ resumeText, company, role, keySkills, notes })
+    return result.data
+  }
+
+  async function importFromUrl(url) {
+    const fn = httpsCallable(functions, 'importFromUrl')
+    const result = await fn({ url })
+    return result.data
+  }
+
+  async function generateInterviewQuestions(company, role, jobDescription, count, difficulty) {
+    const fn = httpsCallable(functions, 'generateInterviewQuestions')
+    const result = await fn({ company, role, jobDescription, count, difficulty })
+    return result.data
+  }
+
+  return { parseJD, getCoaching, draftFollowUp, matchResume, importFromUrl, generateInterviewQuestions }
+}
