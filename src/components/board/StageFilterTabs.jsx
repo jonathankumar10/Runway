@@ -17,7 +17,7 @@ export default function StageFilterTabs({ activeStage, setActiveStage }) {
         className={`stage-tab ${activeStage === 'all' ? 'stage-tab-active' : 'stage-tab-inactive'}`}
       >
         All stages
-        <span className="text-[10px] text-slate-500">{jobs.length}</span>
+        <span className="text-xs text-slate-400">{jobs.length}</span>
       </button>
 
       {STAGES.map(stage => (
@@ -29,7 +29,7 @@ export default function StageFilterTabs({ activeStage, setActiveStage }) {
           <span className={`w-1.5 h-1.5 rounded-full ${stage.dotClass}`} />
           {stage.label}
           {counts[stage.id] > 0 && (
-            <span className="text-[10px] text-slate-500">{counts[stage.id]}</span>
+            <span className="text-xs text-slate-400">{counts[stage.id]}</span>
           )}
         </button>
       ))}

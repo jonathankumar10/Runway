@@ -26,13 +26,13 @@ export default function InterviewCountdown() {
     .slice(0, 5)
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Calendar size={13} className="text-slate-400" />
-        <h3 className="text-xs font-semibold text-slate-300">Upcoming Interviews</h3>
+        <Calendar size={13} className="text-slate-300" />
+        <h3 className="text-sm font-semibold text-white">Upcoming Interviews</h3>
       </div>
       {upcoming.length === 0 ? (
-        <p className="text-xs text-slate-500">No interviews scheduled</p>
+        <p className="text-xs text-slate-400">No interviews scheduled</p>
       ) : (
         <ul className="space-y-2">
           {upcoming.map(({ job, date }, i) => {
@@ -41,10 +41,10 @@ export default function InterviewCountdown() {
               <li key={i} className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-white truncate">{job.company}</p>
-                  <p className="text-[10px] text-slate-500">{job.role} · {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                  <p className="text-xs text-slate-400">{job.role} · {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
                 {countdown && (
-                  <span className="text-xs text-orange-400 font-medium shrink-0">{countdown}</span>
+                  <span className="text-xs text-orange-400 font-semibold shrink-0">{countdown}</span>
                 )}
               </li>
             )

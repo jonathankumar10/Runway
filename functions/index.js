@@ -130,14 +130,17 @@ exports.matchResume = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, async
   try {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 500,
+      max_tokens: 900,
       system: `You are a resume-job match evaluator.
 Given a resume and a job posting, return ONLY valid JSON with:
 - score (integer 0-100, how well the resume matches the job)
 - highlights (array of 3 strings: strongest matching qualifications)
 - gaps (array of up to 3 strings: missing or weak areas)
+- resumeSuggestions (array of 4-5 objects, each with:
+    "section": the resume section to update (e.g. "Skills", "Summary", "Professional Experience")
+    "suggestion": a single, specific, ready-to-use line of text the user can add or substitute — write the actual text, not advice about it)
 
-Be honest and calibrated. A perfect score means near-perfect fit. No text outside the JSON.`,
+resumeSuggestions must be concrete additions: exact bullet points, skill lists, or summary sentences the user can paste straight in. Not general advice. No text outside the JSON.`,
       messages: [{
         role: 'user',
         content: `JOB: ${company || ''} — ${role}\nKey skills required: ${(keySkills || []).join(', ')}\nAdditional context: ${notes || 'none'}\n\nRESUME:\n${resumeText.slice(0, 8000)}`,
@@ -146,7 +149,12 @@ Be honest and calibrated. A perfect score means near-perfect fit. No text outsid
 
     const raw = response.content[0].text.trim()
     const json = raw.startsWith('{') ? JSON.parse(raw) : JSON.parse(raw.match(/\{[\s\S]*\}/)[0])
-    return { score: Math.min(100, Math.max(0, Number(json.score))), highlights: json.highlights ?? [], gaps: json.gaps ?? [] }
+    return {
+      score: Math.min(100, Math.max(0, Number(json.score))),
+      highlights: json.highlights ?? [],
+      gaps: json.gaps ?? [],
+      resumeSuggestions: Array.isArray(json.resumeSuggestions) ? json.resumeSuggestions : [],
+    }
   } catch (err) {
     console.error('matchResume error:', err)
     return { error: 'MATCH_ERROR' }
@@ -247,6 +255,105 @@ If a value cannot be determined, use null. Do not include any text outside the J
   } catch (err) {
     console.error('importFromUrl parse error:', err)
     return { error: 'PARSE_ERROR' }
+  }
+})
+
+// ── tailorResume ──────────────────────────────────────────────────────────────
+exports.tailorResume = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, async (request) => {
+  const { resumeText, company, role, jobDescription, keySkills, gaps, sectionOrder } = request.data
+  if (!resumeText || !role) return { error: 'INVALID_INPUT' }
+
+  const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
+
+  const sectionHint = sectionOrder?.length
+    ? `\nThe original resume has these sections IN THIS EXACT ORDER — preserve this order: ${sectionOrder.join(' → ')}`
+    : ''
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4000,
+      system: `You are an expert resume writer. Tailor the given resume for a specific job role.
+
+Return ONLY valid JSON in this exact shape:
+{
+  "suggestions": ["what you changed and why", ...],  // 4-6 items
+  "sections": [
+    {
+      "type": "header",
+      "name": "Full Name",
+      "contact": ["email", "phone", "city", "linkedin url", ...]
+    },
+    {
+      "type": "experience",
+      "title": "SECTION TITLE AS IN ORIGINAL",
+      "entries": [
+        {
+          "role": "Job Title",
+          "company": "Company Name",
+          "location": "City, ST or Remote",
+          "dates": "Month Year – Month Year",
+          "bullets": ["accomplishment bullet", ...]
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "SECTION TITLE AS IN ORIGINAL",
+      "entries": [
+        {
+          "degree": "BS Computer Science",
+          "school": "University Name",
+          "location": "City, ST",
+          "dates": "2018 – 2022",
+          "details": ["GPA: 3.8", "Relevant coursework: ..."]
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "SECTION TITLE AS IN ORIGINAL",
+      "groups": [
+        { "label": "Languages", "items": ["Python", "JavaScript"] },
+        { "label": "", "items": ["AWS", "Docker"] }
+      ]
+    },
+    {
+      "type": "generic",
+      "title": "SECTION TITLE AS IN ORIGINAL",
+      "entries": [
+        {
+          "heading": "Project or item title",
+          "subheading": "optional subtitle or date",
+          "bullets": ["detail", ...]
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+- NEVER fabricate experience, credentials, or skills not in the original resume
+- Preserve EVERY section from the original — do not drop any sections${sectionHint}
+- Use the exact section titles from the original (e.g. "WORK EXPERIENCE" not "EXPERIENCE")
+- Reword bullets to emphasise skills relevant to the job description
+- Add missing keywords naturally if the experience genuinely supports them
+- Keep all dates, companies, schools, and GPAs exactly as in the original`,
+      messages: [{
+        role: 'user',
+        content: `COMPANY: ${company || 'Unknown'}\nROLE: ${role}\nKEY SKILLS: ${(keySkills || []).join(', ')}\nJOB DESCRIPTION:\n${(jobDescription || 'Not provided').slice(0, 3000)}\nGAPS TO ADDRESS: ${(gaps || []).join('; ') || 'None'}\n\nORIGINAL RESUME:\n${resumeText.slice(0, 6000)}`,
+      }],
+    })
+
+    const raw = response.content[0].text.trim()
+    const json = raw.startsWith('{') ? JSON.parse(raw) : JSON.parse(raw.match(/\{[\s\S]*\}/)[0])
+    return {
+      suggestions: Array.isArray(json.suggestions) ? json.suggestions : [],
+      sections: Array.isArray(json.sections) ? json.sections : [],
+    }
+  } catch (err) {
+    console.error('tailorResume error:', err)
+    return { error: 'GENERATION_ERROR' }
   }
 })
 

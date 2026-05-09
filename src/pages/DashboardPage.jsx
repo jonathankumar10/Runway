@@ -6,10 +6,10 @@ import NextMoves from '../components/dashboard/NextMoves'
 
 function StatCard({ label, value, sub }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-      <p className="text-xs text-slate-400">{label}</p>
+    <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <p className="text-xs text-slate-300">{label}</p>
       <p className="text-2xl font-bold text-white mt-0.5">{value}</p>
-      {sub && <p className="text-[10px] text-slate-500 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -27,7 +27,7 @@ export default function DashboardPage() {
     <div className="flex-1 overflow-y-auto px-6 py-6">
       <div className="mb-6">
         <h1 className="text-lg font-semibold text-white">Dashboard</h1>
-        <p className="text-xs text-slate-400 mt-0.5">Your job search at a glance</p>
+        <p className="text-xs text-slate-300 mt-0.5">Your job search at a glance</p>
       </div>
 
       {/* Stat cards */}

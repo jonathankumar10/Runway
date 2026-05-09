@@ -9,11 +9,11 @@
 }
 
 .kanban-col-count {
-  @apply ml-auto text-xs text-slate-500 bg-slate-800 rounded-full px-1.5 py-0.5;
+  @apply ml-auto text-xs text-slate-300 bg-slate-700 rounded-full px-1.5 py-0.5;
 }
 
 .kanban-col-drop {
-  @apply flex-1 min-h-24 rounded-xl border transition-colors;
+  @apply flex-1 min-h-24 rounded-xl border border-slate-700 transition-colors;
 }
 
 .kanban-col-cards {

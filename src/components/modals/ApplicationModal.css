@@ -37,11 +37,11 @@
 }
 
 .modal-tab-inactive {
-  @apply text-slate-400 hover:text-slate-200 hover:bg-slate-800;
+  @apply text-slate-300 hover:text-white hover:bg-slate-800;
 }
 
 .modal-field-label {
-  @apply block text-xs font-medium text-slate-400 mb-1;
+  @apply block text-xs font-medium text-slate-300 mb-1;
 }
 
 .modal-input {
@@ -57,7 +57,7 @@
 }
 
 .modal-footer {
-  @apply flex items-center gap-2 px-5 py-4 border-t border-slate-800;
+  @apply flex items-center gap-2 px-5 py-4 border-t border-slate-700;
 }
 
 .modal-submit-btn {
@@ -65,5 +65,5 @@
 }
 
 .modal-cancel-btn {
-  @apply px-4 py-2.5 text-sm text-slate-400 hover:text-slate-200 transition-colors;
+  @apply px-4 py-2.5 text-sm text-slate-300 hover:text-white transition-colors;
 }

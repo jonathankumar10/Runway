@@ -59,5 +59,29 @@ export function useAI() {
     return result.data
   }
 
-  return { parseJD, getCoaching, draftFollowUp, matchResume, importFromUrl, generateInterviewQuestions }
+  async function tailorResume(company, role, jobDescription, keySkills, gaps) {
+    const resumesSnap = await getDocs(
+      query(collection(db, 'users', user.uid, 'resumes'), where('isDefault', '==', true), limit(1))
+    )
+    let resumeText = resumesSnap.docs[0]?.data()?.resumeText
+
+    if (!resumeText) {
+      resumeText = (await getDoc(doc(db, 'users', user.uid, 'settings', 'resume'))).data()?.resumeText
+        ?? (await getDoc(doc(db, 'users', user.uid, 'settings', 'preferences'))).data()?.resumeText
+    }
+
+    if (!resumeText) throw new Error('No resume saved. Add your resume from the Resumes page first.')
+
+    // Extract section header order so the AI can preserve it
+    const sectionOrder = resumeText
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 2 && l === l.toUpperCase() && /[A-Z]/.test(l) && !/^\d/.test(l) && !/[|@]/.test(l))
+
+    const fn = httpsCallable(functions, 'tailorResume', { timeout: 120000 })
+    const result = await fn({ resumeText, company, role, jobDescription, keySkills, gaps, sectionOrder })
+    return result.data
+  }
+
+  return { parseJD, getCoaching, draftFollowUp, matchResume, importFromUrl, generateInterviewQuestions, tailorResume }
 }

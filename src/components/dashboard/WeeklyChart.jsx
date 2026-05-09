@@ -26,13 +26,13 @@ export default function WeeklyChart() {
   const max = Math.max(...weeks.map(w => w.count), 1)
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-      <h3 className="text-xs font-semibold text-slate-300 mb-4">Applications per Week</h3>
+    <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
+      <h3 className="text-sm font-semibold text-white mb-4">Applications per Week</h3>
       <div className="flex items-end gap-1.5 h-20">
         {weeks.map((week, i) => (
           <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
             <div
-              className="weekly-bar w-full bg-violet-600/70 hover:bg-violet-500 rounded-sm transition-all duration-300"
+              className="weekly-bar w-full bg-violet-500 hover:bg-violet-400 rounded-sm transition-all duration-300"
               style={{ '--bar-h': `${(week.count / max) * 100}%`, '--bar-min-h': week.count > 0 ? '4px' : '0' }}
               title={`${week.label}: ${week.count}`}
             />
@@ -41,7 +41,7 @@ export default function WeeklyChart() {
       </div>
       <div className="flex gap-1.5 mt-1">
         {weeks.map((week, i) => (
-          <span key={i} className="flex-1 text-center text-[9px] text-slate-600 leading-tight truncate">
+          <span key={i} className="flex-1 text-center text-[10px] text-slate-500 leading-tight truncate">
             {week.label.split(' ')[1]}
           </span>
         ))}

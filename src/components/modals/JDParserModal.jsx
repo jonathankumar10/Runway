@@ -40,7 +40,7 @@ export default function JDParserModal({ onParsed, onClose }) {
             <Wand2 size={14} className="text-violet-400" />
             <h2 className="text-sm font-semibold text-white">Parse Job Description</h2>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-200 transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-100 transition-colors">
             <X size={18} />
           </button>
         </div>

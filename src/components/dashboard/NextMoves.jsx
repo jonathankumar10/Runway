@@ -30,10 +30,10 @@ export default function NextMoves() {
     .slice(0, 8)
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-      <h3 className="text-xs font-semibold text-slate-300 mb-3">Next Moves</h3>
+    <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
+      <h3 className="text-sm font-semibold text-white mb-3">Next Moves</h3>
       {active.length === 0 ? (
-        <p className="text-xs text-slate-500">No active applications</p>
+        <p className="text-xs text-slate-400">No active applications</p>
       ) : (
         <ul className="space-y-2">
           {active.map(job => {
@@ -42,10 +42,10 @@ export default function NextMoves() {
             if (!move) return null
             return (
               <li key={job.id} className="flex items-start gap-2.5">
-                <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${stage?.dotClass ?? 'bg-slate-600'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${stage?.dotClass ?? 'bg-slate-500'}`} />
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-white truncate">{job.company} — {job.role}</p>
-                  <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                  <p className="text-xs text-slate-300 flex items-center gap-1">
                     <ArrowRight size={9} />
                     {move}
                   </p>

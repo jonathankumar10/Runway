@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { ExternalLink, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { STAGE_MAP } from '../../constants/stages'
 import { useJobMutations } from '../../hooks/useJobMutations'
 import './ApplicationCard.css'
@@ -17,11 +18,12 @@ function MatchPill({ score }) {
   const color = score >= 75 ? 'text-green-400 bg-green-500/10'
     : score >= 50 ? 'text-yellow-400 bg-yellow-500/10'
     : 'text-red-400 bg-red-500/10'
-  return <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${color}`}>{score}%</span>
+  return <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${color}`}>{score}%</span>
 }
 
 export default function ApplicationCard({ job, isDragging, isSelected, onCardClick }) {
   const { deleteJob } = useJobMutations()
+  const navigate = useNavigate()
   const stage = STAGE_MAP[job.stage]
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortableDragging } = useSortable({ id: job.id })
@@ -43,6 +45,7 @@ export default function ApplicationCard({ job, isDragging, isSelected, onCardCli
       ref={setNodeRef}
       style={dndStyle}
       onClick={() => onCardClick?.(job)}
+      onDoubleClick={() => navigate(`/applications/${job.id}`)}
       className={`app-card ${borderClass}${isDragging ? ' shadow-2xl scale-105' : ''}`}
       {...attributes}
       {...listeners}
@@ -69,7 +72,7 @@ export default function ApplicationCard({ job, isDragging, isSelected, onCardCli
 
         <div className="flex items-center gap-2 flex-wrap">
           {salary && <span className="app-card-salary">{salary}</span>}
-          {job.location && <span className="text-xs text-slate-500 truncate">{job.location}</span>}
+          {job.location && <span className="text-xs text-slate-400 truncate">{job.location}</span>}
         </div>
 
         <div className="app-card-actions" onPointerDown={e => e.stopPropagation()}>

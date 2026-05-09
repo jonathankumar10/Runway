@@ -5,7 +5,7 @@ import {
   ArrowLeft, ExternalLink, Pencil, Sparkles, Loader2,
   CheckCircle2, Circle, Plus, Trash2, FileText,
   ChevronDown, ChevronUp, AlertTriangle, Zap,
-  BookOpen, Mail, Calendar, MessageSquare,
+  BookOpen, Mail, Calendar, MessageSquare, Wand2, Save, Eye, Copy, ClipboardCheck,
 } from 'lucide-react'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext'
@@ -14,6 +14,7 @@ import { useAI } from '../hooks/useAI'
 import { useJobMutations } from '../hooks/useJobMutations'
 import { STAGE_MAP } from '../constants/stages'
 import ApplicationModal from '../components/modals/ApplicationModal'
+import TailoredResumeModal from '../components/modals/TailoredResumeModal'
 import './ApplicationDetailPage.css'
 
 const ROUND_TYPES = ['Phone Screen', 'Technical Interview', 'System Design', 'Behavioral', 'Final Round', 'Other']
@@ -66,7 +67,7 @@ export default function ApplicationDetailPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { jobs, loading } = useJobs()
-  const { matchResume, generateInterviewQuestions } = useAI()
+  const { matchResume, generateInterviewQuestions, tailorResume } = useAI()
   const { deleteJob } = useJobMutations()
 
   const [editing, setEditing] = useState(false)
@@ -80,6 +81,11 @@ export default function ApplicationDetailPage() {
   const [difficulty, setDifficulty] = useState('Medium')
   const [questions, setQuestions] = useState([])
   const [generatingQ, setGeneratingQ] = useState(false)
+  const [copiedIdx, setCopiedIdx] = useState(null)
+  const [tailoring, setTailoring] = useState(false)
+  const [tailorDraft, setTailorDraft] = useState(null)   // { suggestions, sections } — unsaved working copy
+  const [tailorSaving, setTailorSaving] = useState(false)
+  const [resumeModalOpen, setResumeModalOpen] = useState(false)
 
   const job = jobs.find(j => j.id === jobId)
 
@@ -91,7 +97,7 @@ export default function ApplicationDetailPage() {
   if (!job) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <Loader2 size={20} className="text-slate-500 animate-spin" />
+        <Loader2 size={20} className="text-slate-400 animate-spin" />
       </div>
     )
   }
@@ -133,6 +139,7 @@ export default function ApplicationDetailPage() {
           matchScore: result.score,
           matchHighlights: result.highlights ?? [],
           matchGaps: result.gaps ?? [],
+          matchSuggestions: result.resumeSuggestions ?? [],
         })
       }
     } catch (err) {
@@ -188,6 +195,36 @@ export default function ApplicationDetailPage() {
     navigate('/board', { replace: true })
   }
 
+  async function handleTailorResume() {
+    setTailoring(true)
+    setTailorDraft(null)
+    try {
+      const result = await tailorResume(
+        job.company, job.role,
+        job.jobDescription ?? '',
+        job.keySkills ?? [],
+        job.matchGaps ?? []
+      )
+      if (result?.error) throw new Error('Could not generate tailored resume. Try again.')
+      setTailorDraft({ suggestions: result.suggestions ?? [], sections: result.sections ?? [] })
+      setResumeModalOpen(true)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setTailoring(false)
+    }
+  }
+
+  async function handleSaveTailoredResume(html, text, sections) {
+    const payload = {
+      tailoredResumeText: text,
+      tailoredResumeHtml: html,
+      tailoredResumeGeneratedAt: new Date().toISOString(),
+    }
+    if (sections) payload.tailoredResumeSections = sections
+    await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), payload)
+  }
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="detail-topnav">
@@ -206,34 +243,37 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
-      <div className="px-8 py-6 max-w-6xl mx-auto">
-        <p className="text-xs text-slate-500 mb-4">WORKSPACE &rsaquo; {job.company?.toUpperCase()}</p>
+      <div className="px-6 py-5 max-w-7xl mx-auto">
+        <p className="text-xs text-slate-400 mb-4">WORKSPACE &rsaquo; {job.company?.toUpperCase()}</p>
 
-        <div className="flex items-start gap-4 mb-8">
+        <div className="flex items-start gap-4 mb-6">
           {job.logoUrl ? (
             <img src={job.logoUrl} alt="" className="detail-logo" onError={e => { e.target.style.display = 'none' }} />
           ) : (
             <div className="detail-logo-fallback">{job.company?.[0]?.toUpperCase() ?? '?'}</div>
           )}
-          <div>
+          <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-white">{job.company || 'Untitled'}</h1>
             <p className="text-slate-400 mt-0.5">{job.role || 'No role'}</p>
-            <div className="flex items-center gap-3 mt-2.5">
+            <div className="flex flex-wrap items-center gap-2 mt-2.5">
               <span className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 ${stage?.textClass ?? 'text-slate-300'}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${stage?.dotClass ?? 'bg-slate-500'}`} />
                 {stage?.label ?? job.stage}
               </span>
               {job.matchScore != null && (
-                <span className={`text-sm font-bold ${job.matchScore >= 75 ? 'text-green-400' : job.matchScore >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${job.matchScore >= 75 ? 'text-green-400 bg-green-500/10 border-green-500/30' : job.matchScore >= 50 ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30' : 'text-red-400 bg-red-500/10 border-red-500/30'}`}>
                   {job.matchScore}% match
                 </span>
               )}
+              {salary && <span className="text-xs text-slate-300 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700">{salary}</span>}
+              {job.location && <span className="text-xs text-slate-300 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700">{job.location}</span>}
+              {appliedDate && <span className="text-xs text-slate-400 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700">Applied {appliedDate}</span>}
             </div>
           </div>
         </div>
 
         {/* Action cards */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="detail-action-card">
             <div className="flex items-center gap-2 mb-3">
               <div className="detail-action-icon-violet">
@@ -243,7 +283,7 @@ export default function ApplicationDetailPage() {
                 <p className="text-xs font-semibold text-white">
                   {job.matchScore != null ? `${job.matchScore}% Match Score` : 'AI Match Score'}
                 </p>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-xs text-slate-400">
                   {job.matchScore != null ? 'View report · Re-analyze' : 'Run analysis'}
                 </p>
               </div>
@@ -263,7 +303,7 @@ export default function ApplicationDetailPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-white">Interview Prep Hub</p>
-                <p className="text-[10px] text-slate-500">MCQs · Skills · Projects · Tips</p>
+                <p className="text-xs text-slate-400">MCQs · Skills · Projects · Tips</p>
               </div>
             </div>
             <a href="https://github.com/jonathanpasupulety/JobPrep" target="_blank" rel="noopener noreferrer" className="detail-action-btn-blue">
@@ -272,9 +312,9 @@ export default function ApplicationDetailPage() {
           </div>
         </div>
 
-        <div className="flex gap-6 items-start">
-          {/* Main content */}
-          <div className="flex-1 min-w-0 space-y-5">
+        <div className="grid grid-cols-[3fr_2fr] gap-6 items-start">
+          {/* Left column — analysis & content */}
+          <div className="min-w-0 space-y-5">
 
             <Section title="Job Description" icon={FileText}>
               {job.jobDescription ? (
@@ -287,7 +327,7 @@ export default function ApplicationDetailPage() {
                   </button>
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-400">
                   No job description added.{' '}
                   <button onClick={() => setEditing(true)} className="text-violet-400 hover:underline">Edit this application</button>{' '}
                   to paste it in.
@@ -295,54 +335,153 @@ export default function ApplicationDetailPage() {
               )}
             </Section>
 
-            {(job.matchHighlights?.length > 0 || job.matchGaps?.length > 0) && (
+            {(job.matchHighlights?.length > 0 || job.matchGaps?.length > 0 || job.matchSuggestions?.length > 0) && (
               <Section title="Match Analysis" icon={Sparkles}>
-                <div className="grid grid-cols-2 gap-6">
-                  {job.matchHighlights?.length > 0 && (
-                    <div>
-                      <p className="text-[10px] font-semibold text-green-400 uppercase tracking-wide mb-2">Strengths</p>
-                      <ul className="space-y-2">
-                        {job.matchHighlights.map((h, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
-                            <CheckCircle2 size={12} className="text-green-400 shrink-0 mt-0.5" /> {h}
-                          </li>
-                        ))}
-                      </ul>
+                {/* Strengths + Gaps */}
+                {(job.matchHighlights?.length > 0 || job.matchGaps?.length > 0) && (
+                  <div className="grid grid-cols-2 gap-6 mb-5">
+                    {job.matchHighlights?.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-green-400 uppercase tracking-wide mb-2">Strengths</p>
+                        <ul className="space-y-2">
+                          {job.matchHighlights.map((h, i) => (
+                            <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                              <CheckCircle2 size={12} className="text-green-400 shrink-0 mt-0.5" /> {h}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {job.matchGaps?.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-orange-400 uppercase tracking-wide mb-2">Gaps</p>
+                        <ul className="space-y-2">
+                          {job.matchGaps.map((g, i) => (
+                            <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                              <AlertTriangle size={12} className="text-orange-400 shrink-0 mt-0.5" /> {g}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Resume suggestions */}
+                {job.matchSuggestions?.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-sky-400 uppercase tracking-wide mb-2">Suggested additions for your resume</p>
+                    <p className="text-xs text-slate-500 mb-3">Copy any of these directly into your master resume.</p>
+                    <div className="space-y-2">
+                      {job.matchSuggestions.map((s, i) => (
+                        <div key={i} className="flex items-start gap-2 p-2.5 bg-slate-800/60 border border-slate-700 rounded-lg group">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-semibold text-sky-400 uppercase tracking-wide mb-0.5">{s.section}</p>
+                            <p className="text-xs text-slate-300 leading-relaxed">{s.suggestion}</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(s.suggestion)
+                              setCopiedIdx(i)
+                              setTimeout(() => setCopiedIdx(null), 2000)
+                            }}
+                            className="shrink-0 p-1 text-slate-500 hover:text-slate-200 transition-colors"
+                            title="Copy to clipboard"
+                          >
+                            {copiedIdx === i
+                              ? <ClipboardCheck size={13} className="text-green-400" />
+                              : <Copy size={13} />
+                            }
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  )}
-                  {job.matchGaps?.length > 0 && (
-                    <div>
-                      <p className="text-[10px] font-semibold text-orange-400 uppercase tracking-wide mb-2">Gaps</p>
-                      <ul className="space-y-2">
-                        {job.matchGaps.map((g, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
-                            <AlertTriangle size={12} className="text-orange-400 shrink-0 mt-0.5" /> {g}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </Section>
             )}
 
+            <Section title="Tailored Resume" icon={Wand2}>
+              <p className="text-xs text-slate-400 mb-4">
+                Generate a version of your resume optimised for this specific role. You can edit and download it as a PDF.
+                {job.matchScore == null && <span className="text-orange-400 ml-1">Run AI match analysis first for better results.</span>}
+              </p>
+
+              {/* Saved banner */}
+              {job.tailoredResumeText && (
+                <div className="flex items-center justify-between gap-3 p-3 bg-green-500/5 border border-green-500/20 rounded-xl mb-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={14} className="text-green-400 shrink-0" />
+                    <p className="text-xs text-slate-300">Tailored resume saved for this job</p>
+                  </div>
+                  <button
+                    onClick={() => setResumeModalOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors"
+                  >
+                    <Eye size={11} /> View / Edit
+                  </button>
+                </div>
+              )}
+
+              {/* Suggestions from latest generation */}
+              {tailorDraft?.suggestions.length > 0 && (
+                <div className="p-4 bg-violet-500/5 border border-violet-500/20 rounded-xl mb-4">
+                  <p className="text-xs font-semibold text-violet-400 uppercase tracking-wide mb-2.5">What was improved</p>
+                  <ul className="space-y-1.5">
+                    {tailorDraft.suggestions.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                        <span className="text-violet-400 shrink-0 mt-0.5">→</span> {s}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => setResumeModalOpen(true)}
+                    className="flex items-center gap-1.5 mt-3 px-3 py-1.5 text-xs font-medium text-violet-300 border border-violet-600/40 bg-violet-600/10 hover:bg-violet-600/20 rounded-lg transition-colors"
+                  >
+                    <Eye size={11} /> Open in editor
+                  </button>
+                </div>
+              )}
+
+              <button onClick={handleTailorResume} disabled={tailoring} className="detail-generate-btn">
+                {tailoring ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+                {tailoring ? 'Tailoring resume...' : job.tailoredResumeText ? 'Re-generate tailored resume' : 'Generate tailored resume'}
+              </button>
+            </Section>
+
+            <Section title="Notes" icon={FileText}>
+              <textarea
+                value={currentNotes}
+                onChange={e => setNotes(e.target.value)}
+                onBlur={handleSaveNotes}
+                placeholder="Add notes, impressions, key skills to highlight, interview prep..."
+                rows={8}
+                className="detail-form-textarea"
+              />
+              {notesSaving && <p className="text-xs text-slate-400 mt-1">Saving...</p>}
+            </Section>
+          </div>
+
+          {/* Right column */}
+          <div className="min-w-0 space-y-5">
+
             <Section title="My To-Dos" icon={CheckCircle2} badge={`${completedTodos}/${todos.length}`}>
-              <div className="w-full bg-slate-800 rounded-full h-1 mb-5">
+              <div className="w-full bg-slate-800 rounded-full h-1 mb-4">
                 <div className="todo-progress bg-violet-500 h-1 rounded-full transition-all"
                   style={{ '--progress-w': `${(completedTodos / todos.length) * 100}%` }} />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {todos.map(todo => (
                   <div key={todo.id} className="flex items-start gap-3">
                     {todo.done
-                      ? <CheckCircle2 size={16} className="text-green-400 shrink-0 mt-0.5" />
-                      : <Circle size={16} className="text-slate-600 shrink-0 mt-0.5" />
+                      ? <CheckCircle2 size={15} className="text-green-400 shrink-0 mt-0.5" />
+                      : <Circle size={15} className="text-slate-600 shrink-0 mt-0.5" />
                     }
                     <div>
-                      <p className={`text-sm font-medium ${todo.done ? 'text-slate-500 line-through' : 'text-slate-200'}`}>
+                      <p className={`text-xs font-medium ${todo.done ? 'text-slate-500 line-through' : 'text-slate-200'}`}>
                         {todo.label}
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">{todo.desc}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{todo.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -388,15 +527,15 @@ export default function ApplicationDetailPage() {
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">No interview rounds tracked yet.</p>
+                <p className="text-sm text-slate-400">No interview rounds tracked yet.</p>
               )}
             </Section>
 
             <Section title="Practice Interview Questions" icon={MessageSquare}>
-              <p className="text-xs text-slate-500 mb-4">{job.company} &middot; {job.role}</p>
-              <div className="flex gap-6 mb-4">
+              <p className="text-xs text-slate-400 mb-4">{job.company} &middot; {job.role}</p>
+              <div className="flex gap-4 mb-4 flex-wrap">
                 <div>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wide font-semibold mb-1.5">Questions</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Questions</p>
                   <div className="flex gap-1.5">
                     {[5, 10].map(n => (
                       <button key={n} onClick={() => setQuestionCount(n)}
@@ -407,7 +546,7 @@ export default function ApplicationDetailPage() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wide font-semibold mb-1.5">Difficulty</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Difficulty</p>
                   <div className="flex gap-1.5">
                     {DIFFICULTIES.map(d => (
                       <button key={d} onClick={() => setDifficulty(d)}
@@ -426,7 +565,7 @@ export default function ApplicationDetailPage() {
                 <ol className="space-y-3">
                   {questions.map((q, i) => (
                     <li key={i} className="flex gap-3">
-                      <span className="text-xs font-bold text-slate-500 shrink-0 mt-0.5 w-4">{i + 1}.</span>
+                      <span className="text-xs font-bold text-slate-400 shrink-0 mt-0.5 w-4">{i + 1}.</span>
                       <span className="text-sm text-slate-300 leading-relaxed">{q}</span>
                     </li>
                   ))}
@@ -434,31 +573,40 @@ export default function ApplicationDetailPage() {
               )}
             </Section>
 
-            <Section title="Notes" icon={FileText}>
-              <textarea
-                value={currentNotes}
-                onChange={e => setNotes(e.target.value)}
-                onBlur={handleSaveNotes}
-                placeholder="Add notes, impressions, key skills to highlight, interview prep..."
-                rows={6}
-                className="detail-form-textarea"
-              />
-              {notesSaving && <p className="text-[10px] text-slate-500 mt-1">Saving...</p>}
-            </Section>
-          </div>
+            {/* Meta info */}
+            {(job.source || job.nextStep || addedDate || updatedDate) && (
+              <aside className="detail-sidebar-card space-y-2.5">
+                {job.source && <MetaRow label="Source" value={job.source} />}
+                {job.nextStep && (
+                  <div>
+                    <p className="text-xs text-slate-400 font-medium mb-1">Next Step</p>
+                    <p className="text-xs text-slate-300">{job.nextStep}</p>
+                  </div>
+                )}
+                {addedDate && <MetaRow label="Added" value={addedDate} />}
+                {updatedDate && <MetaRow label="Updated" value={updatedDate} />}
+                <div className="pt-1 border-t border-slate-800">
+                  <Link to="/resumes" className="flex items-center gap-2 text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                    <FileText size={12} /> Manage resumes →
+                  </Link>
+                </div>
+              </aside>
+            )}
 
-          {/* Right sidebar */}
-          <div className="w-60 shrink-0 space-y-4">
-            <aside className="detail-sidebar-card">
-              <p className="detail-sidebar-label">Resume</p>
-              <Link to="/resumes" className="flex items-center gap-2 text-xs text-violet-400 hover:text-violet-300 transition-colors">
-                <FileText size={13} /> Manage in Resume Library →
-              </Link>
-            </aside>
+            {job.keySkills?.length > 0 && (
+              <aside className="detail-sidebar-card">
+                <p className="detail-sidebar-label">Key Skills</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {job.keySkills.map(s => (
+                    <span key={s} className="detail-skill-tag">{s}</span>
+                  ))}
+                </div>
+              </aside>
+            )}
 
             {(job.recruiterName || job.recruiterEmail || job.recruiterLinkedIn) && (
               <aside className="detail-sidebar-card">
-                <p className="detail-sidebar-label">Contacts</p>
+                <p className="detail-sidebar-label">Recruiter</p>
                 <div className="space-y-2">
                   {job.recruiterName && <p className="text-sm font-medium text-white">{job.recruiterName}</p>}
                   {job.recruiterEmail && (
@@ -475,34 +623,8 @@ export default function ApplicationDetailPage() {
               </aside>
             )}
 
-            <aside className="detail-sidebar-card space-y-2.5">
-              {appliedDate && <MetaRow label="Applied" value={appliedDate} />}
-              {salary && <MetaRow label="Salary" value={salary} />}
-              {job.location && <MetaRow label="Location" value={job.location} />}
-              {job.source && <MetaRow label="Source" value={job.source} />}
-              {job.nextStep && (
-                <div>
-                  <p className="text-[10px] text-slate-500 font-medium mb-1">Next Step</p>
-                  <p className="text-xs text-slate-300">{job.nextStep}</p>
-                </div>
-              )}
-              {addedDate && <MetaRow label="Added" value={addedDate} />}
-              {updatedDate && <MetaRow label="Updated" value={updatedDate} />}
-            </aside>
-
-            {job.keySkills?.length > 0 && (
-              <aside className="detail-sidebar-card">
-                <p className="detail-sidebar-label">Key Skills</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {job.keySkills.map(s => (
-                    <span key={s} className="detail-skill-tag">{s}</span>
-                  ))}
-                </div>
-              </aside>
-            )}
-
             <aside className="detail-danger-card">
-              <p className="text-[10px] font-semibold text-red-400 uppercase tracking-wide mb-3">Danger Zone</p>
+              <p className="text-xs font-semibold text-red-400 uppercase tracking-wide mb-3">Danger Zone</p>
               <button onClick={handleDelete} className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 transition-colors">
                 <Trash2 size={13} /> Delete this application
               </button>
@@ -512,6 +634,17 @@ export default function ApplicationDetailPage() {
       </div>
 
       {editing && <ApplicationModal job={job} onClose={() => setEditing(false)} />}
+
+      {resumeModalOpen && (
+        <TailoredResumeModal
+          job={job}
+          initialSections={tailorDraft?.sections ?? job.tailoredResumeSections}
+          initialHtml={!tailorDraft?.sections?.length && !job.tailoredResumeSections?.length ? (tailorDraft ? undefined : job.tailoredResumeHtml) : undefined}
+          initialText={!tailorDraft?.sections?.length && !job.tailoredResumeSections?.length ? (tailorDraft ? undefined : job.tailoredResumeText) : undefined}
+          onSave={handleSaveTailoredResume}
+          onClose={() => setResumeModalOpen(false)}
+        />
+      )}
     </div>
   )
 }
@@ -546,9 +679,9 @@ function RoundRow({ round, onDelete }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <p className="text-sm font-medium text-white">{round.type}</p>
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${resultColor}`}>{round.result}</span>
+          <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${resultColor}`}>{round.result}</span>
         </div>
-        {dateStr && <p className="text-xs text-slate-500">{dateStr}</p>}
+        {dateStr && <p className="text-xs text-slate-400">{dateStr}</p>}
         {round.notes && <p className="text-xs text-slate-400 mt-1">{round.notes}</p>}
       </div>
       <button onClick={onDelete} className="text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5">
@@ -561,7 +694,7 @@ function RoundRow({ round, onDelete }) {
 function MetaRow({ label, value }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-[10px] text-slate-500 font-medium shrink-0">{label}</span>
+      <span className="text-xs text-slate-400 font-medium shrink-0">{label}</span>
       <span className="text-xs text-slate-300 text-right">{value}</span>
     </div>
   )
@@ -596,7 +729,7 @@ function FollowUpCard({ job }) {
       <div className="detail-action-card">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-semibold text-white">Follow-Up Draft</p>
-          <button onClick={() => setDraft(null)} className="text-xs text-slate-500 hover:text-slate-300">Clear</button>
+          <button onClick={() => setDraft(null)} className="text-xs text-slate-400 hover:text-slate-200">Clear</button>
         </div>
         <p className="text-[11px] font-medium text-slate-400 mb-1">Subject: {draft.subject}</p>
         <p className="text-xs text-slate-300 leading-relaxed line-clamp-4">{draft.body}</p>
@@ -620,7 +753,7 @@ function FollowUpCard({ job }) {
         </div>
         <div>
           <p className="text-xs font-semibold text-white">Draft Follow-Up</p>
-          <p className="text-[10px] text-slate-500">Generate a tailored email</p>
+          <p className="text-xs text-slate-400">Generate a tailored email</p>
         </div>
       </div>
       <button onClick={handleDraft} disabled={drafting} className="detail-action-btn-green">

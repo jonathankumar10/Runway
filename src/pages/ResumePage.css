@@ -1,35 +1,62 @@
 @reference "tailwindcss";
 
 .resume-page {
-  @apply flex-1 overflow-y-auto px-8 py-6 max-w-3xl;
+  @apply flex-1 overflow-y-auto px-8 py-6;
 }
 
-.resume-library-card {
-  @apply bg-slate-900 border border-slate-800 rounded-2xl p-6;
+/* Top stats bar */
+.resume-stats-row {
+  @apply grid grid-cols-4 gap-4 mb-6;
 }
 
-.resume-row {
-  @apply flex items-center gap-4 p-4 rounded-xl border transition-colors;
+.resume-stat-card {
+  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-5 py-4;
 }
 
-.resume-row-default {
-  @apply bg-violet-500/5 border-violet-500/20;
+/* Two-column master-detail layout */
+.resume-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
 }
 
-.resume-row-normal {
-  @apply bg-slate-800/50 border-slate-700;
+/* LEFT — list column */
+.resume-list-col {
+  @apply flex flex-col gap-3;
 }
 
-.resume-row-icon {
-  @apply w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center shrink-0;
+.resume-list-card {
+  @apply bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden;
 }
 
-.resume-default-badge {
-  @apply flex items-center gap-1 text-[10px] font-semibold text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded-full shrink-0;
+.resume-list-header {
+  @apply flex items-center justify-between px-4 py-3 border-b border-slate-700;
 }
 
+.resume-list-items {
+  @apply divide-y divide-slate-800;
+}
+
+.resume-list-item {
+  @apply w-full flex items-center gap-3 px-4 py-3 transition-colors text-left;
+}
+
+.resume-list-item-idle {
+  @apply hover:bg-slate-800/60;
+}
+
+.resume-list-item-selected {
+  @apply bg-violet-600/10;
+}
+
+.resume-list-item-icon {
+  @apply w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors;
+}
+
+/* Upload zone */
 .resume-upload-zone {
-  @apply flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-xl py-8 cursor-pointer transition-colors;
+  @apply flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl m-3 py-6 cursor-pointer transition-colors;
 }
 
 .resume-upload-zone-idle {
@@ -40,10 +67,69 @@
   @apply border-violet-500 bg-violet-500/5;
 }
 
+/* RIGHT — detail column */
+.resume-detail-col {
+  @apply sticky top-6;
+}
+
+.resume-detail-card {
+  @apply bg-slate-900 border border-slate-700 rounded-2xl p-6;
+}
+
+.resume-detail-top {
+  @apply flex items-start gap-4 mb-5;
+}
+
+.resume-detail-icon {
+  @apply w-12 h-12 bg-violet-600/15 border border-violet-500/25 rounded-xl flex items-center justify-center shrink-0;
+}
+
+.resume-detail-actions {
+  @apply flex items-center gap-2 flex-wrap mb-5;
+}
+
+.resume-detail-divider {
+  @apply border-t border-slate-800 mb-5;
+}
+
+.resume-section-title {
+  @apply text-xs font-semibold text-slate-300 uppercase tracking-wide;
+}
+
+/* Stats mini cards */
+.resume-stat-mini {
+  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-3;
+}
+
+/* Skill tags */
+.resume-skill-tag {
+  @apply text-xs bg-slate-700/80 text-slate-200 px-2.5 py-1 rounded-lg border border-slate-600;
+}
+
+/* Label editing */
+.resume-label-input-lg {
+  @apply bg-transparent border-b border-violet-500 text-lg font-bold text-white focus:outline-none w-full pb-0.5;
+}
+
+/* Default badge */
+.resume-default-badge {
+  @apply inline-flex items-center gap-1 text-xs font-semibold text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded-full;
+}
+
+/* Empty detail state */
+.resume-empty-detail {
+  @apply flex flex-col items-center justify-center py-20 text-center bg-slate-900 border border-slate-700 rounded-2xl;
+}
+
+/* Action buttons */
 .resume-action-btn {
-  @apply flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-slate-200;
+  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white;
+}
+
+.resume-action-btn-accent {
+  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-violet-300 border-violet-600/40 bg-violet-600/10 hover:bg-violet-600/20;
 }
 
 .resume-action-btn-danger {
-  @apply flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors text-red-400 border-red-500/20 hover:bg-red-500/10;
+  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-red-400 border-red-500/20 hover:bg-red-500/10;
 }

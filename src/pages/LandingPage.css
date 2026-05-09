@@ -1,0 +1,471 @@
+@reference "tailwindcss";
+
+/* ── Root ── */
+.lp-root {
+  @apply relative min-h-screen bg-slate-950 overflow-x-hidden;
+}
+
+/* ── Background orbs ── */
+.lp-orbs {
+  @apply fixed inset-0 pointer-events-none overflow-hidden;
+}
+
+.lp-orb {
+  @apply absolute rounded-full blur-[120px];
+  animation: lp-drift 14s ease-in-out infinite alternate;
+}
+
+.lp-orb--violet {
+  width: 600px; height: 600px;
+  background: rgba(109, 40, 217, 0.25);
+  top: -15%; left: -8%;
+  animation-delay: 0s;
+}
+
+.lp-orb--indigo {
+  width: 500px; height: 500px;
+  background: rgba(79, 70, 229, 0.2);
+  bottom: 5%; right: -8%;
+  animation-delay: -5s;
+}
+
+.lp-orb--blue {
+  width: 360px; height: 360px;
+  background: rgba(37, 99, 235, 0.15);
+  top: 45%; left: 38%;
+  animation-delay: -10s;
+}
+
+.lp-dot-grid {
+  @apply fixed inset-0 pointer-events-none;
+  opacity: 0.035;
+  background-image: radial-gradient(circle, #94a3b8 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ── Scroll reveal ── */
+.lp-hidden {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.lp-reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+/* ── Navbar ── */
+.lp-nav {
+  @apply sticky top-0 z-50 border-b border-white/5 backdrop-blur-xl;
+  background: rgba(4, 9, 26, 0.8);
+}
+
+.lp-nav-inner {
+  @apply flex items-center justify-between px-8 h-14;
+  padding-left: clamp(1.5rem, 5vw, 5rem);
+  padding-right: clamp(1.5rem, 5vw, 5rem);
+}
+
+.lp-nav-logo {
+  @apply flex items-center gap-2.5;
+}
+
+.lp-nav-icon {
+  @apply w-7 h-7 rounded-lg flex items-center justify-center;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  box-shadow: 0 0 16px rgba(124, 58, 237, 0.4);
+}
+
+.lp-nav-wordmark {
+  @apply text-sm font-semibold text-white tracking-tight;
+}
+
+.lp-nav-signin {
+  @apply flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-200 border border-slate-700 hover:border-violet-500/60 hover:text-white bg-slate-900/60 hover:bg-slate-800/80 rounded-xl transition-all duration-200;
+}
+
+/* ── Hero ── */
+.lp-hero {
+  @apply relative pt-20 pb-20;
+  padding-left: clamp(1.5rem, 5vw, 5rem);
+  padding-right: clamp(1.5rem, 5vw, 5rem);
+}
+
+.lp-hero-inner {
+  @apply grid gap-14 w-full;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+}
+
+/* Stack on narrow screens */
+@media (max-width: 900px) {
+  .lp-hero-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lp-hero-copy {
+  @apply flex flex-col justify-center;
+}
+
+.lp-hero-badge {
+  @apply inline-flex items-center gap-2 self-start px-3 py-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-300 text-xs font-medium mb-6;
+  animation: lp-slideup 0.5s ease both;
+}
+
+.lp-hero-h1 {
+  @apply text-5xl font-bold text-white leading-tight mb-5;
+  animation: lp-slideup 0.55s ease both 0.08s;
+}
+
+.lp-hero-gradient {
+  @apply text-transparent bg-clip-text;
+  background-image: linear-gradient(135deg, #a78bfa, #818cf8, #60a5fa);
+  background-size: 200% 200%;
+  animation: lp-gradient-pan 6s ease infinite;
+}
+
+.lp-hero-sub {
+  @apply text-slate-400 text-lg leading-relaxed mb-8 max-w-md;
+  animation: lp-slideup 0.55s ease both 0.16s;
+}
+
+.lp-hero-actions {
+  @apply flex items-center gap-3 mb-4;
+  animation: lp-slideup 0.55s ease both 0.24s;
+}
+
+.lp-hero-fine {
+  @apply text-xs text-slate-500;
+  animation: lp-fadein 0.6s ease both 0.4s;
+}
+
+.lp-hero-visual {
+  @apply w-full;
+  animation: lp-fadein 0.7s ease both 0.3s;
+}
+
+/* ── CTA button ── */
+.lp-cta-primary {
+  @apply inline-flex items-center gap-2.5 px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold text-sm rounded-xl transition-all duration-200 active:scale-[0.98];
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
+}
+
+.lp-cta-primary:hover {
+  box-shadow: 0 6px 28px rgba(124, 58, 237, 0.5);
+  transform: translateY(-1px);
+}
+
+.lp-cta-primary--large {
+  @apply text-base px-8 py-4 rounded-2xl;
+}
+
+/* ── Browser window mockup ── */
+.lp-browser {
+  @apply w-full rounded-2xl overflow-hidden border border-slate-700/50;
+  background: #0c1120;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+.lp-browser-bar {
+  @apply flex items-center gap-3 px-4 py-3 border-b border-slate-700/50;
+  background: #111827;
+}
+
+.lp-browser-dots {
+  @apply flex items-center gap-1.5;
+}
+
+.lp-dot-r { @apply w-3 h-3 rounded-full block; background: #ff5f57; }
+.lp-dot-y { @apply w-3 h-3 rounded-full block; background: #febc2e; }
+.lp-dot-g { @apply w-3 h-3 rounded-full block; background: #28c840; }
+
+.lp-browser-url {
+  @apply flex-1 text-xs text-slate-500 text-center font-mono;
+}
+
+.lp-browser-body {
+  @apply flex;
+  min-height: 300px;
+}
+
+.lp-browser-sidebar {
+  @apply flex flex-col gap-3 p-3 border-r border-slate-700/40;
+  background: #0f172a;
+  width: 40px;
+}
+
+.lp-browser-sidebar-icon {
+  @apply w-5 h-5 rounded-md bg-slate-700/60;
+}
+
+.lp-browser-sidebar-icon--active {
+  @apply bg-violet-600/60;
+}
+
+.lp-browser-content {
+  @apply flex-1 p-4 flex flex-col gap-3;
+}
+
+.lp-browser-toolbar {
+  @apply flex items-center justify-between mb-1;
+}
+
+.lp-browser-toolbar-title {
+  @apply text-xs font-semibold text-white;
+}
+
+.lp-browser-toolbar-badge {
+  @apply text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/25;
+}
+
+/* ── Mock job cards ── */
+.lp-mock-cards {
+  @apply flex flex-col gap-2;
+}
+
+.lp-mock-card {
+  @apply flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-700/40;
+  background: #1e293b;
+  animation: lp-fadein 0.5s ease both;
+}
+
+.lp-mock-card-left {
+  @apply flex items-center gap-2.5 min-w-0;
+}
+
+.lp-mock-logo {
+  @apply w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0;
+}
+
+.lp-mock-text {
+  @apply min-w-0;
+}
+
+.lp-mock-company {
+  @apply text-xs font-semibold text-white truncate;
+}
+
+.lp-mock-role {
+  @apply text-[10px] text-slate-400 truncate;
+}
+
+.lp-mock-card-right {
+  @apply flex items-center gap-2 shrink-0;
+}
+
+.lp-mock-stage {
+  @apply text-[10px] font-medium px-2 py-0.5 rounded-full;
+}
+
+.lp-mock-stage--blue   { @apply bg-blue-500/15 text-blue-300 border border-blue-500/25; }
+.lp-mock-stage--violet { @apply bg-violet-500/15 text-violet-300 border border-violet-500/25; }
+.lp-mock-stage--slate  { @apply bg-slate-500/15 text-slate-300 border border-slate-600/30; }
+
+.lp-mock-score {
+  @apply text-[10px] font-bold;
+}
+
+.lp-mock-score--green  { @apply text-green-400; }
+.lp-mock-score--yellow { @apply text-yellow-400; }
+.lp-mock-score--red    { @apply text-red-400; }
+
+/* Score strip at bottom of browser */
+.lp-browser-score-strip {
+  @apply flex flex-wrap gap-3 pt-2 mt-auto border-t border-slate-700/40;
+}
+
+.lp-browser-score-item {
+  @apply flex items-center gap-1.5 text-[10px] text-slate-400;
+}
+
+/* ── Stats strip ── */
+.lp-stats-strip {
+  @apply relative flex flex-wrap justify-center gap-10 py-8 px-6 border-y border-slate-800/60;
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.lp-stat {
+  @apply flex flex-col items-center gap-1;
+}
+
+.lp-stat-value {
+  @apply text-2xl font-bold text-white;
+}
+
+.lp-stat-label {
+  @apply text-xs text-slate-400;
+}
+
+/* ── Sections ── */
+.lp-section {
+  @apply relative py-16;
+  padding-left: clamp(1.5rem, 5vw, 5rem);
+  padding-right: clamp(1.5rem, 5vw, 5rem);
+}
+
+.lp-section--alt {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.lp-section-inner {
+  @apply w-full;
+}
+
+.lp-section-header {
+  @apply text-center mb-10;
+}
+
+.lp-section-eyebrow {
+  @apply inline-block text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3;
+}
+
+.lp-section-h2 {
+  @apply text-4xl font-bold text-white mb-4;
+}
+
+.lp-section-sub {
+  @apply text-slate-400 text-lg max-w-xl mx-auto leading-relaxed;
+}
+
+/* ── Feature grid ── */
+.lp-features-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5;
+  /* On very wide screens keep to 3 columns but let each card grow */
+  max-width: 100%;
+}
+
+.lp-feature-card {
+  @apply p-6 rounded-2xl border bg-slate-900/60 backdrop-blur-sm;
+  transition: opacity 0.55s ease, transform 0.55s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.lp-feature-card:hover {
+  transform: translateY(-4px) !important;
+}
+
+.lp-feature-card--violet { @apply border-slate-700/50 hover:border-violet-500/40;  }
+.lp-feature-card--violet:hover { box-shadow: 0 12px 40px rgba(124,58,237,0.15); }
+
+.lp-feature-card--indigo { @apply border-slate-700/50 hover:border-indigo-500/40; }
+.lp-feature-card--indigo:hover { box-shadow: 0 12px 40px rgba(99,102,241,0.15); }
+
+.lp-feature-card--sky    { @apply border-slate-700/50 hover:border-sky-500/40;    }
+.lp-feature-card--sky:hover    { box-shadow: 0 12px 40px rgba(14,165,233,0.12); }
+
+.lp-feature-card--emerald{ @apply border-slate-700/50 hover:border-emerald-500/40; }
+.lp-feature-card--emerald:hover{ box-shadow: 0 12px 40px rgba(16,185,129,0.12); }
+
+.lp-feature-card--amber  { @apply border-slate-700/50 hover:border-amber-500/40;  }
+.lp-feature-card--amber:hover  { box-shadow: 0 12px 40px rgba(245,158,11,0.12); }
+
+.lp-feature-card--rose   { @apply border-slate-700/50 hover:border-rose-500/40;   }
+.lp-feature-card--rose:hover   { box-shadow: 0 12px 40px rgba(244,63,94,0.12); }
+
+.lp-feature-icon {
+  @apply w-10 h-10 rounded-xl flex items-center justify-center mb-4;
+}
+
+.lp-feature-icon--violet  { @apply bg-violet-500/15 text-violet-400; }
+.lp-feature-icon--indigo  { @apply bg-indigo-500/15 text-indigo-400; }
+.lp-feature-icon--sky     { @apply bg-sky-500/15 text-sky-400; }
+.lp-feature-icon--emerald { @apply bg-emerald-500/15 text-emerald-400; }
+.lp-feature-icon--amber   { @apply bg-amber-500/15 text-amber-400; }
+.lp-feature-icon--rose    { @apply bg-rose-500/15 text-rose-400; }
+
+.lp-feature-title {
+  @apply text-base font-semibold text-white mb-2;
+}
+
+.lp-feature-desc {
+  @apply text-sm text-slate-400 leading-relaxed;
+}
+
+/* ── Steps ── */
+.lp-steps {
+  @apply flex flex-col gap-4 max-w-2xl mx-auto;
+}
+
+.lp-step {
+  @apply flex items-start gap-5 p-5 rounded-2xl border border-slate-800/80 bg-slate-900/40;
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.lp-step-num {
+  @apply shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold;
+}
+
+.lp-step-num--violet  { @apply bg-violet-500/15 text-violet-400; }
+.lp-step-num--indigo  { @apply bg-indigo-500/15 text-indigo-400; }
+.lp-step-num--sky     { @apply bg-sky-500/15 text-sky-400; }
+.lp-step-num--emerald { @apply bg-emerald-500/15 text-emerald-400; }
+
+.lp-step-title {
+  @apply text-sm font-semibold text-white mb-1;
+}
+
+.lp-step-desc {
+  @apply text-sm text-slate-400 leading-relaxed;
+}
+
+/* ── CTA box ── */
+.lp-cta-box {
+  @apply relative max-w-2xl mx-auto text-center p-12 rounded-3xl border border-violet-500/20 overflow-hidden;
+  background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 70%),
+              rgba(15, 23, 42, 0.6);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.lp-cta-orb {
+  @apply absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full pointer-events-none blur-3xl;
+  background: rgba(124, 58, 237, 0.18);
+}
+
+.lp-cta-eyebrow {
+  @apply text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3;
+}
+
+.lp-cta-h2 {
+  @apply text-3xl font-bold text-white mb-3;
+}
+
+.lp-cta-sub {
+  @apply text-slate-400 mb-8 leading-relaxed;
+}
+
+/* ── Footer ── */
+.lp-footer {
+  @apply border-t border-slate-800/60 py-6;
+  padding-left: clamp(1.5rem, 5vw, 5rem);
+  padding-right: clamp(1.5rem, 5vw, 5rem);
+}
+
+.lp-footer-inner {
+  @apply flex items-center justify-between flex-wrap gap-4;
+}
+
+.lp-footer-copy {
+  @apply text-xs text-slate-500;
+}
+
+/* ── Keyframes ── */
+@keyframes lp-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(25px, 18px) scale(1.06); }
+}
+
+@keyframes lp-fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes lp-slideup {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lp-gradient-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}

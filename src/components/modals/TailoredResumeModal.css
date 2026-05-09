@@ -1,0 +1,152 @@
+@reference "tailwindcss";
+
+/* Overlay */
+.trm-overlay {
+  @apply fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col;
+}
+
+.trm-modal {
+  @apply flex flex-col flex-1 min-h-0;
+}
+
+/* Toolbar */
+.trm-toolbar {
+  @apply flex items-center justify-between gap-4 px-5 py-3 bg-slate-900 border-b border-slate-700 shrink-0;
+}
+
+.trm-toolbar-icon {
+  @apply w-7 h-7 rounded-md bg-violet-600/30 border border-violet-500/40 shrink-0;
+}
+
+.trm-mode-toggle {
+  @apply flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5;
+}
+
+.trm-mode-btn {
+  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors;
+}
+
+.trm-mode-btn-active {
+  @apply bg-slate-700 text-white;
+}
+
+.trm-mode-btn-idle {
+  @apply text-slate-400 hover:text-slate-200;
+}
+
+.trm-action-btn {
+  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-800 rounded-lg transition-colors;
+}
+
+.trm-save-btn {
+  @apply flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg transition-colors;
+}
+
+/* Scrollable body */
+.trm-body {
+  @apply flex-1 overflow-y-auto bg-slate-950 flex flex-col items-center py-8 px-4 gap-3;
+}
+
+.trm-edit-hint {
+  @apply text-xs text-slate-500 text-center;
+}
+
+/* Paper wrapper */
+.trm-paper-wrap {
+  width: 100%;
+  max-width: 760px;
+}
+
+/* The resume paper itself */
+.trm-paper {
+  background: #fff;
+  color: #111;
+  padding: 52px 60px;
+  min-height: 1000px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  border-radius: 4px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 10.5pt;
+  line-height: 1.55;
+  outline: none;
+}
+
+.trm-paper-editable {
+  cursor: text;
+}
+
+.trm-paper-editable:focus-within {
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 2px #7c3aed;
+}
+
+/* ── Resume typography ── */
+
+.trm-paper h1.rp-name {
+  font-size: 22pt;
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+  color: #111;
+}
+
+.trm-paper p.rp-contact {
+  font-size: 10pt;
+  color: #555;
+  text-align: center;
+  margin-bottom: 2px;
+  font-family: system-ui, sans-serif;
+}
+
+.trm-paper h2.rp-section {
+  font-family: system-ui, sans-serif;
+  font-size: 10.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #1565C0;
+  border-bottom: 1.5px solid #1565C0;
+  padding-bottom: 2px;
+  margin: 16px 0 6px;
+}
+
+.trm-paper p.rp-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 600;
+  font-size: 10.5pt;
+  margin: 6px 0 2px;
+  color: #111;
+}
+
+.trm-paper .rp-date {
+  font-weight: normal;
+  font-size: 10pt;
+  color: #333;
+  white-space: nowrap;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.trm-paper p.rp-body {
+  font-size: 10.5pt;
+  color: #222;
+  margin: 2px 0;
+}
+
+.trm-paper ul.rp-list {
+  padding-left: 18px;
+  margin: 3px 0 6px;
+}
+
+.trm-paper ul.rp-list li {
+  font-size: 10.5pt;
+  color: #222;
+  margin-bottom: 3px;
+  line-height: 1.5;
+}
+
+.trm-paper .rp-spacer {
+  height: 5px;
+}

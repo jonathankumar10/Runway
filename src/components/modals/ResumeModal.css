@@ -9,15 +9,15 @@
 }
 
 .rm-header {
-  @apply flex items-center justify-between px-5 py-4 border-b border-slate-800;
+  @apply flex items-center justify-between px-5 py-4 border-b border-slate-700;
 }
 
 .rm-footer {
-  @apply flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-800;
+  @apply flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-700;
 }
 
 .rm-upload-btn {
-  @apply flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg transition-colors mb-3;
+  @apply flex items-center gap-2 text-xs text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg transition-colors mb-3;
 }
 
 .rm-textarea {
@@ -29,5 +29,5 @@
 }
 
 .rm-cancel-btn {
-  @apply px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors;
+  @apply px-3 py-1.5 text-sm text-slate-300 hover:text-white transition-colors;
 }

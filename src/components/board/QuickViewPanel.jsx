@@ -191,7 +191,7 @@ export default function QuickViewPanel({ job, onClose }) {
 function Row({ label, children }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-[10px] text-slate-500 font-medium shrink-0">{label}</span>
+      <span className="text-xs text-slate-400 font-medium shrink-0">{label}</span>
       {children}
     </div>
   )
