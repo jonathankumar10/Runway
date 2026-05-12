@@ -81,8 +81,16 @@
   @apply text-sm font-semibold text-white tracking-tight;
 }
 
+.lp-nav-actions {
+  @apply flex items-center gap-2;
+}
+
 .lp-nav-signin {
-  @apply flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-200 border border-slate-700 hover:border-violet-500/60 hover:text-white bg-slate-900/60 hover:bg-slate-800/80 rounded-xl transition-all duration-200;
+  @apply flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200 cursor-pointer;
+}
+
+.lp-nav-signup {
+  @apply flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-violet-600 hover:bg-violet-500 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-violet-900/40 cursor-pointer;
 }
 
 /* ── Hero ── */

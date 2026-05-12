@@ -20,22 +20,104 @@
   @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-violet-900/10 blur-[80px];
 }
 
+/* Card */
 .login-card {
-  @apply flex flex-col items-center gap-8 p-8 rounded-2xl border border-slate-700/40 bg-slate-900/75 backdrop-blur-xl shadow-2xl shadow-black/50;
+  @apply flex flex-col items-center gap-5 p-7 rounded-2xl border border-slate-700/40 bg-slate-900/75 backdrop-blur-xl shadow-2xl shadow-black/50;
 }
 
+/* Header row: logo left, tabs right */
+.login-header {
+  @apply flex items-center justify-between w-full;
+}
+
+/* Logo icon */
 .login-logo-icon {
-  @apply w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shadow-violet-900/50;
+  @apply w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shadow-violet-900/50;
 }
 
+/* Tabs */
+.login-tabs {
+  @apply flex gap-0.5 p-0.5 rounded-lg bg-slate-800/60 border border-slate-700/40;
+}
+
+.login-tab {
+  @apply px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 transition-all duration-150 cursor-pointer;
+}
+
+.login-tab--active {
+  @apply bg-slate-700 text-white shadow-sm;
+}
+
+/* Google button */
 .login-google-btn {
-  @apply w-full flex items-center justify-center gap-3 px-4 py-3 bg-white hover:bg-slate-50 text-slate-900 font-semibold text-sm rounded-xl transition-all duration-150 hover:shadow-lg hover:shadow-black/30 hover:scale-[1.015] active:scale-[0.985] cursor-pointer;
+  @apply w-full flex items-center justify-center gap-3 px-4 py-3 bg-white hover:bg-slate-50 text-slate-900 font-semibold text-sm rounded-xl transition-all duration-150 hover:shadow-lg hover:shadow-black/30 hover:scale-[1.015] active:scale-[0.985] cursor-pointer disabled:opacity-60 disabled:scale-100 disabled:cursor-not-allowed;
 }
 
+/* Divider */
+.login-divider {
+  @apply flex items-center gap-3 w-full;
+}
+
+.login-divider-line {
+  @apply flex-1 h-px bg-slate-800;
+}
+
+.login-divider-text {
+  @apply text-slate-600 text-xs whitespace-nowrap;
+}
+
+/* Form */
+.login-form {
+  @apply flex flex-col gap-3 w-full;
+}
+
+.login-input {
+  @apply w-full px-3.5 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700/60 text-white text-sm placeholder:text-slate-600 outline-none focus:border-violet-500/70 focus:ring-2 focus:ring-violet-500/20 transition-all duration-150;
+}
+
+.login-input--password {
+  @apply pr-10;
+}
+
+.login-password-wrap {
+  @apply relative;
+}
+
+.login-password-toggle {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer;
+}
+
+/* Primary button */
+.login-btn-primary {
+  @apply w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 text-white font-semibold text-sm rounded-xl transition-all duration-150 hover:shadow-lg hover:shadow-violet-900/40 hover:scale-[1.015] active:scale-[0.985] cursor-pointer disabled:opacity-60 disabled:scale-100 disabled:cursor-not-allowed;
+}
+
+/* Ghost button */
+.login-btn-ghost {
+  @apply w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-transparent border border-slate-700/60 hover:border-slate-600 text-slate-400 hover:text-slate-300 font-medium text-sm rounded-xl transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Link button */
+.login-link-btn {
+  @apply text-slate-500 hover:text-slate-300 text-xs transition-colors cursor-pointer;
+}
+
+/* Error */
+.login-error {
+  @apply text-red-400 text-xs px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-center;
+}
+
+/* Verify-pending icon */
+.login-verify-icon {
+  @apply w-14 h-14 rounded-2xl bg-violet-500/15 border border-violet-500/25 flex items-center justify-center;
+}
+
+/* Feature pills */
 .login-feature-pill {
-  @apply flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/70 border border-slate-700/50 text-slate-400 text-xs;
+  @apply flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/60 border border-slate-700/50 text-slate-400 text-xs;
 }
 
+/* ToS footer */
 .login-tos {
   @apply text-center text-slate-600 text-xs mt-5;
 }

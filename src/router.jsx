@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { useAuth } from './context/AuthContext'
+import { useAuth, isAuthedAndVerified } from './context/AuthContext'
 import Layout from './components/layout/Layout'
 import LoginPage from './pages/LoginPage'
 import LandingPage from './pages/LandingPage'
@@ -14,28 +14,38 @@ const ApplicationDetailPage = lazy(() => import('./pages/ApplicationDetailPage')
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
   if (user === undefined) return <LoadingScreen fullScreen />
-  if (!user) return <Navigate to="/" replace />
+  if (!isAuthedAndVerified(user)) return <Navigate to="/" replace />
   return children
 }
 
 export default function Router() {
   const { user } = useAuth()
+  const verified = isAuthedAndVerified(user)
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Landing / home */}
+        {/* Landing */}
         <Route
           path="/"
           element={
             user === undefined ? <LoadingScreen fullScreen /> :
-            user ? <Navigate to="/board" replace /> :
+            verified ? <Navigate to="/board" replace /> :
+            // Signed in but unverified email user → send to /login verify-pending view
+            (user && !verified) ? <Navigate to="/login" replace /> :
             <LandingPage />
           }
         />
 
-        {/* Legacy login route — redirect to home */}
-        <Route path="/login" element={<Navigate to="/" replace />} />
+        {/* Auth page */}
+        <Route
+          path="/login"
+          element={
+            user === undefined ? <LoadingScreen fullScreen /> :
+            verified ? <Navigate to="/board" replace /> :
+            <LoginPage />
+          }
+        />
 
         {/* App shell */}
         <Route

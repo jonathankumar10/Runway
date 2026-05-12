@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 import {
-  BriefcaseBusiness, Sparkles, FileText, Kanban,
-  MessageSquare, Mail, BarChart3, CheckCircle2,
+  BriefcaseBusiness, Sparkles, Kanban,
+  MessageSquare, CheckCircle2,
   ArrowRight, Zap, ChevronRight,
 } from 'lucide-react'
 import './LandingPage.css'
@@ -27,19 +26,9 @@ function useInView(threshold = 0.15) {
 // ── Static data ───────────────────────────────────────────────────────────────
 
 const FEATURES = [
-  { icon: Sparkles,     color: 'violet',  title: 'AI Resume Match',    desc: 'Instantly score your fit for any role. Get strengths, gaps, and copy-paste suggestions to improve your resume before you apply.' },
-  { icon: FileText,     color: 'indigo',  title: 'Tailored Resumes',   desc: 'Generate a job-specific version of your resume in seconds. Edit it inline, preview it as a formatted document, and download as PDF.' },
-  { icon: Kanban,       color: 'sky',     title: 'Visual Pipeline',    desc: 'Drag-and-drop Kanban board to track every application from Saved → Offer. Never lose track of where you stand.' },
-  { icon: MessageSquare,color: 'emerald', title: 'Interview Prep',     desc: 'Role-specific practice questions at Easy, Medium, and Hard difficulty. AI coaching tips tailored to each interview stage.' },
-  { icon: Mail,         color: 'amber',   title: 'Follow-up Drafts',   desc: 'One click to generate a professional follow-up email. Personalised to the company, role, and recruiter — ready to send.' },
-  { icon: BarChart3,    color: 'rose',    title: 'Progress Analytics', desc: 'Weekly application charts, pipeline funnel, interview countdown, and next-move coaching — all on your personal dashboard.' },
-]
-
-const STEPS = [
-  { n: '01', accent: 'violet',  title: 'Add a job posting',       desc: 'Paste a job URL or description and Runway auto-fills the company, role, salary, and key skills with AI.' },
-  { n: '02', accent: 'indigo',  title: 'Analyse your fit',        desc: 'Run the AI match to get a score, see your strengths, surface skill gaps, and get exact lines to add to your resume.' },
-  { n: '03', accent: 'sky',     title: 'Tailor your application', desc: 'Generate a resume rewritten for this specific role and an AI-drafted follow-up email — in under 30 seconds.' },
-  { n: '04', accent: 'emerald', title: 'Track and advance',       desc: 'Move through the pipeline, prep for each interview stage with AI coaching, and land the offer.' },
+  { icon: Kanban,        color: 'sky',     title: 'Visual Pipeline',  desc: 'Drag-and-drop Kanban board to track every application from Saved → Offer. Never lose track of where you stand.' },
+  { icon: Sparkles,      color: 'violet',  title: 'AI Resume Match',  desc: 'Instantly score your fit for any role. Get strengths, gaps, and copy-paste suggestions to improve your resume before you apply.' },
+  { icon: MessageSquare, color: 'emerald', title: 'Interview Prep',   desc: 'Role-specific practice questions at Easy, Medium, and Hard difficulty. AI coaching tips tailored to each interview stage.' },
 ]
 
 const MOCK_JOBS = [
@@ -52,19 +41,6 @@ const LOGO_COLORS = {
   A: '#FF9900',
   G: 'linear-gradient(135deg,#4285F4,#34A853)',
   M: '#00A4EF',
-}
-
-// ── Google icon ───────────────────────────────────────────────────────────────
-
-function GoogleIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
-      <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-      <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-      <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/>
-      <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z"/>
-    </svg>
-  )
 }
 
 // ── Browser-window mockup ─────────────────────────────────────────────────────
@@ -168,36 +144,15 @@ function FeatureCard({ icon: Icon, color, title, desc, delay }) {
   )
 }
 
-// ── Step row ──────────────────────────────────────────────────────────────────
-
-function StepRow({ step, idx }) {
-  const [ref, inView] = useInView(0.2)
-  return (
-    <div
-      ref={ref}
-      className={`lp-step ${inView ? 'lp-reveal' : 'lp-hidden'}`}
-      style={{ transitionDelay: `${idx * 80}ms` }}
-    >
-      <div className={`lp-step-num lp-step-num--${step.accent}`}>{step.n}</div>
-      <div>
-        <h3 className="lp-step-title">{step.title}</h3>
-        <p className="lp-step-desc">{step.desc}</p>
-      </div>
-    </div>
-  )
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
-  const { signInWithGoogle } = useAuth()
   const navigate = useNavigate()
   const [featRef, featInView] = useInView(0.05)
   const [ctaRef, ctaInView] = useInView(0.3)
 
-  async function handleSignIn() {
-    await signInWithGoogle()
-    navigate('/board')
+  function handleSignIn() {
+    navigate('/login?mode=signup')
   }
 
   return (
@@ -220,9 +175,14 @@ export default function LandingPage() {
             </div>
             <span className="lp-nav-wordmark">Runway</span>
           </div>
-          <button onClick={handleSignIn} className="lp-nav-signin">
-            Sign in <ChevronRight size={13} />
-          </button>
+          <div className="lp-nav-actions">
+            <button onClick={() => navigate('/login?mode=signin')} className="lp-nav-signin">
+              Sign in
+            </button>
+            <button onClick={() => navigate('/login?mode=signup')} className="lp-nav-signup">
+              Sign up <ChevronRight size={13} />
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -247,7 +207,6 @@ export default function LandingPage() {
             </p>
             <div className="lp-hero-actions">
               <button onClick={handleSignIn} className="lp-cta-primary">
-                <GoogleIcon />
                 Get started free
                 <ArrowRight size={15} />
               </button>
@@ -262,21 +221,6 @@ export default function LandingPage() {
 
         </div>
       </section>
-
-      {/* ── Stats strip ── */}
-      <div className="lp-stats-strip">
-        {[
-          { value: '6',       label: 'AI-powered tools' },
-          { value: 'Instant', label: 'Resume tailoring' },
-          { value: '100%',    label: 'Free to use' },
-          { value: 'Zero',    label: 'Missed follow-ups' },
-        ].map(({ value, label }) => (
-          <div key={label} className="lp-stat">
-            <span className="lp-stat-value">{value}</span>
-            <span className="lp-stat-label">{label}</span>
-          </div>
-        ))}
-      </div>
 
       {/* ── Features ── */}
       <section className="lp-section">
@@ -296,22 +240,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── How it works ── */}
-      <section className="lp-section lp-section--alt">
-        <div className="lp-section-inner">
-          <div className="lp-section-header">
-            <p className="lp-section-eyebrow">How it works</p>
-            <h2 className="lp-section-h2">From posting to offer</h2>
-            <p className="lp-section-sub">Four steps. No noise.</p>
-          </div>
-          <div className="lp-steps">
-            {STEPS.map((step, i) => (
-              <StepRow key={step.n} step={step} idx={i} />
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── CTA ── */}
       <section className="lp-section">
         <div ref={ctaRef} className={`lp-cta-box ${ctaInView ? 'lp-reveal' : 'lp-hidden'}`}>
@@ -320,8 +248,7 @@ export default function LandingPage() {
           <h2 className="lp-cta-h2">Land your next role faster</h2>
           <p className="lp-cta-sub">Join job seekers using Runway to run smarter, more organised searches.</p>
           <button onClick={handleSignIn} className="lp-cta-primary lp-cta-primary--large">
-            <GoogleIcon />
-            Sign in with Google — it's free
+            Get started — it's free
             <ArrowRight size={15} />
           </button>
         </div>
