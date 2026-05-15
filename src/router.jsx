@@ -3,6 +3,7 @@ import { useAuth, isAuthedAndVerified } from './context/AuthContext'
 import Layout from './components/layout/Layout'
 import LoginPage from './pages/LoginPage'
 import LandingPage from './pages/LandingPage'
+import ProfilePage from './pages/ProfilePage'
 import { lazy, Suspense } from 'react'
 import BoardPage from './pages/BoardPage'
 import DashboardPage from './pages/DashboardPage'
@@ -60,6 +61,7 @@ export default function Router() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="resumes" element={<Suspense fallback={<LoadingScreen />}><ResumePage /></Suspense>} />
           <Route path="applications/:jobId" element={<Suspense fallback={<LoadingScreen />}><ApplicationDetailPage /></Suspense>} />
+          < Route path="profile" element={<ProfilePage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

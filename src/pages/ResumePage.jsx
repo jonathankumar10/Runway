@@ -65,6 +65,7 @@ export default function ResumePage() {
   const [dragOver, setDragOver] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
   const fileRef = useRef()
+  const detailRef = useRef()
 
   const scoredJobs = jobs.filter(j => j.matchScore != null)
   const avgScore = scoredJobs.length
@@ -112,6 +113,13 @@ export default function ResumePage() {
     }
     load()
   }, [user.uid])
+
+  function handleSelectResume(id) {
+    setSelectedId(id)
+    if (window.innerWidth < 768 && detailRef.current) {
+      setTimeout(() => detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 30)
+    }
+  }
 
   async function handleFile(file) {
     if (!file || file.type !== 'application/pdf') { alert('Please upload a PDF file.'); return }
@@ -229,7 +237,7 @@ export default function ResumePage() {
                     key={resume.id}
                     resume={resume}
                     isSelected={selectedId === resume.id}
-                    onSelect={() => setSelectedId(resume.id)}
+                    onSelect={() => handleSelectResume(resume.id)}
                   />
                 ))}
               </div>
@@ -264,7 +272,7 @@ export default function ResumePage() {
         </div>
 
         {/* RIGHT — detail panel */}
-        <div className="resume-detail-col">
+        <div className="resume-detail-col" ref={detailRef}>
           {selectedResume ? (
             <ResumeDetail
               resume={selectedResume}
@@ -305,8 +313,8 @@ function ResumeListItem({ resume, isSelected, onSelect }) {
         <FileText size={15} className={isSelected ? 'text-violet-300' : 'text-slate-400'} />
       </div>
       <div className="flex-1 min-w-0 text-left">
-        <div className="flex items-center gap-1.5 mb-0.5">
-          <span className="text-sm font-medium text-white truncate">{label}</span>
+        <div className="flex items-center gap-1.5 mb-0.5 min-w-0">
+          <span className="text-sm font-medium text-white truncate min-w-0">{label}</span>
           {resume.isDefault && (
             <span className="resume-default-badge shrink-0">
               <Star size={8} fill="currentColor" /> Default
@@ -356,17 +364,18 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
               className="resume-label-input-lg"
             />
           ) : (
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-white truncate">{label}</h2>
+            <div className="flex items-center gap-2 min-w-0">
+              <h2 className="text-lg font-bold text-white truncate min-w-0">{label}</h2>
               <button onClick={startEdit} className="text-slate-600 hover:text-slate-300 transition-colors shrink-0" title="Rename">
                 <Pencil size={13} />
               </button>
             </div>
           )}
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-xs text-slate-400">{resume.filename} &middot; {formatBytes(resume.size)} &middot; {uploadedDate}</p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 min-w-0">
+            <span className="text-xs text-slate-400 truncate min-w-0 max-w-full">{resume.filename}</span>
+            <span className="text-xs text-slate-500 shrink-0">{formatBytes(resume.size)} &middot; {uploadedDate}</span>
             {resume.isDefault && (
-              <span className="resume-default-badge">
+              <span className="resume-default-badge shrink-0">
                 <Star size={8} fill="currentColor" /> Default
               </span>
             )}
@@ -437,7 +446,7 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
 function StatCard({ value, label, valueClass }) {
   return (
     <div className="resume-stat-card">
-      <p className={`text-2xl font-bold ${valueClass ?? 'text-white'}`}>{value}</p>
+      <p className={`text-xl sm:text-2xl font-bold ${valueClass ?? 'text-white'}`}>{value}</p>
       <p className="text-xs text-slate-400 mt-0.5">{label}</p>
     </div>
   )
@@ -446,7 +455,7 @@ function StatCard({ value, label, valueClass }) {
 function StatMini({ label, value, valueClass }) {
   return (
     <div className="resume-stat-mini">
-      <p className={`text-xl font-bold ${valueClass ?? 'text-white'}`}>{value}</p>
+      <p className={`text-lg sm:text-xl font-bold ${valueClass ?? 'text-white'}`}>{value}</p>
       <p className="text-xs text-slate-400 mt-0.5">{label}</p>
     </div>
   )

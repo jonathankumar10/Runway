@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .detail-topnav {
-  @apply sticky top-0 z-10 bg-slate-950/80 backdrop-blur-sm px-8 py-3 border-b border-slate-700 flex items-center justify-between;
+  @apply sticky top-0 z-10 bg-slate-950/80 backdrop-blur-sm px-4 sm:px-8 py-3 border-b border-slate-700 flex items-center justify-between;
 }
 
 .detail-back-btn {

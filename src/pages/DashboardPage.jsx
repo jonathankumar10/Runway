@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const offerRate = total ? Math.round((offers / total) * 100) : 0
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
       <div className="mb-6">
         <h1 className="text-lg font-semibold text-white">Dashboard</h1>
         <p className="text-xs text-slate-300 mt-0.5">Your job search at a glance</p>

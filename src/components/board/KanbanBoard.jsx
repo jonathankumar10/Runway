@@ -57,25 +57,25 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
   return (
     <div className="flex flex-col flex-1 min-w-0 h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-slate-700 shrink-0">
-        <p className="text-xs text-slate-300">
+      <div className="flex items-center justify-between gap-2 px-4 sm:px-6 py-3 border-b border-slate-700 shrink-0">
+        <p className="text-xs text-slate-300 shrink-0">
           {filteredJobs.length} application{filteredJobs.length !== 1 ? 's' : ''}
           {activeStage !== 'all' && <span className="text-slate-500"> · filtered</span>}
         </p>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setBulkOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors"
           >
             <Zap size={13} />
-            Bulk Import
+            <span className="hidden sm:inline">Bulk Import</span>
           </button>
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
           >
             <Plus size={13} />
-            Add Application
+            <span className="hidden sm:inline">Add Application</span>
           </button>
         </div>
       </div>

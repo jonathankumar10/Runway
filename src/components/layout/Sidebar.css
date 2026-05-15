@@ -1,7 +1,33 @@
 @reference "tailwindcss";
 
 .sidebar {
-  @apply w-52 shrink-0 flex flex-col bg-slate-900 border-r border-slate-700 min-h-screen;
+  @apply w-52 shrink-0 flex flex-col bg-slate-900 border-r border-slate-700;
+  /* Mobile: fixed off-screen drawer */
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 30;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+}
+
+.sidebar--open {
+  transform: translateX(0);
+}
+
+/* Desktop: back in normal flow */
+@media (min-width: 768px) {
+  .sidebar {
+    position: relative;
+    top: auto;
+    left: auto;
+    bottom: auto;
+    z-index: auto;
+    transform: none;
+    transition: none;
+    min-height: 100vh;
+  }
 }
 
 .sidebar-logo-bar {

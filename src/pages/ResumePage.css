@@ -1,24 +1,40 @@
 @reference "tailwindcss";
 
 .resume-page {
-  @apply flex-1 overflow-y-auto px-8 py-6;
+  @apply flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8;
 }
 
 /* Top stats bar */
 .resume-stats-row {
-  @apply grid grid-cols-4 gap-4 mb-6;
+  @apply grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6;
 }
 
 .resume-stat-card {
-  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-5 py-4;
+  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-3 py-3 sm:px-5 sm:py-4;
 }
 
 /* Two-column master-detail layout */
 .resume-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
   align-items: start;
+}
+
+/* iPad portrait and up: two columns */
+@media (min-width: 768px) {
+  .resume-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    gap: 1.25rem;
+  }
+}
+
+/* Desktop: give the detail card more breathing room */
+@media (min-width: 1024px) {
+  .resume-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.75fr);
+    gap: 1.5rem;
+  }
 }
 
 /* LEFT — list column */
@@ -69,19 +85,26 @@
 
 /* RIGHT — detail column */
 .resume-detail-col {
-  @apply sticky top-6;
+  position: static;
+}
+
+@media (min-width: 768px) {
+  .resume-detail-col {
+    position: sticky;
+    top: 1.5rem;
+  }
 }
 
 .resume-detail-card {
-  @apply bg-slate-900 border border-slate-700 rounded-2xl p-6;
+  @apply bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6;
 }
 
 .resume-detail-top {
-  @apply flex items-start gap-4 mb-5;
+  @apply flex items-start gap-3 sm:gap-4 mb-4 sm:mb-5;
 }
 
 .resume-detail-icon {
-  @apply w-12 h-12 bg-violet-600/15 border border-violet-500/25 rounded-xl flex items-center justify-center shrink-0;
+  @apply w-10 h-10 sm:w-12 sm:h-12 bg-violet-600/15 border border-violet-500/25 rounded-xl flex items-center justify-center shrink-0;
 }
 
 .resume-detail-actions {
@@ -118,7 +141,7 @@
 
 /* Empty detail state */
 .resume-empty-detail {
-  @apply flex flex-col items-center justify-center py-20 text-center bg-slate-900 border border-slate-700 rounded-2xl;
+  @apply flex flex-col items-center justify-center py-12 sm:py-20 text-center bg-slate-900 border border-slate-700 rounded-2xl;
 }
 
 /* Action buttons */

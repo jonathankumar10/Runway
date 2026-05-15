@@ -243,7 +243,7 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
-      <div className="px-6 py-5 max-w-7xl mx-auto">
+      <div className="px-4 py-4 sm:px-6 sm:py-5 max-w-7xl mx-auto">
         <p className="text-xs text-slate-400 mb-4">WORKSPACE &rsaquo; {job.company?.toUpperCase()}</p>
 
         <div className="flex items-start gap-4 mb-6">
