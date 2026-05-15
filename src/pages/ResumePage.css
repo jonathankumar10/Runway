@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .resume-page {
-  @apply flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8;
+  @apply flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8;
 }
 
 /* Top stats bar */
@@ -16,7 +16,7 @@
 /* Two-column master-detail layout */
 .resume-layout {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
   align-items: start;
 }
@@ -39,7 +39,7 @@
 
 /* LEFT — list column */
 .resume-list-col {
-  @apply flex flex-col gap-3;
+  @apply flex flex-col gap-3 min-w-0;
 }
 
 .resume-list-card {
@@ -86,6 +86,7 @@
 /* RIGHT — detail column */
 .resume-detail-col {
   position: static;
+  min-width: 0;
 }
 
 @media (min-width: 768px) {
@@ -121,7 +122,7 @@
 
 /* Stats mini cards */
 .resume-stat-mini {
-  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-3;
+  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-3 py-3 sm:px-4;
 }
 
 /* Skill tags */

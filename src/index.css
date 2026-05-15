@@ -50,3 +50,26 @@ body {
 .todo-progress {
   width: var(--progress-w);
 }
+
+/* ── Accent colour system ────────────────────────────────────────────────────
+   Default is violet. Selecting a different accent in Profile writes
+   data-accent to <html> and overrides the key highlight selectors below.
+────────────────────────────────────────────────────────────────────────────── */
+
+/* Blue */
+[data-accent="blue"] .sidebar-nav-link-active          { background: rgb(37 99 235 / 0.2); color: #93c5fd; }
+[data-accent="blue"] .profile-toggle--on,
+[data-accent="blue"] .profile-save-btn                 { background-color: #2563eb; }
+[data-accent="blue"] .profile-save-btn:hover           { background-color: #1d4ed8; }
+
+/* Emerald */
+[data-accent="emerald"] .sidebar-nav-link-active       { background: rgb(5 150 105 / 0.2); color: #6ee7b7; }
+[data-accent="emerald"] .profile-toggle--on,
+[data-accent="emerald"] .profile-save-btn              { background-color: #059669; }
+[data-accent="emerald"] .profile-save-btn:hover        { background-color: #047857; }
+
+/* Rose */
+[data-accent="rose"] .sidebar-nav-link-active          { background: rgb(225 29 72 / 0.2); color: #fda4af; }
+[data-accent="rose"] .profile-toggle--on,
+[data-accent="rose"] .profile-save-btn                 { background-color: #e11d48; }
+[data-accent="rose"] .profile-save-btn:hover           { background-color: #be123c; }

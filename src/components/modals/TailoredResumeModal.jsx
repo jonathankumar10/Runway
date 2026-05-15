@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Download, Save, Eye, Pencil, Loader2, CheckCircle2 } from 'lucide-react'
+import { X, Download, Save, Eye, Pencil, Loader2, CheckCircle2, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import './TailoredResumeModal.css'
 
-// ── HTML helpers ──────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function esc(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+// Converts **text** markdown bold to <strong> after HTML-escaping
+function renderBold(s) {
+  return esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
 }
 
 // ── Structured sections → HTML ────────────────────────────────────────────────
@@ -34,7 +39,7 @@ export function sectionsToHtml(sections) {
           html += `<p class="rp-title-row"><span>${left}</span><span class="rp-date">${right}</span></p>`
           if (e.bullets?.length) {
             html += '<ul class="rp-list">'
-            for (const b of e.bullets) html += `<li>${esc(b)}</li>`
+            for (const b of e.bullets) html += `<li>${renderBold(b)}</li>`
             html += '</ul>'
           }
         }
@@ -72,7 +77,7 @@ export function sectionsToHtml(sections) {
           }
           if (e.bullets?.length) {
             html += '<ul class="rp-list">'
-            for (const b of e.bullets) html += `<li>${esc(b)}</li>`
+            for (const b of e.bullets) html += `<li>${renderBold(b)}</li>`
             html += '</ul>'
           }
         }
@@ -86,7 +91,7 @@ export function sectionsToHtml(sections) {
   return html
 }
 
-// ── Fallback text → HTML parser (for legacy saved resumes) ───────────────────
+// ── Fallback text → HTML parser ───────────────────────────────────────────────
 
 const isHeader = line =>
   line.length > 2 &&
@@ -123,7 +128,7 @@ export function parseResumeToHtml(text) {
 
     if (isBullet(line)) {
       if (!inList) { html += '<ul class="rp-list">'; inList = true }
-      html += `<li>${esc(line.replace(/^[\-•]\s/, ''))}</li>`
+      html += `<li>${renderBold(line.replace(/^[\-•]\s/, ''))}</li>`
       continue
     }
 
@@ -148,16 +153,151 @@ export function parseResumeToHtml(text) {
   return html
 }
 
+// ── Small UI helpers ──────────────────────────────────────────────────────────
+
+function CopyButton({ text, className = '' }) {
+  const [copied, setCopied] = useState(false)
+  function handleCopy() {
+    // Strip **bold** markdown for plain-text copy
+    const plain = text.replace(/\*\*(.+?)\*\*/g, '$1')
+    navigator.clipboard.writeText(plain).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    })
+  }
+  return (
+    <button onClick={handleCopy} className={`trm-copy-btn ${className}`} title="Copy">
+      {copied ? <Check size={11} /> : <Copy size={11} />}
+    </button>
+  )
+}
+
+function Section({ title, children, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="trm-section">
+      <button className="trm-section-header" onClick={() => setOpen(o => !o)}>
+        <span>{title}</span>
+        {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+      </button>
+      {open && <div className="trm-section-body">{children}</div>}
+    </div>
+  )
+}
+
+// ── Analysis Panel ────────────────────────────────────────────────────────────
+
+function AnalysisPanel({ keywordAnalysis, rewrittenBullets, rewrittenSummary }) {
+  const ka = keywordAnalysis ?? { extracted: [], mapped: [], unmappable: [] }
+  const summaryText = (rewrittenSummary ?? []).join('\n')
+
+  return (
+    <div className="trm-analysis">
+
+      {/* Professional Summary */}
+      {rewrittenSummary?.length > 0 && (
+        <Section title="Professional Summary">
+          <div className="trm-summary-card">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <p className="text-xs text-slate-400">Mirrors the JD's top 3 requirements. Ready to paste.</p>
+              <CopyButton text={summaryText} className="shrink-0" />
+            </div>
+            {rewrittenSummary.map((line, i) => (
+              <p key={i} className="trm-summary-line">{line}</p>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Rewritten Bullet Points */}
+      {rewrittenBullets?.length > 0 && (
+        <Section title={`ATS Bullet Points (${rewrittenBullets.length})`}>
+          <p className="trm-hint">Keywords in <strong className="text-violet-400">bold</strong>. Copy individual bullets or paste into your resume.</p>
+          <ol className="trm-bullet-list">
+            {rewrittenBullets.map((bullet, i) => (
+              <li key={i} className="trm-bullet-item">
+                <span className="trm-bullet-num">{i + 1}</span>
+                <span
+                  className="trm-bullet-text"
+                  dangerouslySetInnerHTML={{ __html: renderBold(bullet) }}
+                />
+                <CopyButton text={bullet} />
+              </li>
+            ))}
+          </ol>
+        </Section>
+      )}
+
+      {/* Keywords Added / Strengthened */}
+      {ka.mapped.length > 0 && (
+        <Section title={`Keywords Mapped (${ka.mapped.length})`}>
+          <p className="trm-hint">JD keywords addressed in your tailored resume.</p>
+          <div className="trm-keyword-list">
+            {ka.mapped.map((m, i) => (
+              <div key={i} className="trm-keyword-row trm-keyword-row--green">
+                <span className="trm-kw-badge trm-kw-badge--green">{m.keyword}</span>
+                <span className="trm-kw-detail">{m.action === 'added' ? 'Added' : 'Strengthened'} via {m.experience}</span>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Keywords That Could Not Be Added */}
+      {ka.unmappable.length > 0 && (
+        <Section title={`Gaps — Cannot Add (${ka.unmappable.length})`} defaultOpen={false}>
+          <p className="trm-hint">These JD requirements have no matching experience in your resume.</p>
+          <div className="trm-keyword-list">
+            {ka.unmappable.map((kw, i) => (
+              <span key={i} className="trm-kw-badge trm-kw-badge--red">{kw}</span>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* All Extracted Keywords */}
+      {ka.extracted.length > 0 && (
+        <Section title={`All JD Keywords (${ka.extracted.length})`} defaultOpen={false}>
+          <p className="trm-hint">Every hard skill, tool, and framework found in the job description.</p>
+          <div className="trm-keyword-list">
+            {ka.extracted.map((kw, i) => {
+              const isUnmappable = ka.unmappable.includes(kw)
+              return (
+                <span key={i} className={`trm-kw-badge ${isUnmappable ? 'trm-kw-badge--red' : 'trm-kw-badge--slate'}`}>
+                  {kw}
+                </span>
+              )
+            })}
+          </div>
+        </Section>
+      )}
+
+    </div>
+  )
+}
+
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
-export default function TailoredResumeModal({ job, initialSections, initialHtml, initialText, onSave, onClose }) {
+export default function TailoredResumeModal({
+  job,
+  initialSections,
+  initialHtml,
+  initialText,
+  keywordAnalysis,
+  rewrittenBullets,
+  rewrittenSummary,
+  onSave,
+  onClose,
+}) {
   const editorRef = useRef(null)
-  const sectionsRef = useRef(initialSections)   // keep for save callback
+  const sectionsRef = useRef(initialSections)
   const [mode, setMode] = useState('edit')
+  const [activeTab, setActiveTab] = useState('analysis')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  // Derive starting HTML: structured sections first, then stored HTML, then parse text
+  const hasAnalysis = (keywordAnalysis?.mapped?.length || keywordAnalysis?.unmappable?.length || rewrittenBullets?.length || rewrittenSummary?.length)
+
   const startHtml = (() => {
     if (initialSections?.length) return sectionsToHtml(initialSections)
     if (initialHtml) return initialHtml
@@ -168,7 +308,7 @@ export default function TailoredResumeModal({ job, initialSections, initialHtml,
     if (editorRef.current) {
       editorRef.current.innerHTML = startHtml
     }
-  }, []) // only seed on mount
+  }, [])
 
   function handleSave() {
     if (!editorRef.current) return
@@ -200,6 +340,7 @@ export default function TailoredResumeModal({ job, initialSections, initialHtml,
   p.rp-body { font-size: 10.5pt; margin: 2px 0; }
   ul.rp-list { padding-left: 18px; margin: 2px 0 4px; }
   ul.rp-list li { font-size: 10.5pt; margin-bottom: 2px; line-height: 1.45; }
+  ul.rp-list li strong { font-weight: 700; }
   .rp-spacer { height: 4px; }
   @page { margin: 0.75in; size: Letter; }
 </style>
@@ -236,8 +377,9 @@ export default function TailoredResumeModal({ job, initialSections, initialHtml,
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="trm-mode-toggle">
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Resume edit/preview toggle — shown only when resume tab is active or on desktop */}
+            <div className={`trm-mode-toggle ${activeTab !== 'resume' ? 'hidden lg:flex' : 'flex'}`}>
               <button
                 onClick={() => setMode('edit')}
                 className={`trm-mode-btn ${mode === 'edit' ? 'trm-mode-btn-active' : 'trm-mode-btn-idle'}`}
@@ -252,7 +394,7 @@ export default function TailoredResumeModal({ job, initialSections, initialHtml,
               </button>
             </div>
 
-            <button onClick={handleDownload} className="trm-action-btn">
+            <button onClick={handleDownload} className="trm-action-btn hidden sm:flex">
               <Download size={13} /> Download PDF
             </button>
 
@@ -273,22 +415,55 @@ export default function TailoredResumeModal({ job, initialSections, initialHtml,
           </div>
         </div>
 
-        {/* Resume paper */}
-        <div className="trm-body">
-          {mode === 'edit' && (
-            <p className="trm-edit-hint">Click anywhere on the resume to edit</p>
-          )}
-          <div className="trm-paper-wrap">
-            <div
-              ref={editorRef}
-              contentEditable={mode === 'edit'}
-              suppressContentEditableWarning
-              spellCheck={mode === 'edit'}
-              className={`trm-paper ${mode === 'edit' ? 'trm-paper-editable' : ''}`}
-            />
+        {/* Mobile tab bar */}
+        {hasAnalysis && (
+          <div className="trm-tab-bar lg:hidden">
+            <button
+              onClick={() => setActiveTab('analysis')}
+              className={`trm-tab ${activeTab === 'analysis' ? 'trm-tab-active' : 'trm-tab-idle'}`}
+            >
+              Analysis
+            </button>
+            <button
+              onClick={() => setActiveTab('resume')}
+              className={`trm-tab ${activeTab === 'resume' ? 'trm-tab-active' : 'trm-tab-idle'}`}
+            >
+              Resume
+            </button>
           </div>
-        </div>
+        )}
 
+        {/* Main content — side by side on desktop, tabbed on mobile */}
+        <div className="trm-content">
+
+          {/* Analysis panel */}
+          {hasAnalysis && (
+            <div className={`trm-analysis-col ${activeTab === 'analysis' ? 'flex' : 'hidden'} lg:flex`}>
+              <AnalysisPanel
+                keywordAnalysis={keywordAnalysis}
+                rewrittenBullets={rewrittenBullets}
+                rewrittenSummary={rewrittenSummary}
+              />
+            </div>
+          )}
+
+          {/* Resume panel */}
+          <div className={`trm-resume-col ${activeTab === 'resume' || !hasAnalysis ? 'flex' : 'hidden'} lg:flex`}>
+            {mode === 'edit' && (
+              <p className="trm-edit-hint">Click anywhere on the resume to edit</p>
+            )}
+            <div className="trm-paper-wrap">
+              <div
+                ref={editorRef}
+                contentEditable={mode === 'edit'}
+                suppressContentEditableWarning
+                spellCheck={mode === 'edit'}
+                className={`trm-paper ${mode === 'edit' ? 'trm-paper-editable' : ''}`}
+              />
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   )

@@ -206,7 +206,13 @@ export default function ApplicationDetailPage() {
         job.matchGaps ?? []
       )
       if (result?.error) throw new Error('Could not generate tailored resume. Try again.')
-      setTailorDraft({ suggestions: result.suggestions ?? [], sections: result.sections ?? [] })
+      setTailorDraft({
+        suggestions: result.suggestions ?? [],
+        sections: result.sections ?? [],
+        keywordAnalysis: result.keywordAnalysis ?? { extracted: [], mapped: [], unmappable: [] },
+        rewrittenBullets: result.rewrittenBullets ?? [],
+        rewrittenSummary: result.rewrittenSummary ?? [],
+      })
       setResumeModalOpen(true)
     } catch (err) {
       alert(err.message)
@@ -641,6 +647,9 @@ export default function ApplicationDetailPage() {
           initialSections={tailorDraft?.sections ?? job.tailoredResumeSections}
           initialHtml={!tailorDraft?.sections?.length && !job.tailoredResumeSections?.length ? (tailorDraft ? undefined : job.tailoredResumeHtml) : undefined}
           initialText={!tailorDraft?.sections?.length && !job.tailoredResumeSections?.length ? (tailorDraft ? undefined : job.tailoredResumeText) : undefined}
+          keywordAnalysis={tailorDraft?.keywordAnalysis}
+          rewrittenBullets={tailorDraft?.rewrittenBullets}
+          rewrittenSummary={tailorDraft?.rewrittenSummary}
           onSave={handleSaveTailoredResume}
           onClose={() => setResumeModalOpen(false)}
         />

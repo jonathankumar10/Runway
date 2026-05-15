@@ -1,0 +1,119 @@
+@reference "tailwindcss";
+
+.profile-page {
+  @apply flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8;
+}
+
+/* Two-column layout */
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .profile-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.75fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Identity card (left, sticky on desktop) */
+.profile-identity-card {
+  @apply bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6;
+}
+
+@media (min-width: 768px) {
+  .profile-identity-card {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+
+/* Right column stacked cards */
+.profile-right-col {
+  @apply flex flex-col gap-4;
+}
+
+/* Generic card */
+.profile-card {
+  @apply bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6;
+}
+
+.profile-card--danger {
+  @apply border-red-500/20 bg-red-500/[0.02];
+}
+
+.profile-divider {
+  @apply border-t border-slate-800;
+}
+
+/* Form fields */
+.profile-field-label {
+  @apply block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1.5;
+}
+
+.profile-input {
+  @apply bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2
+         focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500
+         placeholder-slate-500 transition-colors;
+}
+
+/* Toggle switch */
+.profile-toggle {
+  @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+         focus:outline-none shrink-0 cursor-pointer;
+}
+
+.profile-toggle--on  { @apply bg-violet-600; }
+.profile-toggle--off { @apply bg-slate-700; }
+
+.profile-toggle-thumb {
+  @apply inline-block h-4 w-4 rounded-full bg-white transition-transform;
+}
+
+/* Accent colour swatches */
+.profile-swatch-btn {
+  @apply flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700
+         bg-slate-800/60 hover:bg-slate-800 transition-colors cursor-pointer;
+}
+
+.profile-swatch-btn--active {
+  @apply border-slate-500 bg-slate-800;
+}
+
+.profile-swatch {
+  @apply w-4 h-4 rounded-full shrink-0;
+}
+
+/* Buttons */
+.profile-save-btn {
+  @apply flex items-center gap-2 px-5 py-2 bg-violet-600 hover:bg-violet-500
+         text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50;
+}
+
+.profile-secondary-btn {
+  @apply flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700
+         text-slate-300 text-xs font-medium rounded-lg border border-slate-600 transition-colors;
+}
+
+.profile-danger-btn {
+  @apply flex items-center gap-2 text-xs font-medium text-red-400
+         hover:text-red-300 transition-colors;
+}
+
+.profile-danger-confirm-btn {
+  @apply flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500
+         text-white text-xs font-medium rounded-lg transition-colors
+         disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+.profile-cancel-btn {
+  @apply px-4 py-2 text-xs text-slate-400 hover:text-slate-200 transition-colors;
+}
+
+/* Delete confirm box */
+.profile-delete-confirm {
+  @apply p-4 bg-red-500/5 border border-red-500/20 rounded-xl;
+}

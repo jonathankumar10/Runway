@@ -266,82 +266,58 @@ exports.tailorResume = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, asyn
   const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
 
   const sectionHint = sectionOrder?.length
-    ? `\nThe original resume has these sections IN THIS EXACT ORDER — preserve this order: ${sectionOrder.join(' → ')}`
+    ? `The original resume sections IN THIS EXACT ORDER: ${sectionOrder.join(' > ')}`
     : ''
 
   try {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
-      system: `You are an expert resume writer. Tailor the given resume for a specific job role.
+      max_tokens: 8000,
+      system: `You are a senior technical recruiter and Certified Professional Resume Writer (CPRW) with 15 years of experience screening software engineers at FAANG companies and Series B+ startups.
 
-Return ONLY valid JSON in this exact shape:
+Analyze the job description against the candidate's resume and produce a full ATS-optimization package.
+
+Return ONLY valid JSON with this exact structure:
 {
-  "suggestions": ["what you changed and why", ...],  // 4-6 items
+  "suggestions": ["string", ...],
+  "keywordAnalysis": {
+    "extracted": ["string", ...],
+    "mapped": [{ "keyword": "string", "experience": "string", "action": "added | strengthened" }],
+    "unmappable": ["string", ...]
+  },
+  "rewrittenSummary": ["line1", "line2", "line3"],
+  "rewrittenBullets": ["bullet1", "bullet2", "bullet3", "bullet4", "bullet5", "bullet6", "bullet7", "bullet8", "bullet9", "bullet10"],
   "sections": [
-    {
-      "type": "header",
-      "name": "Full Name",
-      "contact": ["email", "phone", "city", "linkedin url", ...]
-    },
-    {
-      "type": "experience",
-      "title": "SECTION TITLE AS IN ORIGINAL",
-      "entries": [
-        {
-          "role": "Job Title",
-          "company": "Company Name",
-          "location": "City, ST or Remote",
-          "dates": "Month Year – Month Year",
-          "bullets": ["accomplishment bullet", ...]
-        }
-      ]
-    },
-    {
-      "type": "education",
-      "title": "SECTION TITLE AS IN ORIGINAL",
-      "entries": [
-        {
-          "degree": "BS Computer Science",
-          "school": "University Name",
-          "location": "City, ST",
-          "dates": "2018 – 2022",
-          "details": ["GPA: 3.8", "Relevant coursework: ..."]
-        }
-      ]
-    },
-    {
-      "type": "skills",
-      "title": "SECTION TITLE AS IN ORIGINAL",
-      "groups": [
-        { "label": "Languages", "items": ["Python", "JavaScript"] },
-        { "label": "", "items": ["AWS", "Docker"] }
-      ]
-    },
-    {
-      "type": "generic",
-      "title": "SECTION TITLE AS IN ORIGINAL",
-      "entries": [
-        {
-          "heading": "Project or item title",
-          "subheading": "optional subtitle or date",
-          "bullets": ["detail", ...]
-        }
-      ]
-    }
+    { "type": "header", "name": "Full Name", "contact": ["email", "phone", "city", "linkedin url"] },
+    { "type": "experience", "title": "SECTION TITLE AS IN ORIGINAL", "entries": [{ "role": "Job Title", "company": "Company Name", "location": "City, ST", "dates": "Month Year - Month Year", "bullets": ["bullet", ...] }] },
+    { "type": "education", "title": "SECTION TITLE AS IN ORIGINAL", "entries": [{ "degree": "BS Computer Science", "school": "University Name", "location": "City, ST", "dates": "2018 - 2022", "details": ["GPA: 3.8"] }] },
+    { "type": "skills", "title": "SECTION TITLE AS IN ORIGINAL", "groups": [{ "label": "Languages", "items": ["Python"] }] },
+    { "type": "generic", "title": "SECTION TITLE AS IN ORIGINAL", "entries": [{ "heading": "title", "subheading": "date", "bullets": ["detail"] }] }
   ]
 }
 
-Rules:
-- NEVER fabricate experience, credentials, or skills not in the original resume
-- Preserve EVERY section from the original — do not drop any sections${sectionHint}
-- Use the exact section titles from the original (e.g. "WORK EXPERIENCE" not "EXPERIENCE")
-- Reword bullets to emphasise skills relevant to the job description
-- Add missing keywords naturally if the experience genuinely supports them
-- Keep all dates, companies, schools, and GPAs exactly as in the original`,
+Field definitions:
+- suggestions: 4-6 plain-English summaries of key tailoring changes made
+- keywordAnalysis.extracted: EVERY required hard skill, tool, and framework from the JD (explicit and implied)
+- keywordAnalysis.mapped: keywords addressed in the resume, with which experience they map to and what action was taken
+- keywordAnalysis.unmappable: keywords that CANNOT be added because the candidate has no matching experience
+- rewrittenSummary: exactly 3 lines, each directly mirroring one of the JD's top 3 requirements using the candidate's real credentials; start each line strong with a concrete claim
+- rewrittenBullets: exactly 10 ATS-optimized bullets for the candidate's most relevant experience role; wrap every JD keyword in **bold** markdown
+${sectionHint}
+
+ATS bullet rules (apply to rewrittenBullets AND all experience bullets in sections):
+- Begin every bullet with a strong action verb: Spearheaded, Engineered, Architected, Optimized, Automated, Orchestrated, Deployed, Migrated, Designed, Built, Implemented, Streamlined, Reduced, Accelerated, Delivered, Launched, Scaled, Consolidated
+- Never use: "Responsible for", "Worked on", "Helped", "Assisted", "Participated in"
+- Quantify results with numbers, percentages, or dollar amounts ONLY when the original resume already provides those metrics; do NOT invent any numbers
+- Bold every JD keyword using **keyword** markdown
+- Frame every bullet as accomplishment and business impact, not daily duties
+- Do not use em dashes anywhere in the output
+- Do NOT fabricate experience, credentials, companies, schools, dates, locations, or GPAs not in the original resume
+- Map missing JD keywords to the closest genuine experience; only add a keyword if the experience genuinely supports it
+- Preserve ALL sections from the original; use exact section titles from the original`,
       messages: [{
         role: 'user',
-        content: `COMPANY: ${company || 'Unknown'}\nROLE: ${role}\nKEY SKILLS: ${(keySkills || []).join(', ')}\nJOB DESCRIPTION:\n${(jobDescription || 'Not provided').slice(0, 3000)}\nGAPS TO ADDRESS: ${(gaps || []).join('; ') || 'None'}\n\nORIGINAL RESUME:\n${resumeText.slice(0, 6000)}`,
+        content: `COMPANY: ${company || 'Unknown'}\nROLE: ${role}\nKEY SKILLS: ${(keySkills || []).join(', ')}\nJOB DESCRIPTION:\n${(jobDescription || 'Not provided').slice(0, 4000)}\nGAPS TO ADDRESS: ${(gaps || []).join('; ') || 'None'}\n\nORIGINAL RESUME:\n${resumeText.slice(0, 6000)}`,
       }],
     })
 
@@ -349,6 +325,13 @@ Rules:
     const json = raw.startsWith('{') ? JSON.parse(raw) : JSON.parse(raw.match(/\{[\s\S]*\}/)[0])
     return {
       suggestions: Array.isArray(json.suggestions) ? json.suggestions : [],
+      keywordAnalysis: {
+        extracted: Array.isArray(json.keywordAnalysis?.extracted) ? json.keywordAnalysis.extracted : [],
+        mapped: Array.isArray(json.keywordAnalysis?.mapped) ? json.keywordAnalysis.mapped : [],
+        unmappable: Array.isArray(json.keywordAnalysis?.unmappable) ? json.keywordAnalysis.unmappable : [],
+      },
+      rewrittenSummary: Array.isArray(json.rewrittenSummary) ? json.rewrittenSummary.slice(0, 3) : [],
+      rewrittenBullets: Array.isArray(json.rewrittenBullets) ? json.rewrittenBullets.slice(0, 10) : [],
       sections: Array.isArray(json.sections) ? json.sections : [],
     }
   } catch (err) {

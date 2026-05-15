@@ -16,17 +16,18 @@
   transform: translateX(0);
 }
 
-/* Desktop: back in normal flow */
+/* Desktop: sticky to viewport height */
 @media (min-width: 768px) {
   .sidebar {
-    position: relative;
-    top: auto;
+    position: sticky;
+    top: 0;
     left: auto;
     bottom: auto;
     z-index: auto;
     transform: none;
     transition: none;
-    min-height: 100vh;
+    height: 100vh;
+    overflow-y: auto;
   }
 }
 
