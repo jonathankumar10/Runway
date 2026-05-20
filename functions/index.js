@@ -11,6 +11,7 @@ const db = admin.firestore()
 const ANTHROPIC_API_KEY = defineSecret('ANTHROPIC_API_KEY')
 const GMAIL_USER = defineSecret('GMAIL_USER')
 const GMAIL_PASS = defineSecret('GMAIL_PASS')
+const HUNTER_API_KEY = defineSecret('HUNTER_API_KEY')
 
 // ── parseJD ──────────────────────────────────────────────────────────────────
 exports.parseJD = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, async (request) => {
@@ -161,41 +162,110 @@ resumeSuggestions must be concrete additions: exact bullet points, skill lists, 
   }
 })
 
-// ── generateInterviewQuestions ────────────────────────────────────────────────
-exports.generateInterviewQuestions = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, async (request) => {
-  const { company, role, jobDescription, count, difficulty } = request.data
-  if (!role) return { error: 'INVALID_INPUT' }
+// ── findRecruiter ─────────────────────────────────────────────────────────────
+exports.findRecruiter = onCall({ secrets: [HUNTER_API_KEY], cors: true }, async (request) => {
+  const { domain } = request.data
+  const uid = request.auth?.uid
+  if (!domain || typeof domain !== 'string') return { error: 'INVALID_INPUT' }
 
-  const n = Math.min(Math.max(Number(count) || 5, 1), 15)
-  const diff = ['easy', 'medium', 'hard'].includes(difficulty) ? difficulty : 'medium'
+  const normalized = domain
+    .trim()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/\/.*$/, '')
+    .toLowerCase()
 
-  const difficultyGuide = {
-    easy: 'behavioral questions, basic technical concepts, motivation and background',
-    medium: 'moderate technical depth, problem-solving scenarios, system design basics',
-    hard: 'advanced system design, complex algorithms, leadership and ambiguity under pressure',
+  if (!normalized) return { error: 'INVALID_INPUT' }
+
+  // Check Firestore cache (30-day TTL) before hitting Hunter API
+  if (uid) {
+    try {
+      const cacheRef = db.collection('users').doc(uid).collection('recruiterCache').doc(normalized)
+      const cacheSnap = await cacheRef.get()
+      if (cacheSnap.exists) {
+        const cached = cacheSnap.data()
+        const ageMs = Date.now() - cached.cachedAt.toMillis()
+        if (ageMs < 30 * 24 * 60 * 60 * 1000) {
+          return { recruiters: cached.recruiters, domain: normalized, fromCache: true }
+        }
+      }
+    } catch (_) { /* cache miss is fine */ }
   }
+
+  // High-confidence recruiter terms (position must contain at least one)
+  const RECRUITER_KEYWORDS = ['recruit', 'talent acquisition', 'talent partner', 'sourcer', 'hiring', 'staffing', 'hr generalist', 'hr manager', 'hr business', 'people ops', 'people operations', 'human resources']
+
+  try {
+    const url = `https://api.hunter.io/v2/domain-search?domain=${encodeURIComponent(normalized)}&limit=10&department=hr&api_key=${HUNTER_API_KEY.value()}`
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
+    const json = await res.json()
+
+    if (!res.ok) {
+      const msg = json.errors?.[0]?.details || `Hunter API failed with status ${res.status}`
+      return { error: msg }
+    }
+
+    const recruiters = (json.data?.emails || [])
+      .filter(e => {
+        const position = (e.position || '').toLowerCase()
+        const department = (e.department || '').toLowerCase()
+        return RECRUITER_KEYWORDS.some(kw => position.includes(kw) || department.includes(kw))
+      })
+      .map(e => ({
+        name: [e.first_name, e.last_name].filter(Boolean).join(' '),
+        email: e.value || '',
+        title: e.position || '',
+        confidence: e.confidence || 0,
+        linkedin: e.linkedin || '',
+      }))
+      .filter(r => r.name && r.email)
+      .sort((a, b) => b.confidence - a.confidence)
+
+    // Store in cache so future searches for this domain skip the API call
+    if (uid) {
+      db.collection('users').doc(uid).collection('recruiterCache').doc(normalized).set({
+        recruiters,
+        domain: normalized,
+        cachedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }).catch(() => {})
+    }
+
+    return { recruiters, domain: normalized, fromCache: false }
+  } catch (err) {
+    console.error('findRecruiter error:', err)
+    return { error: 'FETCH_FAILED' }
+  }
+})
+
+// ── draftRecruiterOutreach ────────────────────────────────────────────────────
+exports.draftRecruiterOutreach = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, async (request) => {
+  const { company, role, recruiterName, recruiterTitle, senderName } = request.data
+  if (!company || !role || !recruiterName) return { error: 'INVALID_INPUT' }
 
   const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
 
   try {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
-      system: `You are an expert interviewer generating practice interview questions.
-Return ONLY a JSON array of ${n} question strings. No numbering, no prefixes.
-Difficulty: ${diff} — ${difficultyGuide[diff]}
-Make questions specific to the role and company context. Avoid generic questions.`,
+      max_tokens: 600,
+      system: `You are writing a personalized cold outreach message from a job seeker to a recruiter.
+Rules:
+- Email subject: under 8 words, attention-grabbing, relevant to the role. No clickbait.
+- Email body: under 120 words. Professional but warm. End with a clear ask (quick call, 15-min chat). No "I hope this message finds you well." No generic filler.
+- LinkedIn message: under 300 characters. Casual, direct. Works as a connection request note or DM.
+- Do NOT fabricate facts or credentials.
+- Return ONLY valid JSON: {"emailSubject": "...", "emailBody": "...", "linkedInMessage": "..."}`,
       messages: [{
         role: 'user',
-        content: `Company: ${company || 'a tech company'}\nRole: ${role}${jobDescription ? `\n\nJob Description:\n${jobDescription.slice(0, 3000)}` : ''}`,
+        content: `Sender: ${senderName || 'a job seeker'}\nRecruiter: ${recruiterName}${recruiterTitle ? `, ${recruiterTitle}` : ''}\nCompany: ${company}\nRole: ${role}`,
       }],
     })
 
     const raw = response.content[0].text.trim()
-    const arr = raw.startsWith('[') ? JSON.parse(raw) : JSON.parse(raw.match(/\[[\s\S]*\]/)[0])
-    return { questions: arr.filter(q => typeof q === 'string').slice(0, n) }
+    const json = raw.startsWith('{') ? JSON.parse(raw) : JSON.parse(raw.match(/\{[\s\S]*\}/)[0])
+    return json
   } catch (err) {
-    console.error('generateInterviewQuestions error:', err)
+    console.error('draftRecruiterOutreach error:', err)
     return { error: 'GENERATION_ERROR' }
   }
 })
@@ -340,6 +410,44 @@ ATS bullet rules (apply to rewrittenBullets AND all experience bullets in sectio
   }
 })
 
+// ── processCompanyPrompt ──────────────────────────────────────────────────────
+exports.processCompanyPrompt = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, async (request) => {
+  const { instruction, companyNames } = request.data
+  if (!instruction || typeof instruction !== 'string') return { op: 'error', message: 'INVALID_INPUT' }
+
+  const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 800,
+      system: `You manage a job search target companies list for a software engineer.
+Engineer background: 4 years at Amazon, Java/Spring Boot backend, AWS distributed systems, platform automation, H-1B visa needing sponsorship.
+
+Given an instruction, return exactly ONE JSON operation (no other text):
+
+Add:    {"op":"add","company":{"name":"...","domain":"...","space":"...","stage":"...","notes":"...","targetRoles":"...","careersUrl":"...","searchQuery":"..."}}
+Remove: {"op":"remove","name":"..."}
+Update: {"op":"update","name":"...","updates":{"field":"value"}}
+Error:  {"op":"error","message":"..."}
+
+For "add": generate realistic values. domain = primary domain (no https). targetRoles = 2–4 relevant roles comma-separated. careersUrl = likely URL. searchQuery = LinkedIn/Hunter search string. notes = 1–2 sentences on fit with engineer background. stage = "Startup / growth" | "Mid-size / growth" | "Large startup / growth" | "Public / mid-large".
+Return ONLY valid JSON.`,
+      messages: [{
+        role: 'user',
+        content: `Current companies: ${(companyNames || []).join(', ')}\n\nInstruction: ${instruction}`,
+      }],
+    })
+
+    const raw = response.content[0].text.trim()
+    const json = raw.startsWith('{') ? JSON.parse(raw) : JSON.parse(raw.match(/\{[\s\S]*\}/)[0])
+    return json
+  } catch (err) {
+    console.error('processCompanyPrompt error:', err)
+    return { op: 'error', message: 'Failed to process instruction' }
+  }
+})
+
 // ── notificationChecker ───────────────────────────────────────────────────────
 exports.notificationChecker = onSchedule(
   { schedule: 'every 1 hours', secrets: [GMAIL_USER, GMAIL_PASS] },
@@ -369,25 +477,6 @@ exports.notificationChecker = onSchedule(
         await writeNotification(uid, 'follow_up', appDoc.id, message)
         if (prefs.emailReminders && prefs.email) {
           await sendEmail(prefs.email, `Follow up: ${app.company} – ${app.role}`, message)
-        }
-      }
-
-      // Interview prep reminders: interview in next 24-48h
-      const allSnap = await db.collection(`users/${uid}/applications`).get()
-      for (const appDoc of allSnap.docs) {
-        const app = appDoc.data()
-        const interviewDates = app.interviewDates ?? []
-        for (const ts of interviewDates) {
-          const d = ts?.toDate ? ts.toDate() : new Date(ts)
-          const hoursUntil = (d.getTime() - Date.now()) / 3600000
-          if (hoursUntil > 0 && hoursUntil <= 48) {
-            const h = Math.round(hoursUntil)
-            const message = `Interview in ${h}h: ${app.company} – ${app.role}. Time to prep!`
-            await writeNotification(uid, 'interview_prep', appDoc.id, message)
-            if (prefs.emailReminders && prefs.email) {
-              await sendEmail(prefs.email, `Interview reminder: ${app.company}`, message)
-            }
-          }
         }
       }
 

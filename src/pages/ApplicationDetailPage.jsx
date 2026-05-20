@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc, getDoc, getDocs, collection, query, where } from 'firebase/firestore'
 import {
   ArrowLeft, ExternalLink, Pencil, Sparkles, Loader2,
   CheckCircle2, Circle, Plus, Trash2, FileText,
-  ChevronDown, ChevronUp, AlertTriangle, Zap,
-  BookOpen, Mail, Calendar, MessageSquare, Wand2, Save, Eye, Copy, ClipboardCheck,
+  ChevronDown, ChevronUp, AlertTriangle, Search,
+  Mail, Calendar, Wand2, Eye, Copy, ClipboardCheck, Check,
 } from 'lucide-react'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext'
@@ -19,7 +19,6 @@ import './ApplicationDetailPage.css'
 
 const ROUND_TYPES = ['Phone Screen', 'Technical Interview', 'System Design', 'Behavioral', 'Final Round', 'Other']
 const ROUND_RESULTS = ['Pending', 'Passed', 'Failed']
-const DIFFICULTIES = ['Easy', 'Medium', 'Hard']
 
 function getTodos(job) {
   return [
@@ -67,7 +66,7 @@ export default function ApplicationDetailPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { jobs, loading } = useJobs()
-  const { matchResume, generateInterviewQuestions, tailorResume } = useAI()
+  const { matchResume, tailorResume, findRecruiter, draftRecruiterOutreach } = useAI()
   const { deleteJob } = useJobMutations()
 
   const [editing, setEditing] = useState(false)
@@ -77,15 +76,34 @@ export default function ApplicationDetailPage() {
   const [jdExpanded, setJdExpanded] = useState(false)
   const [addingRound, setAddingRound] = useState(false)
   const [newRound, setNewRound] = useState({ type: 'Phone Screen', date: '', result: 'Pending', notes: '' })
-  const [questionCount, setQuestionCount] = useState(5)
-  const [difficulty, setDifficulty] = useState('Medium')
-  const [questions, setQuestions] = useState([])
-  const [generatingQ, setGeneratingQ] = useState(false)
   const [copiedIdx, setCopiedIdx] = useState(null)
+  const [finderDomain, setFinderDomain] = useState('')
+  const [finding, setFinding] = useState(false)
+  const [finderResults, setFinderResults] = useState(null)
+  const [finderError, setFinderError] = useState(null)
+  const [finderFromCache, setFinderFromCache] = useState(false)
+  const [contactedEmails, setContactedEmails] = useState(new Set())
+  const domainPreFilled = useRef(false)
   const [tailoring, setTailoring] = useState(false)
   const [tailorDraft, setTailorDraft] = useState(null)   // { suggestions, sections } — unsaved working copy
   const [tailorSaving, setTailorSaving] = useState(false)
   const [resumeModalOpen, setResumeModalOpen] = useState(false)
+  const [editingRecruiter, setEditingRecruiter] = useState(false)
+  const [recruiterEdit, setRecruiterEdit] = useState({ name: '', email: '', title: '', linkedin: '' })
+  const [selectedRecruiterIndices, setSelectedRecruiterIndices] = useState(new Set())
+  const [outreachDrafts, setOutreachDrafts] = useState([])
+  const [draftingOutreach, setDraftingOutreach] = useState(false)
+
+  useEffect(() => {
+    if (domainPreFilled.current) return
+    const url = jobs.find(j => j.id === jobId)?.jobUrl
+    if (!url) return
+    try {
+      const hostname = new URL(url).hostname.replace(/^www\./, '')
+      setFinderDomain(hostname)
+      domainPreFilled.current = true
+    } catch {}
+  }, [jobs, jobId])
 
   const job = jobs.find(j => j.id === jobId)
 
@@ -173,22 +191,6 @@ export default function ApplicationDetailPage() {
     await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), { interviewRounds: rounds })
   }
 
-  async function handleGenerateQuestions() {
-    setGeneratingQ(true)
-    setQuestions([])
-    try {
-      const result = await generateInterviewQuestions(
-        job.company, job.role, job.jobDescription ?? '', questionCount, difficulty.toLowerCase()
-      )
-      if (result?.questions) setQuestions(result.questions)
-      else alert('Could not generate questions. Try adding a job description first.')
-    } catch (err) {
-      alert(err.message)
-    } finally {
-      setGeneratingQ(false)
-    }
-  }
-
   async function handleDelete() {
     if (!confirm(`Delete ${job.company} – ${job.role}? This cannot be undone.`)) return
     await deleteJob(job.id)
@@ -229,6 +231,135 @@ export default function ApplicationDetailPage() {
     }
     if (sections) payload.tailoredResumeSections = sections
     await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), payload)
+  }
+
+  async function handleFindRecruiter() {
+    if (!finderDomain.trim()) return
+    setFinding(true)
+    setFinderResults(null)
+    setFinderError(null)
+    setFinderFromCache(false)
+    setContactedEmails(new Set())
+    setSelectedRecruiterIndices(new Set())
+    setOutreachDrafts([])
+
+    const normalized = finderDomain.trim()
+      .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').toLowerCase()
+
+    try {
+      let recruiters = null
+      let fromCache = false
+
+      // 1. Check our Firestore cache first — no Hunter API call if fresh data exists
+      const cacheSnap = await getDoc(doc(db, 'users', user.uid, 'recruiterCache', normalized))
+      if (cacheSnap.exists()) {
+        const cached = cacheSnap.data()
+        if (Date.now() - cached.cachedAt.toMillis() < 30 * 24 * 60 * 60 * 1000) {
+          recruiters = cached.recruiters
+          fromCache = true
+        }
+      }
+
+      // 2. Cache miss — call cloud function (it will cache the result for next time)
+      if (!recruiters) {
+        const result = await findRecruiter(finderDomain.trim())
+        if (result.error) throw new Error(result.error)
+        recruiters = result.recruiters
+        fromCache = result.fromCache ?? false
+      }
+
+      setFinderFromCache(fromCache)
+      setFinderResults(recruiters)
+
+      // 3. Cross-check outreach collection so we can badge already-contacted recruiters
+      const emails = (recruiters || []).map(r => r.email).filter(Boolean).slice(0, 10)
+      if (emails.length > 0) {
+        const snap = await getDocs(
+          query(collection(db, 'users', user.uid, 'outreach'), where('recruiterEmail', 'in', emails))
+        )
+        setContactedEmails(new Set(snap.docs.map(d => d.data().recruiterEmail)))
+      }
+    } catch (err) {
+      setFinderError(err.message)
+    } finally {
+      setFinding(false)
+    }
+  }
+
+  function toggleRecruiterSelection(idx) {
+    setSelectedRecruiterIndices(prev => {
+      const next = new Set(prev)
+      next.has(idx) ? next.delete(idx) : next.add(idx)
+      return next
+    })
+  }
+
+  async function handleDraftMultipleOutreach() {
+    const selected = [...selectedRecruiterIndices].map(i => finderResults[i])
+    setDraftingOutreach(true)
+    setOutreachDrafts([])
+    try {
+      const drafts = await Promise.all(
+        selected.map(async r => {
+          const result = await draftRecruiterOutreach({
+            company: job.company,
+            role: job.role,
+            recruiterName: r.name,
+            recruiterTitle: r.title ?? '',
+            senderName: user?.displayName ?? '',
+          })
+          return { recruiter: r, ...result }
+        })
+      )
+      setOutreachDrafts(drafts.filter(d => !d.error))
+    } catch (err) {
+      alert('Failed to draft some messages. Try again.')
+    } finally {
+      setDraftingOutreach(false)
+    }
+  }
+
+  async function handleSelectRecruiter(r) {
+    const linkedin = r.linkedin
+      ? r.linkedin.startsWith('http') ? r.linkedin : `https://${r.linkedin}`
+      : ''
+    await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), {
+      recruiterName: r.name,
+      recruiterEmail: r.email,
+      recruiterTitle: r.title ?? '',
+      recruiterLinkedIn: linkedin,
+    })
+    setFinderResults(null)
+  }
+
+  function startEditRecruiter() {
+    setRecruiterEdit({
+      name: job.recruiterName ?? '',
+      email: job.recruiterEmail ?? '',
+      title: job.recruiterTitle ?? '',
+      linkedin: job.recruiterLinkedIn ?? '',
+    })
+    setEditingRecruiter(true)
+  }
+
+  async function handleSaveRecruiter() {
+    await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), {
+      recruiterName: recruiterEdit.name,
+      recruiterEmail: recruiterEdit.email,
+      recruiterTitle: recruiterEdit.title,
+      recruiterLinkedIn: recruiterEdit.linkedin,
+    })
+    setEditingRecruiter(false)
+  }
+
+  async function handleClearRecruiter() {
+    await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), {
+      recruiterName: '',
+      recruiterEmail: '',
+      recruiterTitle: '',
+      recruiterLinkedIn: '',
+    })
+    setEditingRecruiter(false)
   }
 
   return (
@@ -279,7 +410,7 @@ export default function ApplicationDetailPage() {
         </div>
 
         {/* Action cards */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="detail-action-card">
             <div className="flex items-center gap-2 mb-3">
               <div className="detail-action-icon-violet">
@@ -302,20 +433,6 @@ export default function ApplicationDetailPage() {
 
           <FollowUpCard job={job} />
 
-          <div className="detail-action-card">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="detail-action-icon-blue">
-                <BookOpen size={13} className="text-blue-400" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-white">Interview Prep Hub</p>
-                <p className="text-xs text-slate-400">MCQs · Skills · Projects · Tips</p>
-              </div>
-            </div>
-            <a href="https://github.com/jonathanpasupulety/JobPrep" target="_blank" rel="noopener noreferrer" className="detail-action-btn-blue">
-              <ExternalLink size={11} /> Open Guide
-            </a>
-          </div>
         </div>
 
         <div className="grid grid-cols-[3fr_2fr] gap-6 items-start">
@@ -537,48 +654,6 @@ export default function ApplicationDetailPage() {
               )}
             </Section>
 
-            <Section title="Practice Interview Questions" icon={MessageSquare}>
-              <p className="text-xs text-slate-400 mb-4">{job.company} &middot; {job.role}</p>
-              <div className="flex gap-4 mb-4 flex-wrap">
-                <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Questions</p>
-                  <div className="flex gap-1.5">
-                    {[5, 10].map(n => (
-                      <button key={n} onClick={() => setQuestionCount(n)}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${questionCount === n ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Difficulty</p>
-                  <div className="flex gap-1.5">
-                    {DIFFICULTIES.map(d => (
-                      <button key={d} onClick={() => setDifficulty(d)}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${difficulty === d ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
-                        {d}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <button onClick={handleGenerateQuestions} disabled={generatingQ} className="detail-generate-btn">
-                {generatingQ ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
-                {generatingQ ? 'Generating...' : `Generate ${questionCount} questions`}
-              </button>
-              {questions.length > 0 && (
-                <ol className="space-y-3">
-                  {questions.map((q, i) => (
-                    <li key={i} className="flex gap-3">
-                      <span className="text-xs font-bold text-slate-400 shrink-0 mt-0.5 w-4">{i + 1}.</span>
-                      <span className="text-sm text-slate-300 leading-relaxed">{q}</span>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </Section>
-
             {/* Meta info */}
             {(job.source || job.nextStep || addedDate || updatedDate) && (
               <aside className="detail-sidebar-card space-y-2.5">
@@ -610,24 +685,193 @@ export default function ApplicationDetailPage() {
               </aside>
             )}
 
-            {(job.recruiterName || job.recruiterEmail || job.recruiterLinkedIn) && (
-              <aside className="detail-sidebar-card">
-                <p className="detail-sidebar-label">Recruiter</p>
-                <div className="space-y-2">
-                  {job.recruiterName && <p className="text-sm font-medium text-white">{job.recruiterName}</p>}
-                  {job.recruiterEmail && (
-                    <a href={`mailto:${job.recruiterEmail}`} className="flex items-center gap-2 text-xs text-violet-400 hover:underline">
-                      <Mail size={11} /> {job.recruiterEmail}
-                    </a>
+            <aside className="detail-sidebar-card">
+              <p className="detail-sidebar-label">Recruiter</p>
+
+              {(job.recruiterName || job.recruiterEmail || job.recruiterLinkedIn) && (
+                <div className="space-y-2 mb-4">
+                  {editingRecruiter ? (
+                    <div className="space-y-2">
+                      <input
+                        value={recruiterEdit.name}
+                        onChange={e => setRecruiterEdit(r => ({ ...r, name: e.target.value }))}
+                        placeholder="Name"
+                        className="detail-form-select w-full text-xs"
+                      />
+                      <input
+                        value={recruiterEdit.title}
+                        onChange={e => setRecruiterEdit(r => ({ ...r, title: e.target.value }))}
+                        placeholder="Title (e.g. Technical Recruiter)"
+                        className="detail-form-select w-full text-xs"
+                      />
+                      <input
+                        value={recruiterEdit.email}
+                        onChange={e => setRecruiterEdit(r => ({ ...r, email: e.target.value }))}
+                        placeholder="Email"
+                        className="detail-form-select w-full text-xs"
+                      />
+                      <input
+                        value={recruiterEdit.linkedin}
+                        onChange={e => setRecruiterEdit(r => ({ ...r, linkedin: e.target.value }))}
+                        placeholder="LinkedIn URL"
+                        className="detail-form-select w-full text-xs"
+                      />
+                      <div className="flex gap-2">
+                        <button onClick={handleSaveRecruiter} className="flex-1 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors">
+                          Save
+                        </button>
+                        <button onClick={() => setEditingRecruiter(false)} className="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">
+                          Cancel
+                        </button>
+                        <button onClick={handleClearRecruiter} className="px-3 py-1.5 text-xs text-red-400 hover:text-red-300 transition-colors">
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-1.5">
+                          {job.recruiterName && <p className="text-sm font-medium text-white">{job.recruiterName}</p>}
+                          {job.recruiterTitle && <p className="text-xs text-slate-400">{job.recruiterTitle}</p>}
+                          {job.recruiterEmail && (
+                            <a href={`mailto:${job.recruiterEmail}`} className="flex items-center gap-2 text-xs text-violet-400 hover:underline">
+                              <Mail size={11} /> {job.recruiterEmail}
+                            </a>
+                          )}
+                          {job.recruiterLinkedIn && (
+                            <a href={job.recruiterLinkedIn} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-violet-400 hover:underline">
+                              <ExternalLink size={11} /> LinkedIn Profile
+                            </a>
+                          )}
+                        </div>
+                        <button onClick={startEditRecruiter} className="shrink-0 text-slate-500 hover:text-slate-300 transition-colors mt-0.5">
+                          <Pencil size={12} />
+                        </button>
+                      </div>
+                      {job.recruiterName && <OutreachCard job={job} />}
+                    </>
                   )}
-                  {job.recruiterLinkedIn && (
-                    <a href={job.recruiterLinkedIn} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-violet-400 hover:underline">
-                      <ExternalLink size={11} /> LinkedIn Profile
-                    </a>
+                  <div className="border-t border-slate-800 pt-1" />
+                </div>
+              )}
+
+              <p className="text-xs text-slate-500 mb-2">Search by company domain</p>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={finderDomain}
+                  onChange={e => { setFinderDomain(e.target.value); setFinderResults(null); setFinderError(null) }}
+                  onKeyDown={e => e.key === 'Enter' && handleFindRecruiter()}
+                  placeholder="e.g. stripe.com"
+                  className="detail-form-select flex-1 text-xs"
+                />
+                <button
+                  onClick={handleFindRecruiter}
+                  disabled={finding || !finderDomain.trim()}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg transition-colors shrink-0"
+                >
+                  {finding ? <Loader2 size={11} className="animate-spin" /> : <Search size={11} />}
+                  {finding ? 'Searching…' : 'Search'}
+                </button>
+              </div>
+
+              {finderError && <p className="text-xs text-red-400 mt-1">{finderError}</p>}
+
+              {finderResults !== null && finderResults.length === 0 && (
+                <div className="mt-2">
+                  <p className="text-xs text-slate-400 mb-2">No recruiters found via Hunter.io.</p>
+                  <a
+                    href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`recruiter ${job.company}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-violet-400 hover:underline"
+                  >
+                    <ExternalLink size={11} /> Search LinkedIn instead
+                  </a>
+                </div>
+              )}
+
+              {finderResults?.length > 0 && (
+                <div className="space-y-2 mt-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-slate-500">Select recruiters to contact</p>
+                    {finderFromCache && (
+                      <span className="text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 px-1.5 py-0.5 rounded-full">
+                        from cache · no API call
+                      </span>
+                    )}
+                  </div>
+                  {finderResults.map((r, i) => {
+                    const checked = selectedRecruiterIndices.has(i)
+                    const alreadyContacted = contactedEmails.has(r.email)
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => !alreadyContacted && toggleRecruiterSelection(i)}
+                        className={`w-full text-left p-2.5 rounded-lg border transition-colors ${
+                          alreadyContacted
+                            ? 'bg-slate-800/40 border-slate-700/50 opacity-60 cursor-default'
+                            : checked
+                              ? 'bg-violet-600/10 border-violet-500/40 cursor-pointer'
+                              : 'bg-slate-800 hover:bg-slate-700 border-slate-700 hover:border-slate-600 cursor-pointer'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {!alreadyContacted && (
+                            <div className={`w-3.5 h-3.5 rounded border shrink-0 mt-0.5 flex items-center justify-center transition-colors ${checked ? 'bg-violet-600 border-violet-500' : 'border-slate-600'}`}>
+                              {checked && <Check size={9} className="text-white" />}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="text-xs font-medium text-white">{r.name}</p>
+                              {alreadyContacted && (
+                                <span className="text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 px-1 py-0.5 rounded-full">
+                                  Already in outreach
+                                </span>
+                              )}
+                            </div>
+                            {r.title && <p className="text-[11px] text-slate-400 mt-0.5">{r.title}</p>}
+                            <p className="text-[11px] text-violet-400 mt-0.5">{r.email}</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">{r.confidence}% confidence</p>
+                          </div>
+                          {!alreadyContacted && (
+                            <button
+                              onClick={e => { e.stopPropagation(); handleSelectRecruiter(r) }}
+                              className="shrink-0 text-[10px] text-slate-500 hover:text-slate-300 px-1.5 py-0.5 rounded border border-slate-700 hover:border-slate-500 transition-colors mt-0.5"
+                            >
+                              Save
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {selectedRecruiterIndices.size > 0 && (
+                    <button
+                      onClick={handleDraftMultipleOutreach}
+                      disabled={draftingOutreach}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg transition-colors"
+                    >
+                      {draftingOutreach ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />}
+                      {draftingOutreach
+                        ? 'Drafting...'
+                        : `Draft outreach for ${selectedRecruiterIndices.size} recruiter${selectedRecruiterIndices.size > 1 ? 's' : ''}`}
+                    </button>
                   )}
                 </div>
-              </aside>
-            )}
+              )}
+
+              {outreachDrafts.length > 0 && (
+                <div className="mt-3 space-y-4">
+                  <p className="text-xs font-semibold text-slate-300">Outreach Drafts ({outreachDrafts.length})</p>
+                  {outreachDrafts.map((d, i) => (
+                    <MultiOutreachDraft key={i} draft={d} />
+                  ))}
+                </div>
+              )}
+            </aside>
 
             <aside className="detail-danger-card">
               <p className="text-xs font-semibold text-red-400 uppercase tracking-wide mb-3">Danger Zone</p>
@@ -705,6 +949,178 @@ function MetaRow({ label, value }) {
     <div className="flex items-center justify-between gap-2">
       <span className="text-xs text-slate-400 font-medium shrink-0">{label}</span>
       <span className="text-xs text-slate-300 text-right">{value}</span>
+    </div>
+  )
+}
+
+function MultiOutreachDraft({ draft }) {
+  const [emailBody, setEmailBody] = useState(draft.emailBody ?? '')
+  const [copiedLinkedIn, setCopiedLinkedIn] = useState(false)
+
+  const linkedInSearchUrl = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`${draft.recruiter.name} ${draft.recruiter.email?.split('@')[1]?.split('.')[0] ?? ''}`)}`
+
+  return (
+    <div className="p-3 bg-slate-800/60 border border-slate-700 rounded-xl space-y-3">
+      <div>
+        <p className="text-xs font-semibold text-white">{draft.recruiter.name}</p>
+        {draft.recruiter.title && <p className="text-[11px] text-slate-400">{draft.recruiter.title}</p>}
+        <p className="text-[11px] text-violet-400">{draft.recruiter.email}</p>
+      </div>
+
+      <div>
+        <p className="text-[10px] font-medium text-slate-400 mb-1">Subject: {draft.emailSubject}</p>
+        <textarea
+          value={emailBody}
+          onChange={e => setEmailBody(e.target.value)}
+          rows={5}
+          className="detail-form-select w-full text-xs resize-none"
+        />
+        <a
+          href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(draft.recruiter.email)}&su=${encodeURIComponent(draft.emailSubject ?? '')}&body=${encodeURIComponent(emailBody)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1.5 flex items-center justify-center gap-1.5 w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+        >
+          <Mail size={11} /> Open in Gmail
+        </a>
+      </div>
+
+      {draft.linkedInMessage && (
+        <div className="pt-2 border-t border-slate-700/60">
+          <p className="text-[10px] font-medium text-slate-400 mb-1.5">LinkedIn message</p>
+          <p className="text-xs text-slate-300 leading-relaxed bg-slate-800 border border-slate-700 rounded-lg p-2">
+            {draft.linkedInMessage}
+          </p>
+          <div className="flex gap-2 mt-1.5">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(draft.linkedInMessage)
+                setCopiedLinkedIn(true)
+                setTimeout(() => setCopiedLinkedIn(false), 2000)
+              }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+            >
+              {copiedLinkedIn ? <ClipboardCheck size={11} className="text-green-400" /> : <Copy size={11} />}
+              {copiedLinkedIn ? 'Copied!' : 'Copy'}
+            </button>
+            <a
+              href={linkedInSearchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+            >
+              <ExternalLink size={11} /> LinkedIn
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function OutreachCard({ job }) {
+  const { draftRecruiterOutreach } = useAI()
+  const { user } = useAuth()
+  const [drafting, setDrafting] = useState(false)
+  const [draft, setDraft] = useState(null)
+  const [emailBody, setEmailBody] = useState('')
+  const [copiedLinkedIn, setCopiedLinkedIn] = useState(false)
+
+  async function handleDraft() {
+    setDrafting(true)
+    setDraft(null)
+    try {
+      const result = await draftRecruiterOutreach({
+        company: job.company,
+        role: job.role,
+        recruiterName: job.recruiterName,
+        recruiterTitle: job.recruiterTitle ?? '',
+        senderName: user?.displayName ?? '',
+      })
+      if (result?.error) throw new Error('Could not generate outreach. Try again.')
+      setDraft(result)
+      setEmailBody(result.emailBody ?? '')
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setDrafting(false)
+    }
+  }
+
+  const linkedInSearchUrl = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`${job.recruiterName} ${job.company}`)}`
+
+  if (!draft) {
+    return (
+      <div className="pt-1">
+        <button
+          onClick={handleDraft}
+          disabled={drafting}
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
+        >
+          {drafting ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />}
+          {drafting ? 'Drafting outreach...' : 'Draft outreach message'}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3 pt-2">
+      {/* Email draft */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-xs font-semibold text-slate-300">Email Draft</p>
+          <button onClick={() => setDraft(null)} className="text-xs text-slate-500 hover:text-slate-300">Clear</button>
+        </div>
+        <p className="text-[11px] font-medium text-slate-400 mb-1.5">Subject: {draft.emailSubject}</p>
+        <textarea
+          value={emailBody}
+          onChange={e => setEmailBody(e.target.value)}
+          rows={6}
+          className="detail-form-select w-full text-xs resize-none"
+        />
+        {job.recruiterEmail && (
+          <a
+            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(job.recruiterEmail)}&su=${encodeURIComponent(draft.emailSubject ?? '')}&body=${encodeURIComponent(emailBody)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 flex items-center justify-center gap-1.5 w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+          >
+            <Mail size={11} /> Open in Gmail
+          </a>
+        )}
+      </div>
+
+      {/* LinkedIn message */}
+      {draft.linkedInMessage && (
+        <div className="pt-3 border-t border-slate-800">
+          <p className="text-xs font-semibold text-slate-300 mb-1.5">LinkedIn Message</p>
+          <p className="text-xs text-slate-300 leading-relaxed bg-slate-800/60 border border-slate-700 rounded-lg p-2.5">
+            {draft.linkedInMessage}
+          </p>
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(draft.linkedInMessage)
+                setCopiedLinkedIn(true)
+                setTimeout(() => setCopiedLinkedIn(false), 2000)
+              }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+            >
+              {copiedLinkedIn ? <ClipboardCheck size={11} className="text-green-400" /> : <Copy size={11} />}
+              {copiedLinkedIn ? 'Copied!' : 'Copy message'}
+            </button>
+            <a
+              href={linkedInSearchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+            >
+              <ExternalLink size={11} /> LinkedIn
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

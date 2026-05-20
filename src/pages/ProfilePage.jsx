@@ -28,7 +28,6 @@ export default function ProfilePage() {
   const [prefs, setPrefs] = useState({
     followUpDays: 7,
     emailReminders: false,
-    interviewReminders: true,
     email: '',
     accentColor: 'violet',
   })
@@ -48,11 +47,10 @@ export default function ProfilePage() {
       if (snap.exists()) {
         const d = snap.data()
         const loaded = {
-          followUpDays:       d.followUpDays       ?? 7,
-          emailReminders:     d.emailReminders     ?? false,
-          interviewReminders: d.interviewReminders ?? true,
-          email:              d.email              ?? '',
-          accentColor:        d.accentColor        ?? 'violet',
+          followUpDays:   d.followUpDays   ?? 7,
+          emailReminders: d.emailReminders ?? false,
+          email:          d.email          ?? '',
+          accentColor:    d.accentColor    ?? 'violet',
         }
         setPrefs(loaded)
         applyAccent(loaded.accentColor)
@@ -216,16 +214,6 @@ export default function ProfilePage() {
                   <span className="text-xs text-slate-500">days</span>
                 </div>
               </div>
-
-              <div className="profile-divider" />
-
-              {/* Interview prep reminders */}
-              <ToggleRow
-                label="Interview prep reminders"
-                description="Alert me 48 hours before a scheduled interview."
-                checked={prefs.interviewReminders}
-                onChange={v => set('interviewReminders', v)}
-              />
 
               <div className="profile-divider" />
 

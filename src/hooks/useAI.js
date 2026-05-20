@@ -53,12 +53,6 @@ export function useAI() {
     return result.data
   }
 
-  async function generateInterviewQuestions(company, role, jobDescription, count, difficulty) {
-    const fn = httpsCallable(functions, 'generateInterviewQuestions')
-    const result = await fn({ company, role, jobDescription, count, difficulty })
-    return result.data
-  }
-
   async function tailorResume(company, role, jobDescription, keySkills, gaps) {
     const resumesSnap = await getDocs(
       query(collection(db, 'users', user.uid, 'resumes'), where('isDefault', '==', true), limit(1))
@@ -83,5 +77,17 @@ export function useAI() {
     return result.data
   }
 
-  return { parseJD, getCoaching, draftFollowUp, matchResume, importFromUrl, generateInterviewQuestions, tailorResume }
+  async function findRecruiter(domain) {
+    const fn = httpsCallable(functions, 'findRecruiter')
+    const result = await fn({ domain })
+    return result.data
+  }
+
+  async function draftRecruiterOutreach(payload) {
+    const fn = httpsCallable(functions, 'draftRecruiterOutreach')
+    const result = await fn(payload)
+    return result.data
+  }
+
+  return { parseJD, getCoaching, draftFollowUp, matchResume, importFromUrl, tailorResume, findRecruiter, draftRecruiterOutreach }
 }

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { BriefcaseBusiness, LayoutDashboard, Kanban, LogOut, FileText, BookOpen, User, X } from 'lucide-react'
+import { BriefcaseBusiness, LayoutDashboard, Kanban, LogOut, FileText, User, X, Send, Target } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import NotificationBell from '../ui/NotificationBell'
 import './Sidebar.css'
@@ -35,17 +35,11 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
 
         <div>
-          <p className="sidebar-section-label">Preparation</p>
-          <a
-            href="https://github.com/jonathanpasupulety/JobPrep"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`sidebar-nav-link sidebar-nav-link-inactive`}
-          >
-            <BookOpen size={16} />
-            Interview Prep
-          </a>
+          <p className="sidebar-section-label">Networking</p>
+          <NavItem to="/targets" icon={Target} label="Target Companies" />
+          <NavItem to="/outreach" icon={Send} label="Outreach" />
         </div>
+
       </nav>
 
       <div className="sidebar-footer">

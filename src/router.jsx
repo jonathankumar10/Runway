@@ -11,6 +11,8 @@ import LoadingScreen from './components/ui/LoadingScreen'
 
 const ResumePage = lazy(() => import('./pages/ResumePage'))
 const ApplicationDetailPage = lazy(() => import('./pages/ApplicationDetailPage'))
+const OutreachPage = lazy(() => import('./pages/OutreachPage'))
+const TargetCompaniesPage = lazy(() => import('./pages/TargetCompaniesPage'))
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
@@ -61,7 +63,9 @@ export default function Router() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="resumes" element={<Suspense fallback={<LoadingScreen />}><ResumePage /></Suspense>} />
           <Route path="applications/:jobId" element={<Suspense fallback={<LoadingScreen />}><ApplicationDetailPage /></Suspense>} />
-          < Route path="profile" element={<ProfilePage />} />
+          <Route path="outreach" element={<Suspense fallback={<LoadingScreen />}><OutreachPage /></Suspense>} />
+          <Route path="targets" element={<Suspense fallback={<LoadingScreen />}><TargetCompaniesPage /></Suspense>} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
