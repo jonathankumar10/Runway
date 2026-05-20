@@ -157,3 +157,125 @@
 .resume-action-btn-danger {
   @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-red-400 border-red-500/20 hover:bg-red-500/10;
 }
+
+/* ── Structured Editor ─────────────────────────────────────────────────── */
+
+.structured-editor {
+  @apply flex flex-col;
+}
+
+.se-section {
+  @apply pt-4;
+}
+
+.se-section + .se-section {
+  border-top: 1px solid rgb(30 41 59);
+  margin-top: 1rem;
+}
+
+/* Skills */
+.se-skills {
+  @apply flex flex-col gap-3;
+}
+
+.se-skill-group {}
+
+.se-skill-label {
+  @apply text-[11px] text-slate-500 font-medium mb-1.5;
+}
+
+.se-skill-chips {
+  @apply flex flex-wrap gap-1.5;
+}
+
+.se-chip {
+  @apply inline-flex items-center gap-1 text-xs bg-slate-700/80 text-slate-200 px-2 py-0.5 rounded-lg border border-slate-600;
+}
+
+.se-chip-remove {
+  @apply text-slate-400 hover:text-red-400 transition-colors ml-0.5 flex items-center;
+}
+
+.se-chip-add {
+  @apply inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 border border-dashed border-slate-700 hover:border-slate-500 px-2 py-0.5 rounded-lg transition-colors;
+}
+
+.se-chip-input {
+  @apply text-xs bg-slate-700 border border-violet-500 text-white px-2 py-0.5 rounded-lg focus:outline-none w-28;
+}
+
+/* Experience / Projects */
+.se-exp {
+  @apply flex flex-col gap-4;
+}
+
+.se-exp-entry {}
+
+.se-exp-header {
+  @apply flex flex-wrap items-baseline gap-x-1 gap-y-0.5 mb-1.5;
+}
+
+.se-exp-role {
+  @apply text-xs font-semibold text-slate-200;
+}
+
+.se-exp-company {
+  @apply text-xs text-slate-400;
+}
+
+.se-exp-dates {
+  @apply text-[11px] text-slate-500 ml-auto shrink-0;
+}
+
+/* Bullets */
+.se-bullets {
+  @apply flex flex-col gap-0.5;
+}
+
+.se-bullet-row {
+  @apply w-full;
+}
+
+.se-bullet-text {
+  @apply flex items-start gap-1.5 cursor-text rounded px-1 py-0.5 hover:bg-slate-800/60 transition-colors;
+}
+
+.se-bullet-dot {
+  @apply text-slate-500 text-sm leading-5 shrink-0;
+}
+
+.se-bullet-content {
+  @apply text-xs text-slate-300 leading-5 flex-1;
+}
+
+.se-bullet-pencil {
+  @apply text-slate-700 shrink-0 mt-1 transition-colors;
+}
+
+.se-bullet-text:hover .se-bullet-pencil {
+  @apply text-slate-400;
+}
+
+.se-bullet-textarea {
+  @apply w-full text-xs text-slate-200 bg-slate-800 border border-violet-500/70 rounded-lg px-2.5 py-2 resize-none focus:outline-none focus:border-violet-500 leading-relaxed;
+}
+
+/* Summary */
+.se-summary {
+  @apply flex flex-col gap-1;
+}
+
+/* Education */
+.se-edu {
+  @apply flex flex-col gap-3;
+}
+
+/* Loading */
+.se-loading {
+  @apply flex items-center gap-3 py-8;
+}
+
+/* Parse structure button */
+.se-parse-btn {
+  @apply flex items-center gap-2 px-3 py-2 text-xs font-medium text-violet-400 border border-violet-500/30 hover:bg-violet-500/10 rounded-lg transition-colors;
+}

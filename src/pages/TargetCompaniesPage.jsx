@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   collection, onSnapshot, orderBy, query, addDoc, updateDoc, deleteDoc,
-  doc, getDocs, serverTimestamp, writeBatch,
+  doc, serverTimestamp, writeBatch,
 } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import {
@@ -60,7 +60,7 @@ export default function TargetCompaniesPage() {
   const [loading, setLoading] = useState(true)
   const [seeding, setSeeding] = useState(false)
   const [cachedDomains, setCachedDomains] = useState(new Set())
-  const [contactedCompanies, setContactedCompanies] = useState(new Set())
+  const [outreachByCompany, setOutreachByCompany] = useState(new Map())
   const [prompt, setPrompt] = useState('')
   const [processing, setProcessing] = useState(false)
   const [promptResult, setPromptResult] = useState(null)
@@ -92,33 +92,42 @@ export default function TargetCompaniesPage() {
     })
   }, [user?.uid])
 
-  // Load cache + outreach status for status badges
+  // Live-sync cache + outreach so status badges update without a page refresh
   useEffect(() => {
     if (!user?.uid) return
-    async function loadStatuses() {
-      const [cacheSnap, outreachSnap] = await Promise.all([
-        getDocs(collection(db, 'users', user.uid, 'recruiterCache')),
-        getDocs(collection(db, 'users', user.uid, 'outreach')),
-      ])
-      setCachedDomains(new Set(cacheSnap.docs.map(d => d.id)))
-      setContactedCompanies(new Set(
-        outreachSnap.docs.map(d => d.data().company?.toLowerCase()).filter(Boolean)
-      ))
-    }
-    loadStatuses()
+    const unsubCache = onSnapshot(collection(db, 'users', user.uid, 'recruiterCache'), snap => {
+      setCachedDomains(new Set(snap.docs.map(d => d.id)))
+    })
+    const unsubOutreach = onSnapshot(collection(db, 'users', user.uid, 'outreach'), snap => {
+      const map = new Map()
+      for (const d of snap.docs) {
+        const { company, emailSent, linkedInSent } = d.data()
+        const key = company?.toLowerCase()
+        if (!key) continue
+        if (!map.has(key)) map.set(key, [])
+        map.get(key).push({ emailSent, linkedInSent })
+      }
+      setOutreachByCompany(map)
+    })
+    return () => { unsubCache(); unsubOutreach() }
   }, [user?.uid])
 
   function getStatus(company) {
     const name = company.name?.toLowerCase()
-    if (contactedCompanies.has(name)) return 'contacted'
-    if (cachedDomains.has(company.domain)) return 'searched'
+    const records = outreachByCompany.get(name) ?? []
+    if (records.some(r => r.emailSent && r.linkedInSent)) return 'contacted'
+    if (records.some(r => r.emailSent)) return 'emailed'
+    if (records.length > 0) return 'tracked'
+    if (cachedDomains.has(company.domain)) return 'retrieved'
     return 'new'
   }
 
   const STATUS_FILTERS = [
     { key: 'all', label: 'All', count: companies.length },
     { key: 'new', label: 'Not searched', count: companies.filter(c => getStatus(c) === 'new').length },
-    { key: 'searched', label: 'Cached', count: companies.filter(c => getStatus(c) === 'searched').length },
+    { key: 'retrieved', label: 'Retrieved', count: companies.filter(c => getStatus(c) === 'retrieved').length },
+    { key: 'tracked', label: 'Tracked', count: companies.filter(c => getStatus(c) === 'tracked').length },
+    { key: 'emailed', label: 'Emailed', count: companies.filter(c => getStatus(c) === 'emailed').length },
     { key: 'contacted', label: 'Contacted', count: companies.filter(c => getStatus(c) === 'contacted').length },
   ]
 
@@ -202,7 +211,7 @@ export default function TargetCompaniesPage() {
             <div>
               <h1 className="text-lg font-bold text-white">Target Companies</h1>
               <p className="text-xs text-slate-400">
-                {companies.length} companies · {STATUS_FILTERS.find(f => f.key === 'contacted')?.count ?? 0} contacted · {STATUS_FILTERS.find(f => f.key === 'searched')?.count ?? 0} cached
+                {companies.length} companies · {STATUS_FILTERS.find(f => f.key === 'contacted')?.count ?? 0} contacted · {STATUS_FILTERS.find(f => f.key === 'tracked')?.count ?? 0} tracked
               </p>
             </div>
           </div>
@@ -301,15 +310,27 @@ export default function TargetCompaniesPage() {
                     <tr key={company.id}>
                       {/* Company */}
                       <td>
-                        <p className="font-semibold text-white text-xs">{company.name}</p>
-                        <a
-                          href={`https://${company.domain}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[10px] text-slate-500 hover:text-violet-400 transition-colors"
+                        <button
+                          onClick={() => handleFindRecruiters(company)}
+                          className="font-semibold text-white text-xs hover:text-sky-400 transition-colors text-left"
                         >
-                          {company.domain}
-                        </a>
+                          {company.name}
+                        </button>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <a
+                            href={`https://${company.domain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-slate-500 hover:text-violet-400 transition-colors"
+                          >
+                            {company.domain}
+                          </a>
+                          {(outreachByCompany.get(company.name?.toLowerCase())?.length ?? 0) > 0 && (
+                            <span className="text-[10px] text-violet-400">
+                              · {outreachByCompany.get(company.name?.toLowerCase()).length} tracked
+                            </span>
+                          )}
+                        </div>
                       </td>
                       {/* Space */}
                       <td>
@@ -347,11 +368,15 @@ export default function TargetCompaniesPage() {
                       <td>
                         <span className={`targets-status-badge ${
                           status === 'contacted' ? 'targets-status-contacted' :
-                          status === 'searched' ? 'targets-status-searched' :
+                          status === 'emailed'   ? 'targets-status-emailed' :
+                          status === 'tracked'   ? 'targets-status-tracked' :
+                          status === 'retrieved' ? 'targets-status-retrieved' :
                           'targets-status-new'
                         }`}>
                           {status === 'contacted' ? '✓ Contacted' :
-                           status === 'searched' ? '⬤ Cached' :
+                           status === 'emailed'   ? '✉ Emailed' :
+                           status === 'tracked'   ? '◑ Tracked' :
+                           status === 'retrieved' ? '⬤ Retrieved' :
                            '○ Not searched'}
                         </span>
                       </td>

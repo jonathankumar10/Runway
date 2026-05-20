@@ -49,8 +49,16 @@
   @apply text-slate-500 bg-slate-800 border-slate-700;
 }
 
-.targets-status-searched {
+.targets-status-retrieved {
   @apply text-amber-400 bg-amber-500/10 border-amber-500/20;
+}
+
+.targets-status-tracked {
+  @apply text-violet-400 bg-violet-500/10 border-violet-500/20;
+}
+
+.targets-status-emailed {
+  @apply text-sky-400 bg-sky-500/10 border-sky-500/20;
 }
 
 .targets-status-contacted {

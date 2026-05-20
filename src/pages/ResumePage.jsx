@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Upload, FileText, Star, Trash2, Download, Eye, Loader2, Check, Pencil, Sparkles, BarChart2, MousePointerClick } from 'lucide-react'
+import { Upload, FileText, Star, Trash2, Download, Eye, Loader2, Check, Pencil, Sparkles, BarChart2, MousePointerClick, X, Plus, Briefcase, Code2, GraduationCap, AlignLeft } from 'lucide-react'
 import { collection, doc, getDocs, getDoc, addDoc, deleteDoc, updateDoc, writeBatch } from 'firebase/firestore'
 import * as pdfjs from 'pdfjs-dist'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext'
 import { useJobs } from '../context/JobsContext'
+import { useAI } from '../hooks/useAI'
 import './ResumePage.css'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -59,11 +60,13 @@ function formatBytes(bytes) {
 export default function ResumePage() {
   const { user } = useAuth()
   const { jobs } = useJobs()
+  const { parseResumeStructure } = useAI()
   const [resumes, setResumes] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+  const [parsingId, setParsingId] = useState(null)
   const fileRef = useRef()
   const detailRef = useRef()
 
@@ -86,6 +89,7 @@ export default function ResumePage() {
           const legacy = legacySnap.data()
           const newRef = await addDoc(collection(db, 'users', user.uid, 'resumes'), {
             filename: legacy.filename ?? 'resume.pdf',
+            label: legacy.filename?.replace(/\.pdf$/i, '') ?? 'resume',
             size: legacy.size ?? 0,
             uploadedAt: legacy.uploadedAt ?? new Date().toISOString(),
             resumeText: legacy.resumeText ?? '',
@@ -121,11 +125,34 @@ export default function ResumePage() {
     }
   }
 
+  async function handleParseStructure(resumeId, resumeText) {
+    setParsingId(resumeId)
+    try {
+      const result = await parseResumeStructure(resumeText)
+      if (result?.parsedStructure) {
+        await updateDoc(doc(db, 'users', user.uid, 'resumes', resumeId), { parsedStructure: result.parsedStructure })
+        setResumes(prev => prev.map(r => r.id === resumeId ? { ...r, parsedStructure: result.parsedStructure } : r))
+      }
+    } catch (err) {
+      console.error('Structure parse failed:', err)
+    } finally {
+      setParsingId(null)
+    }
+  }
+
+  async function handleUpdateResume(resumeId, updates) {
+    await updateDoc(doc(db, 'users', user.uid, 'resumes', resumeId), updates)
+    setResumes(prev => prev.map(r => r.id === resumeId ? { ...r, ...updates } : r))
+  }
+
   async function handleFile(file) {
     if (!file || file.type !== 'application/pdf') { alert('Please upload a PDF file.'); return }
     setUploading(true)
+    let savedId = null
+    let savedText = null
     try {
       const [resumeText, pdfBase64] = await Promise.all([extractPDFText(file), fileToBase64(file)])
+      savedText = resumeText
       const isFirst = resumes.length === 0
       const data = {
         filename: file.name,
@@ -137,13 +164,18 @@ export default function ResumePage() {
         isDefault: isFirst,
       }
       const newRef = await addDoc(collection(db, 'users', user.uid, 'resumes'), data)
+      savedId = newRef.id
       const newResume = { id: newRef.id, ...data }
       setResumes(prev => [newResume, ...prev])
       setSelectedId(newResume.id)
     } catch (err) {
       alert(`Upload failed: ${err.message}`)
+      return
     } finally {
       setUploading(false)
+    }
+    if (savedId && savedText) {
+      await handleParseStructure(savedId, savedText)
     }
   }
 
@@ -200,14 +232,12 @@ export default function ResumePage() {
 
   return (
     <div className="resume-page">
-      {/* Header */}
       <div className="mb-6">
         <p className="text-xs text-slate-400 mb-1">WORKSPACE &rsaquo; RESUMES</p>
         <h1 className="text-2xl font-bold text-white">Resumes</h1>
         <p className="text-sm text-slate-400 mt-1">Manage your resume library. Click a resume to inspect its skills and stats.</p>
       </div>
 
-      {/* Stats bar */}
       <div className="resume-stats-row">
         <StatCard value={resumes.length} label="Resumes" />
         <StatCard value={activeJobs.length} label="Active applications" />
@@ -219,10 +249,7 @@ export default function ResumePage() {
         />
       </div>
 
-      {/* Master-detail layout */}
       <div className="resume-layout">
-
-        {/* LEFT — resume list + upload */}
         <div className="resume-list-col">
           <div className="resume-list-card">
             <div className="resume-list-header">
@@ -271,7 +298,6 @@ export default function ResumePage() {
           </div>
         </div>
 
-        {/* RIGHT — detail panel */}
         <div className="resume-detail-col" ref={detailRef}>
           {selectedResume ? (
             <ResumeDetail
@@ -283,6 +309,9 @@ export default function ResumePage() {
               onSetDefault={() => handleSetDefault(selectedResume.id)}
               onDelete={() => handleDelete(selectedResume.id)}
               onUpdateLabel={label => handleUpdateLabel(selectedResume.id, label)}
+              onUpdate={updates => handleUpdateResume(selectedResume.id, updates)}
+              parsingId={parsingId}
+              onParseStructure={() => handleParseStructure(selectedResume.id, selectedResume.resumeText)}
             />
           ) : (
             <div className="resume-empty-detail">
@@ -292,7 +321,6 @@ export default function ResumePage() {
             </div>
           )}
         </div>
-
       </div>
     </div>
   )
@@ -327,7 +355,7 @@ function ResumeListItem({ resume, isSelected, onSelect }) {
   )
 }
 
-function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetDefault, onDelete, onUpdateLabel }) {
+function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetDefault, onDelete, onUpdateLabel, onUpdate, parsingId, onParseStructure }) {
   const [editingLabel, setEditingLabel] = useState(false)
   const [labelDraft, setLabelDraft] = useState('')
 
@@ -338,6 +366,9 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
     ? new Date(resume.uploadedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : null
 
+  const isParsingThis = parsingId === resume.id
+  const hasStructure = !!resume.parsedStructure
+
   function startEdit() { setLabelDraft(label); setEditingLabel(true) }
   function saveLabel() {
     const trimmed = labelDraft.trim()
@@ -347,8 +378,6 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
 
   return (
     <div className="resume-detail-card">
-
-      {/* Top: name + actions */}
       <div className="resume-detail-top">
         <div className="resume-detail-icon">
           <FileText size={22} className="text-violet-400" />
@@ -383,7 +412,6 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="resume-detail-actions">
         <ActionBtn icon={Eye} label="Open" onClick={onOpen} />
         <ActionBtn icon={Download} label="Download" onClick={onDownload} />
@@ -393,8 +421,7 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
 
       <div className="resume-detail-divider" />
 
-      {/* Stats grid */}
-      <div className="mb-6">
+      <div className="mb-5">
         <div className="flex items-center gap-2 mb-3">
           <BarChart2 size={13} className="text-blue-400" />
           <p className="resume-section-title">Stats</p>
@@ -419,29 +446,291 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
         </div>
       </div>
 
-      {/* Skills */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={13} className="text-violet-400" />
-          <p className="resume-section-title">Detected Skills</p>
-          <span className="text-xs text-slate-500 bg-slate-800 rounded-full px-1.5 py-0.5">{skills.length}</span>
-        </div>
-        {skills.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {skills.map(skill => (
-              <span key={skill} className="resume-skill-tag">{skill}</span>
-            ))}
-          </div>
-        ) : resume.resumeText ? (
-          <p className="text-sm text-slate-500">No recognized tech skills found in this resume.</p>
-        ) : (
-          <p className="text-sm text-slate-500">Text extraction failed — try re-uploading this file.</p>
-        )}
-      </div>
+      <div className="resume-detail-divider" />
 
+      {isParsingThis ? (
+        <div className="se-loading">
+          <Loader2 size={16} className="animate-spin text-violet-400" />
+          <span className="text-sm text-slate-400">Parsing resume structure...</span>
+        </div>
+      ) : hasStructure ? (
+        <StructuredEditor resume={resume} onUpdate={onUpdate} />
+      ) : (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={13} className="text-violet-400" />
+            <p className="resume-section-title">Detected Skills</p>
+            <span className="text-xs text-slate-500 bg-slate-800 rounded-full px-1.5 py-0.5">{skills.length}</span>
+          </div>
+          {skills.length > 0 ? (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {skills.map(skill => (
+                <span key={skill} className="resume-skill-tag">{skill}</span>
+              ))}
+            </div>
+          ) : resume.resumeText ? (
+            <p className="text-sm text-slate-500 mb-4">No recognized tech skills found in this resume.</p>
+          ) : (
+            <p className="text-sm text-slate-500 mb-4">Text extraction failed — try re-uploading this file.</p>
+          )}
+          <button onClick={onParseStructure} className="se-parse-btn">
+            <Sparkles size={13} /> Parse Structure
+          </button>
+        </div>
+      )}
     </div>
   )
 }
+
+// ── StructuredEditor ──────────────────────────────────────────────────────────
+
+function StructuredEditor({ resume, onUpdate }) {
+  const s = resume.parsedStructure
+  if (!s) return null
+
+  function save(newStructure) {
+    onUpdate({ parsedStructure: newStructure })
+  }
+
+  return (
+    <div className="structured-editor">
+      {s.summary?.sentences?.length > 0 && (
+        <EditorSection title="Summary" icon={<AlignLeft size={13} />}>
+          <SummaryEditor
+            sentences={s.summary.sentences}
+            onChange={sentences => save({ ...s, summary: { ...s.summary, sentences } })}
+          />
+        </EditorSection>
+      )}
+
+      {s.skills?.length > 0 && (
+        <EditorSection title="Skills" icon={<Sparkles size={13} />}>
+          <SkillsEditor
+            groups={s.skills}
+            onChange={skills => save({ ...s, skills })}
+          />
+        </EditorSection>
+      )}
+
+      {s.experience?.length > 0 && (
+        <EditorSection title="Experience" icon={<Briefcase size={13} />}>
+          <BulletEditor
+            entries={s.experience}
+            getTitle={e => e.role}
+            getSubtitle={e => e.company}
+            getDates={e => e.dates}
+            onChange={experience => save({ ...s, experience })}
+          />
+        </EditorSection>
+      )}
+
+      {s.projects?.length > 0 && (
+        <EditorSection title="Projects" icon={<Code2 size={13} />}>
+          <BulletEditor
+            entries={s.projects}
+            getTitle={e => e.name}
+            getSubtitle={() => null}
+            getDates={e => e.dates}
+            onChange={projects => save({ ...s, projects })}
+          />
+        </EditorSection>
+      )}
+
+      {s.education?.length > 0 && (
+        <EditorSection title="Education" icon={<GraduationCap size={13} />}>
+          <EducationSection entries={s.education} />
+        </EditorSection>
+      )}
+    </div>
+  )
+}
+
+function EditorSection({ title, icon, children }) {
+  return (
+    <div className="se-section">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-violet-400">{icon}</span>
+        <p className="resume-section-title">{title}</p>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function SummaryEditor({ sentences, onChange }) {
+  const [editingIndex, setEditingIndex] = useState(null)
+  const [draft, setDraft] = useState('')
+
+  function startEdit(i) { setEditingIndex(i); setDraft(sentences[i]) }
+  function save() {
+    if (editingIndex == null) return
+    const trimmed = draft.trim()
+    if (trimmed) onChange(sentences.map((s, i) => i === editingIndex ? trimmed : s))
+    setEditingIndex(null)
+  }
+
+  return (
+    <div className="se-summary">
+      {sentences.map((s, i) => (
+        <div key={i} className="se-bullet-row">
+          {editingIndex === i ? (
+            <textarea
+              autoFocus
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onBlur={save}
+              onKeyDown={e => { if (e.key === 'Escape') setEditingIndex(null) }}
+              className="se-bullet-textarea"
+              rows={2}
+            />
+          ) : (
+            <div className="se-bullet-text" onClick={() => startEdit(i)}>
+              <span className="se-bullet-content">{s}</span>
+              <Pencil size={10} className="se-bullet-pencil" />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function SkillsEditor({ groups, onChange }) {
+  const [addingGroup, setAddingGroup] = useState(null)
+  const [addDraft, setAddDraft] = useState('')
+
+  function removeSkill(gi, si) {
+    onChange(groups.map((g, i) => i === gi
+      ? { ...g, items: g.items.filter((_, j) => j !== si) }
+      : g))
+  }
+
+  function confirmAdd(gi) {
+    const trimmed = addDraft.trim()
+    if (trimmed) {
+      onChange(groups.map((g, i) => i === gi ? { ...g, items: [...g.items, trimmed] } : g))
+    }
+    setAddDraft('')
+    setAddingGroup(null)
+  }
+
+  return (
+    <div className="se-skills">
+      {groups.map((group, gi) => (
+        <div key={gi} className="se-skill-group">
+          <p className="se-skill-label">{group.label}</p>
+          <div className="se-skill-chips">
+            {group.items.map((skill, si) => (
+              <span key={si} className="se-chip">
+                {skill}
+                <button onClick={() => removeSkill(gi, si)} className="se-chip-remove">
+                  <X size={10} />
+                </button>
+              </span>
+            ))}
+            {addingGroup === gi ? (
+              <input
+                autoFocus
+                value={addDraft}
+                onChange={e => setAddDraft(e.target.value)}
+                onBlur={() => confirmAdd(gi)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') confirmAdd(gi)
+                  if (e.key === 'Escape') { setAddingGroup(null); setAddDraft('') }
+                }}
+                className="se-chip-input"
+                placeholder="skill name"
+              />
+            ) : (
+              <button onClick={() => setAddingGroup(gi)} className="se-chip-add">
+                <Plus size={10} /> Add
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function BulletEditor({ entries, getTitle, getSubtitle, getDates, onChange }) {
+  const [editKey, setEditKey] = useState(null)
+  const [draft, setDraft] = useState('')
+
+  function startEdit(ei, bi) {
+    setEditKey(`${ei}-${bi}`)
+    setDraft(entries[ei].bullets[bi])
+  }
+
+  function save(ei, bi) {
+    const trimmed = draft.trim()
+    if (trimmed) {
+      onChange(entries.map((e, i) => i === ei
+        ? { ...e, bullets: e.bullets.map((b, j) => j === bi ? trimmed : b) }
+        : e))
+    }
+    setEditKey(null)
+  }
+
+  return (
+    <div className="se-exp">
+      {entries.map((entry, ei) => (
+        <div key={ei} className="se-exp-entry">
+          <div className="se-exp-header">
+            <span className="se-exp-role">{getTitle(entry)}</span>
+            {getSubtitle(entry) && <span className="se-exp-company"> · {getSubtitle(entry)}</span>}
+            {getDates(entry) && <span className="se-exp-dates">{getDates(entry)}</span>}
+          </div>
+          <div className="se-bullets">
+            {entry.bullets.map((bullet, bi) => {
+              const key = `${ei}-${bi}`
+              return (
+                <div key={bi} className="se-bullet-row">
+                  {editKey === key ? (
+                    <textarea
+                      autoFocus
+                      value={draft}
+                      onChange={e => setDraft(e.target.value)}
+                      onBlur={() => save(ei, bi)}
+                      onKeyDown={e => { if (e.key === 'Escape') setEditKey(null) }}
+                      className="se-bullet-textarea"
+                      rows={2}
+                    />
+                  ) : (
+                    <div className="se-bullet-text" onClick={() => startEdit(ei, bi)}>
+                      <span className="se-bullet-dot">·</span>
+                      <span className="se-bullet-content">{bullet}</span>
+                      <Pencil size={10} className="se-bullet-pencil" />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function EducationSection({ entries }) {
+  return (
+    <div className="se-edu">
+      {entries.map((entry, i) => (
+        <div key={i} className="se-edu-entry">
+          <div className="se-exp-header">
+            <span className="se-exp-role">{entry.degree}</span>
+            <span className="se-exp-company"> · {entry.school}</span>
+            {entry.dates && <span className="se-exp-dates">{entry.dates}</span>}
+          </div>
+          {entry.location && <p className="text-[11px] text-slate-500 mt-0.5">{entry.location}</p>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Shared small components ───────────────────────────────────────────────────
 
 function StatCard({ value, label, valueClass }) {
   return (

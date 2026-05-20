@@ -328,9 +328,58 @@ If a value cannot be determined, use null. Do not include any text outside the J
   }
 })
 
+// ── parseResumeStructure ──────────────────────────────────────────────────────
+exports.parseResumeStructure = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true, timeoutSeconds: 60 }, async (request) => {
+  const { resumeText } = request.data
+  if (!resumeText || typeof resumeText !== 'string') return { error: 'INVALID_INPUT' }
+
+  const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4000,
+      system: `Parse the resume text into a structured JSON schema. Return ONLY valid JSON (no markdown fences) with this structure:
+{
+  "header": { "name": "Full Name As Written", "contact": ["item1", "item2", ...] },
+  "summary": { "title": "SECTION TITLE", "sentences": ["s1", "s2", "s3"] },
+  "skills": [{ "label": "Category Label", "items": ["skill1", "skill2"] }],
+  "experience": [{
+    "role": "Job Title", "company": "Company", "dates": "Month Year – Month Year",
+    "location": "City, ST", "bullets": ["exact bullet text"]
+  }],
+  "projects": [{
+    "name": "Project Name", "url": "https://...", "dates": "Month Year",
+    "bullets": ["exact bullet text"]
+  }],
+  "education": [{
+    "degree": "Degree Name", "school": "University", "dates": "Year – Year",
+    "location": "City, ST", "details": []
+  }]
+}
+Rules:
+- Copy ALL text CHARACTER-FOR-CHARACTER from the original. Never paraphrase or improve.
+- Preserve exact capitalization, punctuation, and spacing.
+- skills: preserve group labels and items exactly as written.
+- contact: list every contact item in order (email, phone, location, LinkedIn URL, GitHub URL, personal site URL, etc.).
+- projects.url: if the heading contains a URL after "|", extract it here; omit the URL from name.
+- Omit keys not present in the resume (no "summary" key if there is no summary, no "projects" if no projects, etc.).
+- Return ONLY the JSON object, no additional text.`,
+      messages: [{ role: 'user', content: resumeText.slice(0, 12000) }],
+    })
+
+    const raw = response.content[0].text.trim()
+    const json = raw.startsWith('{') ? JSON.parse(raw) : JSON.parse(raw.match(/\{[\s\S]*\}/)[0])
+    return { parsedStructure: json }
+  } catch (err) {
+    console.error('parseResumeStructure error:', err)
+    return { error: 'PARSE_ERROR' }
+  }
+})
+
 // ── tailorResume ──────────────────────────────────────────────────────────────
 exports.tailorResume = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, async (request) => {
-  const { resumeText, company, role, jobDescription, keySkills, gaps, sectionOrder } = request.data
+  const { resumeText, company, role, jobDescription, keySkills, gaps, sectionOrder, parsedStructure } = request.data
   if (!resumeText || !role) return { error: 'INVALID_INPUT' }
 
   const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
@@ -338,6 +387,24 @@ exports.tailorResume = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, asyn
   const sectionHint = sectionOrder?.length
     ? `The original resume sections IN THIS EXACT ORDER: ${sectionOrder.join(' > ')}`
     : ''
+
+  let lockedSkillsHint = ''
+  let bulletCountHint = ''
+  if (parsedStructure) {
+    if (parsedStructure.skills?.length) {
+      lockedSkillsHint = `\n\nLOCKED SKILLS — the sections[].type="skills" output MUST exactly match this JSON (no additions, no removals, no reordering of groups or items):\n${JSON.stringify(parsedStructure.skills)}`
+    }
+    const bulletLines = []
+    for (const e of parsedStructure.experience ?? []) {
+      bulletLines.push(`"${e.role} at ${e.company}": exactly ${e.bullets.length} bullets`)
+    }
+    for (const p of parsedStructure.projects ?? []) {
+      bulletLines.push(`project "${p.name}": exactly ${p.bullets.length} bullets`)
+    }
+    if (bulletLines.length) {
+      bulletCountHint = `\n\nLOCKED BULLET COUNTS — each entry must have exactly this many bullets (from parsed resume structure):\n${bulletLines.join('\n')}`
+    }
+  }
 
   try {
     const response = await anthropic.messages.create({
@@ -358,7 +425,8 @@ Return ONLY valid JSON with this exact structure:
   "rewrittenSummary": ["line1", "line2", "line3"],
   "rewrittenBullets": ["bullet1", "bullet2", "bullet3", "bullet4", "bullet5", "bullet6", "bullet7", "bullet8", "bullet9", "bullet10"],
   "sections": [
-    { "type": "header", "name": "Full Name", "contact": ["email", "phone", "city", "linkedin url"] },
+    { "type": "header", "name": "Exact Name From Resume", "contact": ["email", "phone", "city", "linkedin url"] },
+    { "type": "summary", "title": "SECTION TITLE AS IN ORIGINAL", "bullets": ["line1", "line2", "line3"] },
     { "type": "experience", "title": "SECTION TITLE AS IN ORIGINAL", "entries": [{ "role": "Job Title", "company": "Company Name", "location": "City, ST", "dates": "Month Year - Month Year", "bullets": ["bullet", ...] }] },
     { "type": "education", "title": "SECTION TITLE AS IN ORIGINAL", "entries": [{ "degree": "BS Computer Science", "school": "University Name", "location": "City, ST", "dates": "2018 - 2022", "details": ["GPA: 3.8"] }] },
     { "type": "skills", "title": "SECTION TITLE AS IN ORIGINAL", "groups": [{ "label": "Languages", "items": ["Python"] }] },
@@ -371,9 +439,28 @@ Field definitions:
 - keywordAnalysis.extracted: EVERY required hard skill, tool, and framework from the JD (explicit and implied)
 - keywordAnalysis.mapped: keywords addressed in the resume, with which experience they map to and what action was taken
 - keywordAnalysis.unmappable: keywords that CANNOT be added because the candidate has no matching experience
-- rewrittenSummary: exactly 3 lines, each directly mirroring one of the JD's top 3 requirements using the candidate's real credentials; start each line strong with a concrete claim
+- rewrittenSummary: exactly 3 sentences (not bullets), each ≤ 150 characters, each directly mirroring one of the JD's top 3 requirements using the candidate's real credentials; start each sentence strong with a concrete claim
 - rewrittenBullets: exactly 10 ATS-optimized bullets for the candidate's most relevant experience role; wrap every JD keyword in **bold** markdown
+- sections[].type "summary": sentences must be EXACTLY the same 3 lines as rewrittenSummary — do not write a separate summary
 ${sectionHint}
+
+PAGE-FIT RULES — the output must fit on one printed page; violations cause resume overflow:
+- HARD LIMIT: every bullet in sections[] (experience AND projects) must be ≤ 130 characters including spaces. Count every character. If a bullet exceeds 130 characters, cut words until it fits.
+- rewrittenBullets follow the same 130-character hard limit.
+- Match the original bullet count exactly for each job/project — do not add bullets.
+- Do not pad bullets with extra context phrases like "demonstrating...", "in a fast-moving environment", "aligned with..." — cut these fillers.
+
+STRICT PRESERVATION RULES — violations will break the output:
+- Name: copy the candidate's name EXACTLY as it appears in the original resume, preserving its capitalization (e.g., "Jonathan Pasupulety", never "JONATHAN PASUPULETY")
+- Contact: include EVERY contact item from the original resume in the contact array — email, phone, location, LinkedIn, GitHub, personal site, etc. Do not drop any.
+- Skills section: for each group, copy the label and items CHARACTER-FOR-CHARACTER from the original resume. If the original says "SQL (PostgreSQL, MySQL)" write exactly "SQL (PostgreSQL, MySQL)" — never "SQL (PostgreSQL, MySQL, SQL Server-equivalent)" or any extended variant. Adding a skill not in the original is a critical error.
+- Do NOT fabricate experience, credentials, companies, schools, dates, locations, GPAs, or skills not in the original resume
+- Map missing JD keywords to the closest genuine experience in bullets only; never insert JD keywords into the skills section
+- Preserve ALL sections from the original; use exact section titles from the original
+- sections[].type="experience" MUST include EVERY job entry from the original resume in the same order — never drop a job to save space
+- sections[].type="experience" bullets: rewrite bullet TEXT only; do NOT change bullet count, do NOT add or remove entries
+- rewrittenBullets are for the Analysis panel only — do NOT use them to replace or inflate bullets in sections[]
+${lockedSkillsHint}${bulletCountHint}
 
 ATS bullet rules (apply to rewrittenBullets AND all experience bullets in sections):
 - Begin every bullet with a strong action verb: Spearheaded, Engineered, Architected, Optimized, Automated, Orchestrated, Deployed, Migrated, Designed, Built, Implemented, Streamlined, Reduced, Accelerated, Delivered, Launched, Scaled, Consolidated
@@ -381,10 +468,7 @@ ATS bullet rules (apply to rewrittenBullets AND all experience bullets in sectio
 - Quantify results with numbers, percentages, or dollar amounts ONLY when the original resume already provides those metrics; do NOT invent any numbers
 - Bold every JD keyword using **keyword** markdown
 - Frame every bullet as accomplishment and business impact, not daily duties
-- Do not use em dashes anywhere in the output
-- Do NOT fabricate experience, credentials, companies, schools, dates, locations, or GPAs not in the original resume
-- Map missing JD keywords to the closest genuine experience; only add a keyword if the experience genuinely supports it
-- Preserve ALL sections from the original; use exact section titles from the original`,
+- Do not use em dashes anywhere in the output`,
       messages: [{
         role: 'user',
         content: `COMPANY: ${company || 'Unknown'}\nROLE: ${role}\nKEY SKILLS: ${(keySkills || []).join(', ')}\nJOB DESCRIPTION:\n${(jobDescription || 'Not provided').slice(0, 4000)}\nGAPS TO ADDRESS: ${(gaps || []).join('; ') || 'None'}\n\nORIGINAL RESUME:\n${resumeText.slice(0, 6000)}`,

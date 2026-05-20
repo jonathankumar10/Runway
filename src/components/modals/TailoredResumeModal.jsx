@@ -15,6 +15,14 @@ function renderBold(s) {
 
 // ── Structured sections → HTML ────────────────────────────────────────────────
 
+function toTitleCase(str) {
+  if (!str) return str
+  // Only convert if string is all-uppercase (AI returned it wrong); leave mixed case as-is
+  const trimmed = str.trim()
+  if (trimmed !== trimmed.toUpperCase()) return trimmed
+  return trimmed.replace(/\S+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+}
+
 export function sectionsToHtml(sections) {
   if (!Array.isArray(sections) || !sections.length) return ''
   let html = ''
@@ -22,9 +30,16 @@ export function sectionsToHtml(sections) {
   for (const sec of sections) {
     switch (sec.type) {
       case 'header':
-        html += `<h1 class="rp-name">${esc(sec.name)}</h1>`
+        html += `<h1 class="rp-name">${esc(toTitleCase(sec.name))}</h1>`
         if (sec.contact?.length) {
           html += `<p class="rp-contact">${sec.contact.map(esc).join(' | ')}</p>`
+        }
+        break
+
+      case 'summary':
+        html += `<h2 class="rp-section">${esc(sec.title)}</h2>`
+        for (const b of sec.bullets ?? []) {
+          html += `<p class="rp-body rp-summary-line">${renderBold(b)}</p>`
         }
         break
 
@@ -72,8 +87,12 @@ export function sectionsToHtml(sections) {
         html += `<h2 class="rp-section">${esc(sec.title)}</h2>`
         for (const e of sec.entries ?? []) {
           if (e.heading) {
+            const urlMatch = e.heading.match(/\s*\|\s*(https?:\/\/\S+)/)
+            const headingText = urlMatch ? e.heading.slice(0, e.heading.indexOf(urlMatch[0])).trim() : e.heading
+            const url = urlMatch ? urlMatch[1] : null
+            const urlHtml = url ? ` <a href="${esc(url)}" class="rp-url">${esc(url)}</a>` : ''
             const right = e.subheading ? `<span class="rp-date">${esc(e.subheading)}</span>` : ''
-            html += `<p class="rp-title-row"><span><strong>${esc(e.heading)}</strong></span>${right}</p>`
+            html += `<p class="rp-title-row"><span><strong>${esc(headingText)}</strong>${urlHtml}</span>${right}</p>`
           }
           if (e.bullets?.length) {
             html += '<ul class="rp-list">'
@@ -330,35 +349,49 @@ export default function TailoredResumeModal({
 <meta charset="utf-8">
 <title>${job?.company ?? 'Resume'} – ${job?.role ?? ''}</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Georgia', serif; font-size: 11pt; color: #111; background: #fff; padding: 0.75in; }
-  h1.rp-name { font-size: 22pt; font-weight: bold; text-align: center; letter-spacing: -0.3px; margin-bottom: 4px; }
-  p.rp-contact { font-size: 10pt; color: #555; text-align: center; margin-bottom: 2px; font-family: system-ui, sans-serif; }
-  h2.rp-section { font-family: system-ui, sans-serif; font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #1565C0; border-bottom: 1.5px solid #1565C0; padding-bottom: 2px; margin: 16px 0 6px; }
-  p.rp-title-row { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; font-size: 10.5pt; margin: 6px 0 2px; }
-  .rp-date { font-weight: normal; font-size: 10pt; color: #333; white-space: nowrap; margin-left: 8px; }
-  p.rp-body { font-size: 10.5pt; margin: 2px 0; }
-  ul.rp-list { padding-left: 18px; margin: 2px 0 4px; }
-  ul.rp-list li { font-size: 10.5pt; margin-bottom: 2px; line-height: 1.45; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: 'Georgia', serif; font-size: 9.5pt; color: #111; background: #fff; padding: 0.48in; line-height: 1.3; }
+  h1.rp-name { font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 2px; text-transform: none; }
+  p.rp-contact { font-size: 9pt; color: #444; text-align: center; font-family: system-ui, sans-serif; line-height: 1.35; margin-bottom: 1px; }
+  h2.rp-section { font-family: system-ui, sans-serif; font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #0369a1; border-bottom: 1.2px solid #0369a1; padding-bottom: 1px; margin: 7px 0 2px; }
+  p.rp-title-row { overflow: hidden; font-weight: 600; font-size: 9.5pt; margin: 3px 0 1px; }
+  .rp-date { float: right; font-weight: normal; font-size: 9pt; color: #333; white-space: nowrap; margin-left: 8px; }
+  p.rp-body { font-size: 9.5pt; margin: 0; line-height: 1.3; }
+  p.rp-summary-line { margin-bottom: 2px; }
+  ul.rp-list { padding-left: 13px; margin: 1px 0 2px; }
+  ul.rp-list li { font-size: 9.5pt; margin-bottom: 0; line-height: 1.3; }
   ul.rp-list li strong { font-weight: 700; }
-  .rp-spacer { height: 4px; }
-  @page { margin: 0.75in; size: Letter; }
+  a.rp-url { color: #0369a1; font-size: 8pt; font-weight: normal; text-decoration: none; }
+  .rp-spacer { height: 1px; }
+  @media print { @page { margin: 0.48in; size: Letter; } }
 </style>
 </head>
 <body>${html}</body>
 </html>`
 
-    const iframe = document.createElement('iframe')
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:0'
-    document.body.appendChild(iframe)
-    iframe.contentDocument.open()
-    iframe.contentDocument.write(printHtml)
-    iframe.contentDocument.close()
-    iframe.contentWindow.focus()
-    setTimeout(() => {
-      iframe.contentWindow.print()
-      setTimeout(() => document.body.removeChild(iframe), 1000)
-    }, 300)
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(printHtml)
+      win.document.close()
+      win.focus()
+      setTimeout(() => {
+        win.print()
+        setTimeout(() => win.close(), 2000)
+      }, 400)
+    } else {
+      // Fallback if popup blocked
+      const iframe = document.createElement('iframe')
+      iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:0'
+      document.body.appendChild(iframe)
+      iframe.contentDocument.open()
+      iframe.contentDocument.write(printHtml)
+      iframe.contentDocument.close()
+      iframe.contentWindow.focus()
+      setTimeout(() => {
+        iframe.contentWindow.print()
+        setTimeout(() => document.body.removeChild(iframe), 1000)
+      }, 400)
+    }
   }
 
   return (
