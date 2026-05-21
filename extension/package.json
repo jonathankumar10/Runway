@@ -1,0 +1,14 @@
+{
+  "name": "runway-extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/generate-icons.js && node build.js",
+    "watch": "node scripts/generate-icons.js && node build.js --watch"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.5",
+    "esbuild": "^0.24.0"
+  }
+}

@@ -464,6 +464,20 @@ export default function OutreachPage() {
   )
 }
 
+function plainToHtml(text) {
+  const paragraphs = text.split(/\n\n+/)
+  const blocks = paragraphs.map(para => {
+    const lines = para.split('\n')
+    // Bullet list block
+    if (lines.every(l => l.trim().startsWith('- '))) {
+      const items = lines.map(l => `<li>${l.replace(/^- /, '').trim()}</li>`).join('')
+      return `<ul style="margin:0 0 14px;padding-left:20px;">${items}</ul>`
+    }
+    return `<p style="margin:0 0 14px;">${lines.join('<br>')}</p>`
+  })
+  return `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#222;">${blocks.join('')}</div>`
+}
+
 function buildGmailRaw({ to, subject, body, pdfBase64 = null, pdfFilename = null }) {
   const enc = new TextEncoder()
   const toB64 = str => {
@@ -473,16 +487,17 @@ function buildGmailRaw({ to, subject, body, pdfBase64 = null, pdfFilename = null
     return btoa(bin)
   }
   const subjectEncoded = /[^\x20-\x7E]/.test(subject) ? `=?UTF-8?B?${toB64(subject)}?=` : subject
+  const htmlBody = plainToHtml(body)
 
   if (!pdfBase64) {
     const mime = [
       `MIME-Version: 1.0`,
       `To: ${to}`,
       `Subject: ${subjectEncoded}`,
-      `Content-Type: text/plain; charset="UTF-8"`,
+      `Content-Type: text/html; charset="UTF-8"`,
       `Content-Transfer-Encoding: base64`,
       ``,
-      toB64(body),
+      toB64(htmlBody),
     ].join('\r\n')
     return btoa(mime).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
   }
@@ -496,10 +511,10 @@ function buildGmailRaw({ to, subject, body, pdfBase64 = null, pdfFilename = null
     `Content-Type: multipart/mixed; boundary="${boundary}"`,
     ``,
     `--${boundary}`,
-    `Content-Type: text/plain; charset="UTF-8"`,
+    `Content-Type: text/html; charset="UTF-8"`,
     `Content-Transfer-Encoding: base64`,
     ``,
-    toB64(body),
+    toB64(htmlBody),
     ``,
     `--${boundary}`,
     `Content-Type: application/pdf; name="${pdfFilename}"`,
