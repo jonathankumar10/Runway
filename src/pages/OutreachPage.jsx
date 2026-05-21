@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { db, auth } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext'
+import { useJobs } from '../context/JobsContext'
 import { useAI } from '../hooks/useAI'
 import {
   buildEmailSubject, buildEmailBody, buildFollowUpSubject,
@@ -40,6 +41,9 @@ export default function OutreachPage() {
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkCreating, setBulkCreating] = useState(false)
   const [bulkResult, setBulkResult] = useState(null) // { success, failed }
+  const [linkedInQueue, setLinkedInQueue] = useState(null) // array of records | null = closed
+  const [linkedInQueueIdx, setLinkedInQueueIdx] = useState(0)
+  const [linkedInCopied, setLinkedInCopied] = useState(false)
   // Pre-fill from Target Companies "Find Recruiters" button
   const prefillDomain = searchParams.get('domain') ?? ''
   const prefillCompany = searchParams.get('company') ?? ''
@@ -83,6 +87,36 @@ export default function OutreachPage() {
   }
 
   const eligibleForBulk = records.filter(r => !r.emailSent && r.recruiterEmail)
+  const eligibleForLinkedIn = records.filter(r => !r.linkedInSent && r.linkedInMessage)
+
+  function startLinkedInQueue() {
+    if (eligibleForLinkedIn.length === 0) return
+    setLinkedInQueue(eligibleForLinkedIn)
+    setLinkedInQueueIdx(0)
+    setLinkedInCopied(false)
+    const msg = eligibleForLinkedIn[0]?.linkedInMessage
+    if (msg) navigator.clipboard.writeText(msg).catch(() => {})
+  }
+
+  async function linkedInMarkSentAndNext() {
+    const record = linkedInQueue[linkedInQueueIdx]
+    await updateDoc(doc(db, 'users', user.uid, 'outreach', record.id), {
+      linkedInSent: true, linkedInSentAt: new Date(),
+    })
+    advanceLinkedInQueue()
+  }
+
+  function advanceLinkedInQueue() {
+    const nextIdx = linkedInQueueIdx + 1
+    if (nextIdx >= linkedInQueue.length) {
+      setLinkedInQueue(null)
+      return
+    }
+    setLinkedInQueueIdx(nextIdx)
+    setLinkedInCopied(false)
+    const msg = linkedInQueue[nextIdx]?.linkedInMessage
+    if (msg) navigator.clipboard.writeText(msg).catch(() => {})
+  }
 
   function toggleSelectRecord(id) {
     setSelectedIds(prev => {
@@ -96,8 +130,8 @@ export default function OutreachPage() {
     setSelectedIds(new Set(eligibleForBulk.map(r => r.id)))
   }
 
-  async function handleBulkDraft() {
-    const toSend = eligibleForBulk.filter(r => selectedIds.has(r.id))
+  async function handleBulkDraft(records = null) {
+    const toSend = records ?? eligibleForBulk.filter(r => selectedIds.has(r.id))
     if (toSend.length === 0) return
     setBulkCreating(true)
     setBulkResult(null)
@@ -190,6 +224,35 @@ export default function OutreachPage() {
                 <LayoutList size={13} />
               </button>
             </div>
+            {eligibleForBulk.length > 0 && (
+              <button
+                onClick={() => selectedIds.size > 0 ? handleBulkDraft() : handleBulkDraft(eligibleForBulk)}
+                disabled={bulkCreating}
+                className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+              >
+                {bulkCreating ? <Loader2 size={13} className="animate-spin" /> : <Mail size={13} />}
+                {bulkCreating
+                  ? 'Creating drafts…'
+                  : selectedIds.size > 0
+                    ? `Create ${selectedIds.size} Gmail draft${selectedIds.size !== 1 ? 's' : ''}`
+                    : `Draft unsent`}
+                {!bulkCreating && (
+                  <span className="bg-violet-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {selectedIds.size > 0 ? selectedIds.size : eligibleForBulk.length}
+                  </span>
+                )}
+              </button>
+            )}
+            {eligibleForLinkedIn.length > 0 && (
+              <button
+                onClick={startLinkedInQueue}
+                className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg transition-colors"
+              >
+                <ExternalLink size={13} />
+                LinkedIn unsent
+                <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{eligibleForLinkedIn.length}</span>
+              </button>
+            )}
             <button
               onClick={() => setAddOpen(true)}
               className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
@@ -318,6 +381,85 @@ export default function OutreachPage() {
           onClose={() => setAddOpen(false)}
         />
       )}
+
+      {linkedInQueue && linkedInQueue[linkedInQueueIdx] && (() => {
+        const record = linkedInQueue[linkedInQueueIdx]
+        const liUrl = record.recruiterLinkedIn
+          ? (record.recruiterLinkedIn.startsWith('http') ? record.recruiterLinkedIn : `https://${record.recruiterLinkedIn}`)
+          : `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`${record.recruiterName} ${record.company}`)}`
+        return (
+          <div className="fixed inset-0 z-50 flex items-end justify-center pb-6 px-4" onClick={e => e.target === e.currentTarget && setLinkedInQueue(null)}>
+            <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-5 space-y-4">
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wide mb-0.5">
+                    {linkedInQueueIdx + 1} of {linkedInQueue.length}
+                  </p>
+                  <h3 className="text-sm font-semibold text-white">{record.recruiterName}</h3>
+                  {record.recruiterTitle && <p className="text-xs text-slate-400">{record.recruiterTitle}</p>}
+                  <p className="text-xs text-slate-500">{record.company}{record.role ? ` · ${record.role}` : ''}</p>
+                </div>
+                <button onClick={() => setLinkedInQueue(null)} className="text-slate-500 hover:text-slate-300 transition-colors mt-0.5">
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-600 rounded-full transition-all"
+                  style={{ width: `${((linkedInQueueIdx + 1) / linkedInQueue.length) * 100}%` }}
+                />
+              </div>
+
+              {/* Message preview */}
+              <div>
+                <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wide mb-1.5">Message (auto-copied)</p>
+                <div className="text-xs text-slate-300 leading-relaxed bg-slate-800/60 border border-slate-700 rounded-lg p-3">
+                  {record.linkedInMessage}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(record.linkedInMessage).catch(() => {})
+                    setLinkedInCopied(true)
+                    setTimeout(() => setLinkedInCopied(false), 2000)
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+                >
+                  {linkedInCopied ? <ClipboardCheck size={12} className="text-green-400" /> : <Copy size={12} />}
+                  {linkedInCopied ? 'Copied!' : 'Copy'}
+                </button>
+                <a
+                  href={liUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-blue-700 hover:bg-blue-600 text-white text-xs font-medium rounded-lg transition-colors"
+                >
+                  <ExternalLink size={12} /> Open LinkedIn
+                </a>
+                <button
+                  onClick={advanceLinkedInQueue}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs font-medium rounded-lg transition-colors"
+                >
+                  Skip
+                </button>
+                <button
+                  onClick={linkedInMarkSentAndNext}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-green-700 hover:bg-green-600 text-white text-xs font-medium rounded-lg transition-colors"
+                >
+                  <CheckCircle2 size={12} />
+                  {linkedInQueueIdx + 1 < linkedInQueue.length ? 'Sent · Next →' : 'Sent · Done'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
@@ -446,15 +588,18 @@ function OutreachCard({ record, userId, defaultResume, gmailTokenRef, onNeedGmai
   const isSelectable = !record.emailSent && !!record.recruiterEmail
 
   return (
-    <div className={`outreach-card ${isDone ? 'outreach-card--done' : ''}`}>
+    <div
+      className={`outreach-card ${isDone ? 'outreach-card--done' : ''} ${isSelected ? 'ring-1 ring-violet-500' : ''} ${isSelectable ? 'cursor-pointer' : ''}`}
+      onClick={isSelectable ? (e => { if (!e.target.closest('button, a, input, textarea')) onToggleSelect(record.id) }) : undefined}
+    >
       <div className="flex items-start justify-between gap-3">
         {isSelectable && (
           <button
-            onClick={() => onToggleSelect(record.id)}
-            className={`mt-0.5 w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-colors ${isSelected ? 'bg-violet-600 border-violet-500' : 'border-slate-600 hover:border-slate-400'}`}
+            onClick={e => { e.stopPropagation(); onToggleSelect(record.id) }}
+            className={`mt-0.5 w-5 h-5 rounded border shrink-0 flex items-center justify-center transition-colors ${isSelected ? 'bg-violet-600 border-violet-500' : 'border-slate-600 hover:border-slate-400'}`}
             title={isSelected ? 'Deselect' : 'Select for bulk draft'}
           >
-            {isSelected && <CheckCircle2 size={10} className="text-white" />}
+            {isSelected && <CheckCircle2 size={11} className="text-white" />}
           </button>
         )}
         <div className="flex-1 min-w-0">
@@ -735,7 +880,8 @@ function OutreachTable({ records, userId, selectedIds, onToggleSelect }) {
 }
 
 function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initialCompany = '', onClose }) {
-  const { findRecruiter } = useAI()
+  const { findRecruiter, importFromUrl } = useAI()
+  const { jobs } = useJobs() ?? { jobs: [] }
 
   const [step, setStep] = useState('search') // 'search' | 'manual'
   const [domain, setDomain] = useState(initialDomain)
@@ -748,6 +894,69 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
   const [company, setCompany] = useState(initialCompany)
   const [role, setRole] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // Job linking — mutually exclusive: board picker vs URL paste
+  const [jobLinkMode, setJobLinkMode] = useState('none') // 'none' | 'board' | 'url'
+  const [selectedJobId, setSelectedJobId] = useState('')
+  const [jobPostingUrl, setJobPostingUrl] = useState('')
+  const [fetchingJob, setFetchingJob] = useState(false)
+  const [fetchedJob, setFetchedJob] = useState(null) // { role, company, jobUrl }
+  const [fetchJobError, setFetchJobError] = useState(null)
+
+  const selectedJob = jobLinkMode === 'board' ? (jobs.find(j => j.id === selectedJobId) ?? null) : null
+  const linkedJob = selectedJob
+    ? { role: selectedJob.role, company: selectedJob.company, jobUrl: selectedJob.jobUrl ?? null }
+    : fetchedJob
+
+  useEffect(() => {
+    if (!selectedJob) return
+    setCompany(selectedJob.company || '')
+    setRole(selectedJob.role || '')
+    if (selectedJob.jobUrl) {
+      try {
+        const hostname = new URL(selectedJob.jobUrl).hostname.replace(/^www\./, '')
+        setDomain(hostname)
+        setSearchResults(null)
+        setSearchError(null)
+      } catch {}
+    }
+  }, [selectedJobId])
+
+  useEffect(() => {
+    if (!fetchedJob) return
+    setCompany(fetchedJob.company || '')
+    setRole(fetchedJob.role || '')
+    try {
+      const hostname = new URL(fetchedJob.jobUrl).hostname.replace(/^www\./, '')
+      setDomain(hostname)
+      setSearchResults(null)
+      setSearchError(null)
+    } catch {}
+  }, [fetchedJob])
+
+  async function handleFetchJobUrl() {
+    if (!jobPostingUrl.trim()) return
+    setFetchingJob(true)
+    setFetchJobError(null)
+    setFetchedJob(null)
+    try {
+      const result = await importFromUrl(jobPostingUrl.trim())
+      if (result.error) throw new Error('Could not parse the job posting. Try pasting the URL again.')
+      if (!result.role) throw new Error('No role title found on that page.')
+      setFetchedJob({ role: result.role, company: result.company, jobUrl: jobPostingUrl.trim() })
+    } catch (err) {
+      setFetchJobError(err.message)
+    } finally {
+      setFetchingJob(false)
+    }
+  }
+
+  function handleJobLinkModeChange(mode) {
+    setJobLinkMode(mode)
+    if (mode !== 'board') { setSelectedJobId(''); }
+    if (mode !== 'url') { setJobPostingUrl(''); setFetchedJob(null); setFetchJobError(null); }
+    if (mode === 'none') { setCompany(initialCompany); setRole(''); }
+  }
 
   // Check Firestore cache whenever domain input changes (debounced)
   useEffect(() => {
@@ -829,18 +1038,22 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
         const linkedin = r.linkedin
           ? (r.linkedin.startsWith('http') ? r.linkedin : `https://${r.linkedin}`)
           : ''
+        const comp = company || domain
+        const rl = role || ''
         await addDoc(collection(db, 'users', userId, 'outreach'), {
-          company: company || domain,
-          role: role || '',
+          company: comp,
+          role: rl,
+          jobId: jobLinkMode === 'board' ? (selectedJobId || null) : null,
+          jobUrl: linkedJob?.jobUrl ?? null,
           recruiterName: r.name,
           recruiterEmail: r.email,
           recruiterTitle: r.title ?? '',
           recruiterLinkedIn: linkedin,
-          emailSubject: buildEmailSubject(role, company || domain),
-          emailBody: buildEmailBody(r.name, company || domain, role),
-          linkedInMessage: buildLinkedInMessage(r.name, company || domain, role),
-          followUpSubject: buildFollowUpSubject(role, company || domain),
-          followUpBody: buildFollowUpBody(r.name, company || domain, role),
+          emailSubject: buildEmailSubject(rl, comp),
+          emailBody: buildEmailBody(r.name, comp, rl),
+          linkedInMessage: buildLinkedInMessage(r.name, comp, rl),
+          followUpSubject: buildFollowUpSubject(rl, comp),
+          followUpBody: buildFollowUpBody(r.name, comp, rl),
           emailSent: false,
           linkedInSent: false,
           followUpSent: false,
@@ -857,11 +1070,13 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
     if (!manual.name.trim()) return
     setSaving(true)
     try {
-      const comp = manual.company || company
-      const rl = manual.role || role
+      const comp = linkedJob?.company || manual.company || company
+      const rl = linkedJob?.role || manual.role || role
       await addDoc(collection(db, 'users', userId, 'outreach'), {
         company: comp,
         role: rl,
+        jobId: jobLinkMode === 'board' ? (selectedJobId || null) : null,
+        jobUrl: linkedJob?.jobUrl ?? null,
         recruiterName: manual.name,
         recruiterEmail: manual.email,
         recruiterTitle: manual.title,
@@ -909,29 +1124,105 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
         </div>
 
         <div className="outreach-add-modal-body">
+          {/* Job link — shared across both modes */}
+          <div>
+            <label className="outreach-form-label">Link to a job posting</label>
+            <div className="flex items-center gap-1.5 p-0.5 bg-slate-800 rounded-lg mb-2">
+              <button
+                onClick={() => handleJobLinkModeChange('none')}
+                className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-colors ${jobLinkMode === 'none' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                None
+              </button>
+              {jobs.length > 0 && (
+                <button
+                  onClick={() => handleJobLinkModeChange('board')}
+                  className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-colors ${jobLinkMode === 'board' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                  From board
+                </button>
+              )}
+              <button
+                onClick={() => handleJobLinkModeChange('url')}
+                className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-colors ${jobLinkMode === 'url' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                Paste URL
+              </button>
+            </div>
+
+            {jobLinkMode === 'board' && (
+              <select
+                value={selectedJobId}
+                onChange={e => setSelectedJobId(e.target.value)}
+                className="outreach-form-input"
+              >
+                <option value="">— Pick a job —</option>
+                {jobs.map(j => (
+                  <option key={j.id} value={j.id}>
+                    {j.company}{j.role ? ` · ${j.role}` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {jobLinkMode === 'url' && (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    value={jobPostingUrl}
+                    onChange={e => { setJobPostingUrl(e.target.value); setFetchedJob(null); setFetchJobError(null) }}
+                    onKeyDown={e => e.key === 'Enter' && handleFetchJobUrl()}
+                    placeholder="https://stripe.com/jobs/..."
+                    className="outreach-form-input flex-1"
+                  />
+                  <button
+                    onClick={handleFetchJobUrl}
+                    disabled={fetchingJob || !jobPostingUrl.trim()}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors shrink-0"
+                  >
+                    {fetchingJob ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
+                    {fetchingJob ? 'Fetching…' : 'Fetch'}
+                  </button>
+                </div>
+                {fetchJobError && <p className="text-xs text-red-400">{fetchJobError}</p>}
+                {fetchedJob && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <CheckCircle2 size={13} className="text-green-400 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-white truncate">{fetchedJob.role}</p>
+                      {fetchedJob.company && <p className="text-[11px] text-slate-400">{fetchedJob.company}</p>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {step === 'search' ? (
             <>
-              {/* Company + Role */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="outreach-form-label">Company</label>
-                  <input
-                    value={company}
-                    onChange={e => setCompany(e.target.value)}
-                    placeholder="e.g. Stripe"
-                    className="outreach-form-input"
-                  />
+              {/* Company + Role — hidden when a job is linked */}
+              {!linkedJob && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="outreach-form-label">Company</label>
+                    <input
+                      value={company}
+                      onChange={e => setCompany(e.target.value)}
+                      placeholder="e.g. Stripe"
+                      className="outreach-form-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="outreach-form-label">Role (optional)</label>
+                    <input
+                      value={role}
+                      onChange={e => setRole(e.target.value)}
+                      placeholder="e.g. Staff Engineer"
+                      className="outreach-form-input"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="outreach-form-label">Role (optional)</label>
-                  <input
-                    value={role}
-                    onChange={e => setRole(e.target.value)}
-                    placeholder="e.g. Staff Engineer"
-                    className="outreach-form-input"
-                  />
-                </div>
-              </div>
+              )}
 
               {/* Domain search */}
               <div>
@@ -1027,16 +1318,18 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
             </>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="outreach-form-label">Company *</label>
-                  <input value={manual.company} onChange={e => setManual(m => ({ ...m, company: e.target.value }))} placeholder="Stripe" className="outreach-form-input" />
+              {!selectedJob && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="outreach-form-label">Company *</label>
+                    <input value={manual.company} onChange={e => setManual(m => ({ ...m, company: e.target.value }))} placeholder="Stripe" className="outreach-form-input" />
+                  </div>
+                  <div>
+                    <label className="outreach-form-label">Role</label>
+                    <input value={manual.role} onChange={e => setManual(m => ({ ...m, role: e.target.value }))} placeholder="Staff Engineer" className="outreach-form-input" />
+                  </div>
                 </div>
-                <div>
-                  <label className="outreach-form-label">Role</label>
-                  <input value={manual.role} onChange={e => setManual(m => ({ ...m, role: e.target.value }))} placeholder="Staff Engineer" className="outreach-form-input" />
-                </div>
-              </div>
+              )}
               <div>
                 <label className="outreach-form-label">Recruiter name *</label>
                 <input value={manual.name} onChange={e => setManual(m => ({ ...m, name: e.target.value }))} placeholder="Jane Smith" className="outreach-form-input" />
@@ -1055,7 +1348,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
               </div>
               <button
                 onClick={handleSaveManual}
-                disabled={saving || !manual.name.trim() || !manual.company.trim()}
+                disabled={saving || !manual.name.trim() || (!linkedJob && !manual.company.trim())}
                 className="w-full flex items-center justify-center gap-1.5 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
