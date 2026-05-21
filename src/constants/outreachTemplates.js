@@ -23,7 +23,7 @@ A few highlights from my experience:
 - Worked with AWS services, DynamoDB, REST APIs, microservices, observability, reliability, and production operations
 - Recently used AI-assisted workflows for design reasoning, unit testing, developer productivity, and agentic automation
 
-One important note: I am currently on an H-1B visa and would need a sponsoring employer for transfer. I would also be looking for a team that can support the green card/I-140 process in a reasonable timeline.
+One important note: I am currently on an H-1B visa and would need a sponsoring employer for transfer.
 
 If my background looks relevant, I'd be grateful for a quick conversation or a pointer to the right person on your team.
 
