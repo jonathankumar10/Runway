@@ -26,25 +26,32 @@ export default function InterviewCountdown() {
     .slice(0, 5)
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Calendar size={13} className="text-slate-300" />
+    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-6 h-6 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+          <Calendar size={12} className="text-orange-400" />
+        </div>
         <h3 className="text-sm font-semibold text-white">Upcoming Interviews</h3>
       </div>
       {upcoming.length === 0 ? (
-        <p className="text-xs text-slate-400">No interviews scheduled</p>
+        <div className="flex flex-col items-center justify-center py-6 gap-2">
+          <div className="w-9 h-9 rounded-full border border-dashed border-slate-700 flex items-center justify-center">
+            <Calendar size={15} className="text-slate-600" />
+          </div>
+          <p className="text-xs text-slate-500">No interviews scheduled</p>
+        </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {upcoming.map(({ job, date }, i) => {
             const countdown = formatCountdown(date)
             return (
               <li key={i} className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-white truncate">{job.company}</p>
-                  <p className="text-xs text-slate-400">{job.role} · {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                  <p className="text-xs text-slate-500">{job.role} · {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
                 {countdown && (
-                  <span className="text-xs text-orange-400 font-semibold shrink-0">{countdown}</span>
+                  <span className="text-[11px] text-orange-400 font-semibold bg-orange-400/10 px-2 py-0.5 rounded-full shrink-0">{countdown}</span>
                 )}
               </li>
             )

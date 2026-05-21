@@ -233,100 +233,100 @@ export default function ResumePage() {
   return (
     <div className="resume-page">
       <div className="mb-6">
-        <p className="text-xs text-slate-400 mb-1">WORKSPACE &rsaquo; RESUMES</p>
-        <h1 className="text-2xl font-bold text-white">Resumes</h1>
-        <p className="text-sm text-slate-400 mt-1">Manage your resume library. Click a resume to inspect its skills and stats.</p>
+        <h1 className="text-xl font-bold text-white">Resumes</h1>
+        <p className="text-sm text-slate-400 mt-1">Manage your resume library and track match scores.</p>
       </div>
 
       <div className="resume-stats-row">
-        <StatCard value={resumes.length} label="Resumes" />
-        <StatCard value={activeJobs.length} label="Active applications" />
-        <StatCard value={scoredJobs.length} label="Jobs scored" />
+        <StatCard value={resumes.length} label="Resumes" icon={FileText} iconColor="text-violet-400" />
+        <StatCard value={activeJobs.length} label="Active applications" icon={Briefcase} iconColor="text-blue-400" />
+        <StatCard value={scoredJobs.length} label="Jobs scored" icon={BarChart2} iconColor="text-amber-400" />
         <StatCard
           value={avgScore != null ? `${avgScore}%` : '—'}
           label="Avg match score"
+          icon={Sparkles}
+          iconColor={avgScore != null ? (avgScore >= 75 ? 'text-green-400' : avgScore >= 50 ? 'text-yellow-400' : 'text-red-400') : 'text-slate-600'}
           valueClass={avgScore != null ? (avgScore >= 75 ? 'text-green-400' : avgScore >= 50 ? 'text-yellow-400' : 'text-red-400') : undefined}
         />
       </div>
 
-      <div className="resume-layout">
-        <div className="resume-list-col">
-          <div className="resume-list-card">
-            <div className="resume-list-header">
-              <p className="text-xs font-bold text-violet-400 uppercase tracking-widest">Library</p>
-              <span className="text-xs text-slate-400">{resumes.length} resume{resumes.length !== 1 ? 's' : ''}</span>
-            </div>
-
-            {resumes.length > 0 && (
-              <div className="resume-list-items">
-                {resumes.map(resume => (
-                  <ResumeListItem
-                    key={resume.id}
-                    resume={resume}
-                    isSelected={selectedId === resume.id}
-                    onSelect={() => handleSelectResume(resume.id)}
-                  />
-                ))}
-              </div>
-            )}
-
-            <div
-              onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              onClick={() => !uploading && fileRef.current?.click()}
-              className={`resume-upload-zone ${dragOver ? 'resume-upload-zone-drag' : 'resume-upload-zone-idle'}`}
-            >
-              {uploading ? (
-                <>
-                  <Loader2 size={18} className="text-violet-400 animate-spin" />
-                  <p className="text-xs text-slate-400">Extracting text...</p>
-                </>
-              ) : (
-                <>
-                  <Upload size={18} className="text-slate-400" />
-                  <p className="text-sm font-medium text-slate-300">
-                    {resumes.length > 0 ? 'Upload another' : 'Drop your PDF here'}
-                  </p>
-                  <p className="text-xs text-slate-500">click to browse &middot; PDF only</p>
-                </>
-              )}
-            </div>
-
-            <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
-              onChange={e => handleFile(e.target.files?.[0])} />
-          </div>
+      {/* Library stack */}
+      <div className="resume-library-section mb-5">
+        <div className="resume-list-header">
+          <p className="text-xs font-bold text-violet-400 uppercase tracking-widest">Library</p>
+          <span className="text-xs text-slate-500">{resumes.length} resume{resumes.length !== 1 ? 's' : ''}</span>
         </div>
-
-        <div className="resume-detail-col" ref={detailRef}>
-          {selectedResume ? (
-            <ResumeDetail
-              resume={selectedResume}
-              scoredJobs={scoredJobs}
-              avgScore={avgScore}
-              onOpen={() => handleOpen(selectedResume)}
-              onDownload={() => handleDownload(selectedResume)}
-              onSetDefault={() => handleSetDefault(selectedResume.id)}
-              onDelete={() => handleDelete(selectedResume.id)}
-              onUpdateLabel={label => handleUpdateLabel(selectedResume.id, label)}
-              onUpdate={updates => handleUpdateResume(selectedResume.id, updates)}
-              parsingId={parsingId}
-              onParseStructure={() => handleParseStructure(selectedResume.id, selectedResume.resumeText)}
-            />
+        {resumes.length > 0 && (
+          <div className="resume-list-items">
+            {resumes.map(resume => (
+              <ResumeLibraryCard
+                key={resume.id}
+                resume={resume}
+                isSelected={selectedId === resume.id}
+                onSelect={() => handleSelectResume(resume.id)}
+              />
+            ))}
+          </div>
+        )}
+        <div
+          onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          onClick={() => !uploading && fileRef.current?.click()}
+          className={`resume-upload-zone ${dragOver ? 'resume-upload-zone-drag' : 'resume-upload-zone-idle'}`}
+        >
+          {uploading ? (
+            <>
+              <Loader2 size={16} className="text-violet-400 animate-spin" />
+              <p className="text-xs text-slate-400">Uploading...</p>
+            </>
           ) : (
-            <div className="resume-empty-detail">
-              <MousePointerClick size={28} className="text-slate-600 mb-3" />
-              <p className="text-sm font-medium text-slate-400">Select a resume to inspect</p>
-              <p className="text-xs text-slate-600 mt-1">Skills, word count, and match stats will appear here</p>
-            </div>
+            <>
+              <div className="resume-upload-icon-wrap">
+                <Upload size={13} className="text-violet-400" />
+              </div>
+              <p className="text-sm font-medium text-slate-300">
+                {resumes.length > 0 ? 'Upload another resume' : 'Drop your PDF here'}
+              </p>
+              <p className="text-xs text-slate-500">click to browse · PDF only</p>
+            </>
           )}
         </div>
+        <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
+          onChange={e => handleFile(e.target.files?.[0])} />
+      </div>
+
+      {/* Detail panel — full width */}
+      <div ref={detailRef}>
+        {selectedResume ? (
+          <ResumeDetail
+            resume={selectedResume}
+            scoredJobs={scoredJobs}
+            avgScore={avgScore}
+            onOpen={() => handleOpen(selectedResume)}
+            onDownload={() => handleDownload(selectedResume)}
+            onSetDefault={() => handleSetDefault(selectedResume.id)}
+            onDelete={() => handleDelete(selectedResume.id)}
+            onUpdateLabel={label => handleUpdateLabel(selectedResume.id, label)}
+            onUpdate={updates => handleUpdateResume(selectedResume.id, updates)}
+            parsingId={parsingId}
+            onParseStructure={() => handleParseStructure(selectedResume.id, selectedResume.resumeText)}
+          />
+        ) : (
+          <div className="resume-empty-detail">
+            <div className="resume-empty-icon-wrap">
+              <MousePointerClick size={20} className="text-slate-600" />
+            </div>
+            <p className="text-sm font-medium text-slate-400 mt-4">Select a resume to inspect</p>
+            <p className="text-xs text-slate-600 mt-1">Skills, word count, and match stats will appear here</p>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-function ResumeListItem({ resume, isSelected, onSelect }) {
+function ResumeLibraryCard({ resume, isSelected, onSelect }) {
   const label = resume.label || resume.filename.replace(/\.pdf$/i, '')
   const uploadedDate = resume.uploadedAt
     ? new Date(resume.uploadedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -335,9 +335,9 @@ function ResumeListItem({ resume, isSelected, onSelect }) {
   return (
     <button
       onClick={onSelect}
-      className={`resume-list-item ${isSelected ? 'resume-list-item-selected' : 'resume-list-item-idle'}`}
+      className={`resume-library-card ${isSelected ? 'resume-library-card-selected' : 'resume-library-card-idle'}`}
     >
-      <div className={`resume-list-item-icon ${isSelected ? 'bg-violet-600/30' : 'bg-slate-700'}`}>
+      <div className={`resume-list-item-icon ${isSelected ? 'bg-violet-600/30' : 'bg-slate-700/80'}`}>
         <FileText size={15} className={isSelected ? 'text-violet-300' : 'text-slate-400'} />
       </div>
       <div className="flex-1 min-w-0 text-left">
@@ -349,7 +349,7 @@ function ResumeListItem({ resume, isSelected, onSelect }) {
             </span>
           )}
         </div>
-        <p className="text-xs text-slate-500">{formatBytes(resume.size)} &middot; {uploadedDate}</p>
+        <p className="text-xs text-slate-500">{formatBytes(resume.size)} · {uploadedDate}</p>
       </div>
     </button>
   )
@@ -358,6 +358,7 @@ function ResumeListItem({ resume, isSelected, onSelect }) {
 function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetDefault, onDelete, onUpdateLabel, onUpdate, parsingId, onParseStructure }) {
   const [editingLabel, setEditingLabel] = useState(false)
   const [labelDraft, setLabelDraft] = useState('')
+  const [view, setView] = useState('details')
 
   const label = resume.label || resume.filename.replace(/\.pdf$/i, '')
   const skills = extractSkills(resume.resumeText || '')
@@ -380,7 +381,7 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
     <div className="resume-detail-card">
       <div className="resume-detail-top">
         <div className="resume-detail-icon">
-          <FileText size={22} className="text-violet-400" />
+          <FileText size={20} className="text-violet-300" />
         </div>
         <div className="flex-1 min-w-0">
           {editingLabel ? (
@@ -415,68 +416,89 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
       <div className="resume-detail-actions">
         <ActionBtn icon={Eye} label="Open" onClick={onOpen} />
         <ActionBtn icon={Download} label="Download" onClick={onDownload} />
+        {resume.pdfBase64 && (
+          <ActionBtn
+            icon={view === 'pdf' ? AlignLeft : FileText}
+            label={view === 'pdf' ? 'Details' : 'Preview PDF'}
+            onClick={() => setView(v => v === 'pdf' ? 'details' : 'pdf')}
+            accent={view === 'pdf'}
+          />
+        )}
         {!resume.isDefault && <ActionBtn icon={Check} label="Set as Default" onClick={onSetDefault} accent />}
+        <span className="flex-1" />
         <ActionBtn icon={Trash2} label="Delete" onClick={onDelete} danger />
       </div>
 
       <div className="resume-detail-divider" />
 
-      <div className="mb-5">
-        <div className="flex items-center gap-2 mb-3">
-          <BarChart2 size={13} className="text-blue-400" />
-          <p className="resume-section-title">Stats</p>
+      {view === 'pdf' && resume.pdfBase64 ? (
+        <div className="resume-pdf-preview">
+          <iframe
+            src={resume.pdfBase64}
+            title={resume.filename}
+            className="resume-pdf-iframe"
+          />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <StatMini label="Word count" value={wordCount > 0 ? wordCount.toLocaleString() : '—'} />
-          <StatMini label="Skills detected" value={skills.length} />
-          {resume.isDefault ? (
-            <>
-              <StatMini label="Jobs scored" value={scoredJobs.length} />
-              <StatMini
-                label="Avg match score"
-                value={avgScore != null ? `${avgScore}%` : '—'}
-                valueClass={avgScore != null ? (avgScore >= 75 ? 'text-green-400' : avgScore >= 50 ? 'text-yellow-400' : 'text-red-400') : undefined}
-              />
-            </>
-          ) : (
-            <div className="col-span-2 bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-3">
-              <p className="text-xs text-slate-400">Set as default to use this resume for AI match scoring and see match stats here.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="resume-detail-divider" />
-
-      {isParsingThis ? (
-        <div className="se-loading">
-          <Loader2 size={16} className="animate-spin text-violet-400" />
-          <span className="text-sm text-slate-400">Parsing resume structure...</span>
-        </div>
-      ) : hasStructure ? (
-        <StructuredEditor resume={resume} onUpdate={onUpdate} />
       ) : (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={13} className="text-violet-400" />
-            <p className="resume-section-title">Detected Skills</p>
-            <span className="text-xs text-slate-500 bg-slate-800 rounded-full px-1.5 py-0.5">{skills.length}</span>
-          </div>
-          {skills.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {skills.map(skill => (
-                <span key={skill} className="resume-skill-tag">{skill}</span>
-              ))}
+        <>
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart2 size={13} className="text-blue-400" />
+              <p className="resume-section-title">Stats</p>
             </div>
-          ) : resume.resumeText ? (
-            <p className="text-sm text-slate-500 mb-4">No recognized tech skills found in this resume.</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatMini label="Word count" value={wordCount > 0 ? wordCount.toLocaleString() : '—'} />
+              <StatMini label="Skills detected" value={skills.length} />
+              {resume.isDefault ? (
+                <>
+                  <StatMini label="Jobs scored" value={scoredJobs.length} />
+                  <StatMini
+                    label="Avg match score"
+                    value={avgScore != null ? `${avgScore}%` : '—'}
+                    valueClass={avgScore != null ? (avgScore >= 75 ? 'text-green-400' : avgScore >= 50 ? 'text-yellow-400' : 'text-red-400') : undefined}
+                  />
+                </>
+              ) : (
+                <div className="col-span-2 bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-3">
+                  <p className="text-xs text-slate-400">Set as default to use this resume for AI match scoring and see match stats here.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="resume-detail-divider" />
+
+          {isParsingThis ? (
+            <div className="se-loading">
+              <Loader2 size={16} className="animate-spin text-violet-400" />
+              <span className="text-sm text-slate-400">Parsing resume structure...</span>
+            </div>
+          ) : hasStructure ? (
+            <StructuredEditor resume={resume} onUpdate={onUpdate} />
           ) : (
-            <p className="text-sm text-slate-500 mb-4">Text extraction failed — try re-uploading this file.</p>
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles size={13} className="text-violet-400" />
+                <p className="resume-section-title">Detected Skills</p>
+                <span className="text-xs text-slate-500 bg-slate-800 rounded-full px-1.5 py-0.5">{skills.length}</span>
+              </div>
+              {skills.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {skills.map(skill => (
+                    <span key={skill} className="resume-skill-tag">{skill}</span>
+                  ))}
+                </div>
+              ) : resume.resumeText ? (
+                <p className="text-sm text-slate-500 mb-4">No recognized tech skills found in this resume.</p>
+              ) : (
+                <p className="text-sm text-slate-500 mb-4">Text extraction failed — try re-uploading this file.</p>
+              )}
+              <button onClick={onParseStructure} className="se-parse-btn">
+                <Sparkles size={13} /> Parse Structure
+              </button>
+            </div>
           )}
-          <button onClick={onParseStructure} className="se-parse-btn">
-            <Sparkles size={13} /> Parse Structure
-          </button>
-        </div>
+        </>
       )}
     </div>
   )
@@ -512,35 +534,39 @@ function StructuredEditor({ resume, onUpdate }) {
         </EditorSection>
       )}
 
-      {s.experience?.length > 0 && (
-        <EditorSection title="Experience" icon={<Briefcase size={13} />}>
-          <BulletEditor
-            entries={s.experience}
-            getTitle={e => e.role}
-            getSubtitle={e => e.company}
-            getDates={e => e.dates}
-            onChange={experience => save({ ...s, experience })}
-          />
-        </EditorSection>
-      )}
+      <EditorSection title="Experience" icon={<Briefcase size={13} />}>
+        <BulletEditor
+          entries={s.experience ?? []}
+          getTitle={e => e.role}
+          getSubtitle={e => e.company}
+          getDates={e => e.dates}
+          setTitle={(e, v) => ({ ...e, role: v })}
+          setSubtitle={(e, v) => ({ ...e, company: v })}
+          setDates={(e, v) => ({ ...e, dates: v })}
+          entryTemplate={() => ({ role: '', company: '', dates: '', bullets: [] })}
+          onChange={experience => save({ ...s, experience })}
+        />
+      </EditorSection>
 
-      {s.projects?.length > 0 && (
-        <EditorSection title="Projects" icon={<Code2 size={13} />}>
-          <BulletEditor
-            entries={s.projects}
-            getTitle={e => e.name}
-            getSubtitle={() => null}
-            getDates={e => e.dates}
-            onChange={projects => save({ ...s, projects })}
-          />
-        </EditorSection>
-      )}
+      <EditorSection title="Projects" icon={<Code2 size={13} />}>
+        <BulletEditor
+          entries={s.projects ?? []}
+          getTitle={e => e.name}
+          getSubtitle={() => null}
+          getDates={e => e.dates}
+          setTitle={(e, v) => ({ ...e, name: v })}
+          setDates={(e, v) => ({ ...e, dates: v })}
+          entryTemplate={() => ({ name: '', dates: '', bullets: [] })}
+          onChange={projects => save({ ...s, projects })}
+        />
+      </EditorSection>
 
-      {s.education?.length > 0 && (
-        <EditorSection title="Education" icon={<GraduationCap size={13} />}>
-          <EducationSection entries={s.education} />
-        </EditorSection>
-      )}
+      <EditorSection title="Education" icon={<GraduationCap size={13} />}>
+        <EducationEditor
+          entries={s.education ?? []}
+          onChange={education => save({ ...s, education })}
+        />
+      </EditorSection>
     </div>
   )
 }
@@ -653,16 +679,21 @@ function SkillsEditor({ groups, onChange }) {
   )
 }
 
-function BulletEditor({ entries, getTitle, getSubtitle, getDates, onChange }) {
+function BulletEditor({ entries, getTitle, getSubtitle, getDates, onChange, setTitle, setSubtitle, setDates, entryTemplate }) {
   const [editKey, setEditKey] = useState(null)
   const [draft, setDraft] = useState('')
+  const [addingBulletEi, setAddingBulletEi] = useState(null)
+  const [addingBulletDraft, setAddingBulletDraft] = useState('')
 
-  function startEdit(ei, bi) {
-    setEditKey(`${ei}-${bi}`)
-    setDraft(entries[ei].bullets[bi])
+  function startEdit(key, value) { setEditKey(key); setDraft(value ?? '') }
+
+  function saveHeaderField(ei, setter) {
+    const trimmed = draft.trim()
+    if (trimmed) onChange(entries.map((e, i) => i === ei ? setter(e, trimmed) : e))
+    setEditKey(null)
   }
 
-  function save(ei, bi) {
+  function saveBullet(ei, bi) {
     const trimmed = draft.trim()
     if (trimmed) {
       onChange(entries.map((e, i) => i === ei
@@ -672,69 +703,216 @@ function BulletEditor({ entries, getTitle, getSubtitle, getDates, onChange }) {
     setEditKey(null)
   }
 
+  function deleteBullet(ei, bi) {
+    onChange(entries.map((e, i) => i === ei ? { ...e, bullets: e.bullets.filter((_, j) => j !== bi) } : e))
+  }
+
+  function commitNewBullet(ei) {
+    const trimmed = addingBulletDraft.trim()
+    if (trimmed) onChange(entries.map((e, i) => i === ei ? { ...e, bullets: [...e.bullets, trimmed] } : e))
+    setAddingBulletEi(null)
+    setAddingBulletDraft('')
+  }
+
   return (
     <div className="se-exp">
-      {entries.map((entry, ei) => (
-        <div key={ei} className="se-exp-entry">
-          <div className="se-exp-header">
-            <span className="se-exp-role">{getTitle(entry)}</span>
-            {getSubtitle(entry) && <span className="se-exp-company"> · {getSubtitle(entry)}</span>}
-            {getDates(entry) && <span className="se-exp-dates">{getDates(entry)}</span>}
-          </div>
-          <div className="se-bullets">
-            {entry.bullets.map((bullet, bi) => {
-              const key = `${ei}-${bi}`
-              return (
-                <div key={bi} className="se-bullet-row">
-                  {editKey === key ? (
-                    <textarea
-                      autoFocus
-                      value={draft}
+      {entries.map((entry, ei) => {
+        const title = getTitle(entry)
+        const subtitle = getSubtitle(entry)
+        const dates = getDates(entry)
+
+        return (
+          <div key={ei} className="se-exp-entry">
+            <div className="se-exp-header-row">
+              <div className="se-exp-header flex-1 min-w-0">
+                {editKey === `${ei}-title` ? (
+                  <input autoFocus value={draft}
+                    onChange={e => setDraft(e.target.value)}
+                    onBlur={() => saveHeaderField(ei, setTitle)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveHeaderField(ei, setTitle); if (e.key === 'Escape') setEditKey(null) }}
+                    className="se-header-input-role"
+                  />
+                ) : (
+                  <span className={`se-exp-role${setTitle ? ' cursor-text' : ''}`}
+                    onClick={setTitle ? () => startEdit(`${ei}-title`, title) : undefined}>
+                    {title || <span className="text-slate-600 italic font-normal text-[11px]">Role</span>}
+                  </span>
+                )}
+
+                {(setSubtitle || subtitle !== null) && (
+                  <>
+                    <span className="se-exp-company"> · </span>
+                    {setSubtitle ? (
+                      editKey === `${ei}-subtitle` ? (
+                        <input autoFocus value={draft}
+                          onChange={e => setDraft(e.target.value)}
+                          onBlur={() => saveHeaderField(ei, setSubtitle)}
+                          onKeyDown={e => { if (e.key === 'Enter') saveHeaderField(ei, setSubtitle); if (e.key === 'Escape') setEditKey(null) }}
+                          className="se-header-input-company"
+                        />
+                      ) : (
+                        <span className="se-exp-company cursor-text"
+                          onClick={() => startEdit(`${ei}-subtitle`, subtitle || '')}>
+                          {subtitle || <span className="text-slate-600 italic text-[11px]">Company</span>}
+                        </span>
+                      )
+                    ) : (
+                      <span className="se-exp-company">{subtitle}</span>
+                    )}
+                  </>
+                )}
+
+                {setDates ? (
+                  editKey === `${ei}-dates` ? (
+                    <input autoFocus value={draft}
                       onChange={e => setDraft(e.target.value)}
-                      onBlur={() => save(ei, bi)}
-                      onKeyDown={e => { if (e.key === 'Escape') setEditKey(null) }}
-                      className="se-bullet-textarea"
-                      rows={2}
+                      onBlur={() => saveHeaderField(ei, setDates)}
+                      onKeyDown={e => { if (e.key === 'Enter') saveHeaderField(ei, setDates); if (e.key === 'Escape') setEditKey(null) }}
+                      className="se-header-input-dates"
                     />
                   ) : (
-                    <div className="se-bullet-text" onClick={() => startEdit(ei, bi)}>
-                      <span className="se-bullet-dot">·</span>
-                      <span className="se-bullet-content">{bullet}</span>
-                      <Pencil size={10} className="se-bullet-pencil" />
-                    </div>
-                  )}
+                    <span className="se-exp-dates cursor-text"
+                      onClick={() => startEdit(`${ei}-dates`, dates || '')}>
+                      {dates || <span className="text-slate-600 italic text-[10px]">Dates</span>}
+                    </span>
+                  )
+                ) : (
+                  dates && <span className="se-exp-dates">{dates}</span>
+                )}
+              </div>
+              <button onClick={() => onChange(entries.filter((_, i) => i !== ei))} className="se-entry-delete" title="Delete entry">
+                <Trash2 size={11} />
+              </button>
+            </div>
+
+            <div className="se-bullets">
+              {entry.bullets.map((bullet, bi) => {
+                const bKey = `${ei}-${bi}`
+                return (
+                  <div key={bi} className="se-bullet-row">
+                    {editKey === bKey ? (
+                      <textarea autoFocus value={draft}
+                        onChange={e => setDraft(e.target.value)}
+                        onBlur={() => saveBullet(ei, bi)}
+                        onKeyDown={e => { if (e.key === 'Escape') setEditKey(null) }}
+                        className="se-bullet-textarea"
+                        rows={2}
+                      />
+                    ) : (
+                      <div className="se-bullet-text" onClick={() => startEdit(bKey, bullet)}>
+                        <span className="se-bullet-dot">·</span>
+                        <span className="se-bullet-content">{bullet}</span>
+                        <div className="se-bullet-actions">
+                          <Pencil size={10} className="se-bullet-pencil" />
+                          <button onClick={e => { e.stopPropagation(); deleteBullet(ei, bi) }}
+                            className="se-bullet-delete-btn" title="Delete bullet">
+                            <X size={10} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              {addingBulletEi === ei ? (
+                <div className="se-bullet-row">
+                  <textarea autoFocus value={addingBulletDraft}
+                    onChange={e => setAddingBulletDraft(e.target.value)}
+                    onBlur={() => commitNewBullet(ei)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitNewBullet(ei) }
+                      if (e.key === 'Escape') { setAddingBulletEi(null); setAddingBulletDraft('') }
+                    }}
+                    className="se-bullet-textarea"
+                    rows={2}
+                    placeholder="New bullet point..."
+                  />
                 </div>
-              )
-            })}
+              ) : (
+                <button onClick={() => setAddingBulletEi(ei)} className="se-add-bullet-btn">
+                  <Plus size={10} /> Add bullet
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
+      {entryTemplate && (
+        <button onClick={() => onChange([...entries, entryTemplate()])} className="se-add-entry-btn">
+          <Plus size={11} /> Add entry
+        </button>
+      )}
     </div>
   )
 }
 
-function EducationSection({ entries }) {
+function EducationEditor({ entries, onChange }) {
+  const [editKey, setEditKey] = useState(null)
+  const [draft, setDraft] = useState('')
+
+  function startEdit(key, value) { setEditKey(key); setDraft(value ?? '') }
+
+  function saveField(ei, field) {
+    const trimmed = draft.trim()
+    onChange(entries.map((e, i) => i === ei ? { ...e, [field]: trimmed } : e))
+    setEditKey(null)
+  }
+
+  function renderField(ei, field, value, className, inputClass, placeholder) {
+    const key = `${ei}-${field}`
+    if (editKey === key) {
+      return (
+        <input autoFocus value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onBlur={() => saveField(ei, field)}
+          onKeyDown={e => { if (e.key === 'Enter') saveField(ei, field); if (e.key === 'Escape') setEditKey(null) }}
+          className={inputClass}
+        />
+      )
+    }
+    return (
+      <span className={`${className} cursor-text`} onClick={() => startEdit(key, value)}>
+        {value || <span className="text-slate-600 italic text-[11px]">{placeholder}</span>}
+      </span>
+    )
+  }
+
   return (
     <div className="se-edu">
-      {entries.map((entry, i) => (
-        <div key={i} className="se-edu-entry">
-          <div className="se-exp-header">
-            <span className="se-exp-role">{entry.degree}</span>
-            <span className="se-exp-company"> · {entry.school}</span>
-            {entry.dates && <span className="se-exp-dates">{entry.dates}</span>}
+      {entries.map((entry, ei) => (
+        <div key={ei} className="se-edu-entry">
+          <div className="se-exp-header-row">
+            <div className="se-exp-header flex-1 min-w-0">
+              {renderField(ei, 'degree', entry.degree, 'se-exp-role', 'se-header-input-role', 'Degree')}
+              <span className="se-exp-company"> · </span>
+              {renderField(ei, 'school', entry.school, 'se-exp-company', 'se-header-input-company', 'School')}
+              {renderField(ei, 'dates', entry.dates, 'se-exp-dates', 'se-header-input-dates', 'Dates')}
+            </div>
+            <button onClick={() => onChange(entries.filter((_, i) => i !== ei))} className="se-entry-delete" title="Delete entry">
+              <Trash2 size={11} />
+            </button>
           </div>
-          {entry.location && <p className="text-[11px] text-slate-500 mt-0.5">{entry.location}</p>}
+          <div className="mt-0.5">
+            {renderField(ei, 'location', entry.location, 'text-[11px] text-slate-500', 'se-header-input-location', 'Location (optional)')}
+          </div>
         </div>
       ))}
+      <button
+        onClick={() => onChange([...entries, { degree: '', school: '', dates: '', location: '' }])}
+        className="se-add-entry-btn"
+      >
+        <Plus size={11} /> Add education
+      </button>
     </div>
   )
 }
 
 // ── Shared small components ───────────────────────────────────────────────────
 
-function StatCard({ value, label, valueClass }) {
+function StatCard({ value, label, valueClass, icon: Icon, iconColor }) {
   return (
     <div className="resume-stat-card">
+      {Icon && <Icon size={14} className={`mb-2.5 ${iconColor ?? 'text-slate-500'}`} />}
       <p className={`text-xl sm:text-2xl font-bold ${valueClass ?? 'text-white'}`}>{value}</p>
       <p className="text-xs text-slate-400 mt-0.5">{label}</p>
     </div>

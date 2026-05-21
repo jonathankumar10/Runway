@@ -3,11 +3,18 @@ import { useAuth, isAuthedAndVerified } from './context/AuthContext'
 import Layout from './components/layout/Layout'
 import LoginPage from './pages/LoginPage'
 import LandingPage from './pages/LandingPage'
+import WelcomePage from './pages/WelcomePage'
 import ProfilePage from './pages/ProfilePage'
 import { lazy, Suspense } from 'react'
 import BoardPage from './pages/BoardPage'
 import DashboardPage from './pages/DashboardPage'
 import LoadingScreen from './components/ui/LoadingScreen'
+
+// Returns true if this user has already seen and dismissed the welcome page.
+// We store a simple flag in localStorage keyed by user ID.
+function hasSeenWelcome(uid) {
+  return localStorage.getItem(`runway_onboarded_${uid}`) === 'true'
+}
 
 const ResumePage = lazy(() => import('./pages/ResumePage'))
 const ApplicationDetailPage = lazy(() => import('./pages/ApplicationDetailPage'))
@@ -33,7 +40,8 @@ export default function Router() {
           path="/"
           element={
             user === undefined ? <LoadingScreen fullScreen /> :
-            verified ? <Navigate to="/board" replace /> :
+            // First-time users go to /welcome, returning users go straight to /board
+            verified ? <Navigate to={hasSeenWelcome(user.uid) ? '/board' : '/welcome'} replace /> :
             // Signed in but unverified email user → send to /login verify-pending view
             (user && !verified) ? <Navigate to="/login" replace /> :
             <LandingPage />
@@ -45,8 +53,21 @@ export default function Router() {
           path="/login"
           element={
             user === undefined ? <LoadingScreen fullScreen /> :
-            verified ? <Navigate to="/board" replace /> :
+            // Same logic — after login, new users see welcome, returning users skip it
+            verified ? <Navigate to={hasSeenWelcome(user.uid) ? '/board' : '/welcome'} replace /> :
             <LoginPage />
+          }
+        />
+
+        {/* Welcome / onboarding — shown once to new users after their first login.
+            It's protected (requires login) but lives outside the main Layout
+            so it has no sidebar or nav chrome. */}
+        <Route
+          path="/welcome"
+          element={
+            <ProtectedRoute>
+              <WelcomePage />
+            </ProtectedRoute>
           }
         />
 

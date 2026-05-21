@@ -2,6 +2,9 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from './AuthContext'
+import { STAGES } from '../constants/stages'
+
+const VALID_STAGES = new Set(STAGES.map(s => s.id))
 
 const JobsContext = createContext(null)
 
@@ -24,7 +27,7 @@ export function JobsProvider({ children }) {
     )
 
     return onSnapshot(q, (snap) => {
-      setJobs(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      setJobs(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(j => VALID_STAGES.has(j.stage)))
       setLoading(false)
     })
   }, [user?.uid])

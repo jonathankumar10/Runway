@@ -4,7 +4,7 @@ import './BoardStats.css'
 export default function BoardStats() {
   const { jobs } = useJobs()
 
-  const active = jobs.filter(j => !['rejected', 'withdrawn', 'accepted'].includes(j.stage)).length
+  const active = jobs.filter(j => !['saved', 'rejected', 'withdrawn', 'accepted'].includes(j.stage)).length
   const interviews = jobs.filter(j => ['phoneScreen', 'technicalInterview', 'finalRound'].includes(j.stage)).length
   const nextActions = jobs.filter(j => {
     if (j.stage !== 'applied') return false

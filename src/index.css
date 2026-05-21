@@ -4,6 +4,48 @@
   box-sizing: border-box;
 }
 
+/* ── Design tokens ───────────────────────────────────────────────────────────
+   :root defines CSS variables (aka "tokens") that are shared across every page.
+   Changing a value here updates it everywhere — one place, uniform result.
+
+   FONT SIZE
+   Tailwind's text-* classes (text-xs, text-sm, etc.) are all rem-based.
+   rem = "relative to the root element's font-size".
+   Setting font-size: 112.5% here means 1rem = 18px instead of 16px,
+   so every Tailwind text size scales up proportionally — no component edits needed.
+     text-xs   → 13.5px  (was 12px)
+     text-sm   → 15.75px (was 14px)
+     text-base → 18px    (was 16px)
+     text-lg   → 20.25px (was 18px)
+
+   COLORS
+   The palette is slate-based with violet as the brand accent.
+   Use these variables in .css files with var(--color-name).
+────────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Base font size — scales all rem units site-wide */
+  font-size: 112.5%; /* 18px */
+
+  /* Backgrounds — darkest to lightest */
+  --color-bg:             #020817;  /* slate-950 — page background          */
+  --color-surface:        #0f172a;  /* slate-900 — cards, panels            */
+  --color-surface-raised: #1e293b;  /* slate-800 — inputs, raised elements  */
+
+  /* Borders */
+  --color-border:        #334155;   /* slate-700 — standard borders         */
+  --color-border-subtle: #1e293b;   /* slate-800 — subtle dividers          */
+
+  /* Text */
+  --color-text:        #f1f5f9;     /* slate-100 — primary text             */
+  --color-text-muted:  #94a3b8;     /* slate-400 — secondary / helper text  */
+  --color-text-subtle: #64748b;     /* slate-500 — timestamps, labels       */
+
+  /* Brand accent (violet) */
+  --color-accent:       #7c3aed;    /* violet-600 — buttons, active states  */
+  --color-accent-hover: #6d28d9;    /* violet-700 — hover                   */
+  --color-accent-text:  #a78bfa;    /* violet-400 — accent text and icons   */
+}
+
 html {
   color-scheme: dark;
 }

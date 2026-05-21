@@ -18,6 +18,8 @@ import {
   buildEmailSubject, buildEmailBody, buildFollowUpSubject,
   buildFollowUpBody, buildLinkedInMessage,
 } from '../constants/outreachTemplates'
+import { usePagination } from '../hooks/usePagination'
+import Pagination from '../components/ui/Pagination'
 import './OutreachPage.css'
 
 const FILTERS = [
@@ -27,6 +29,17 @@ const FILTERS = [
   { key: 'linkedin_sent', label: 'LinkedIn' },
   { key: 'done', label: 'Done' },
 ]
+
+// Lower number = higher up in the list.
+// Pending (needs action) comes first, fully done comes last.
+const OUTREACH_PRIORITY = { pending: 0, email_sent: 1, linkedin_sent: 2, done: 3 }
+
+function getOutreachPriority(record) {
+  if (record.emailSent && record.linkedInSent) return OUTREACH_PRIORITY.done
+  if (record.emailSent)   return OUTREACH_PRIORITY.email_sent
+  if (record.linkedInSent) return OUTREACH_PRIORITY.linkedin_sent
+  return OUTREACH_PRIORITY.pending
+}
 
 export default function OutreachPage() {
   const { user } = useAuth()
@@ -181,6 +194,16 @@ export default function OutreachPage() {
     return true
   })
 
+  // Sort: pending first → email sent → linkedin sent → fully done (sinks to bottom)
+  const sorted = [...filtered].sort((a, b) => getOutreachPriority(a) - getOutreachPriority(b))
+
+  // Cards are tall so 8 per page feels comfortable; table rows are compact so 15 fits well
+  const PAGE_SIZE = view === 'table' ? 15 : 8
+  const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(sorted, PAGE_SIZE)
+
+  // Jump back to page 1 whenever the user switches filter or view
+  useEffect(() => { goToPage(1) }, [filter, view])
+
   const counts = {
     all: records.length,
     pending: records.filter(r => !r.emailSent && !r.linkedInSent).length,
@@ -263,7 +286,7 @@ export default function OutreachPage() {
         </div>
       </div>
 
-      <div className="px-4 py-4 sm:px-6 max-w-3xl mx-auto">
+      <div className="px-4 py-4 sm:px-6">
         {/* Filter tabs */}
         <div className="flex items-center gap-1 mb-5 flex-wrap">
           {FILTERS.map(f => (
@@ -303,27 +326,45 @@ export default function OutreachPage() {
             )}
           </div>
         ) : view === 'table' ? (
-          <OutreachTable
-            records={filtered}
-            userId={user.uid}
-            selectedIds={selectedIds}
-            onToggleSelect={toggleSelectRecord}
-          />
+          <>
+            <OutreachTable
+              records={paginatedItems}
+              userId={user.uid}
+              selectedIds={selectedIds}
+              onToggleSelect={toggleSelectRecord}
+            />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onGoToPage={goToPage}
+              totalItems={sorted.length}
+              pageSize={PAGE_SIZE}
+            />
+          </>
         ) : (
-          <div className="space-y-3">
-            {filtered.map(record => (
-              <OutreachCard
-                key={record.id}
-                record={record}
-                userId={user.uid}
-                defaultResume={defaultResume}
-                gmailTokenRef={gmailTokenRef}
-                onNeedGmailToken={getGmailToken}
-                isSelected={selectedIds.has(record.id)}
-                onToggleSelect={toggleSelectRecord}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-3">
+              {paginatedItems.map(record => (
+                <OutreachCard
+                  key={record.id}
+                  record={record}
+                  userId={user.uid}
+                  defaultResume={defaultResume}
+                  gmailTokenRef={gmailTokenRef}
+                  onNeedGmailToken={getGmailToken}
+                  isSelected={selectedIds.has(record.id)}
+                  onToggleSelect={toggleSelectRecord}
+                />
+              ))}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onGoToPage={goToPage}
+              totalItems={sorted.length}
+              pageSize={PAGE_SIZE}
+            />
+          </>
         )}
       </div>
 

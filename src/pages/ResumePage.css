@@ -10,64 +10,26 @@
 }
 
 .resume-stat-card {
-  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-3 py-3 sm:px-5 sm:py-4;
+  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-4 sm:px-5 sm:py-4;
 }
 
-/* Two-column master-detail layout */
-.resume-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem;
-  align-items: start;
-}
+/* ── Library section ─────────────────────────────────────────────────── */
 
-/* iPad portrait and up: two columns */
-@media (min-width: 768px) {
-  .resume-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
-    gap: 1.25rem;
-  }
-}
-
-/* Desktop: give the detail card more breathing room */
-@media (min-width: 1024px) {
-  .resume-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.75fr);
-    gap: 1.5rem;
-  }
-}
-
-/* LEFT — list column */
-.resume-list-col {
-  @apply flex flex-col gap-3 min-w-0;
-}
-
-.resume-list-card {
+.resume-library-section {
   @apply bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden;
 }
 
-.resume-list-header {
-  @apply flex items-center justify-between px-4 py-3 border-b border-slate-700;
+.resume-library-card {
+  @apply w-full flex items-center gap-3 px-4 py-3.5 transition-all text-left;
 }
 
-.resume-list-items {
-  @apply divide-y divide-slate-800;
+.resume-library-card-idle {
+  @apply hover:bg-slate-800/50;
 }
 
-.resume-list-item {
-  @apply w-full flex items-center gap-3 px-4 py-3 transition-colors text-left;
-}
-
-.resume-list-item-idle {
-  @apply hover:bg-slate-800/60;
-}
-
-.resume-list-item-selected {
-  @apply bg-violet-600/10;
-}
-
-.resume-list-item-icon {
-  @apply w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors;
+.resume-library-card-selected {
+  background-color: rgb(124 58 237 / 0.10);
+  box-shadow: inset 3px 0 0 rgb(139 92 246 / 0.75);
 }
 
 /* Upload zone */
@@ -76,24 +38,15 @@
 }
 
 .resume-upload-zone-idle {
-  @apply border-slate-700 hover:border-slate-600 hover:bg-slate-800/30;
+  @apply border-slate-700/80 hover:border-violet-600/40 hover:bg-violet-600/5;
 }
 
 .resume-upload-zone-drag {
   @apply border-violet-500 bg-violet-500/5;
 }
 
-/* RIGHT — detail column */
-.resume-detail-col {
-  position: static;
-  min-width: 0;
-}
-
-@media (min-width: 768px) {
-  .resume-detail-col {
-    position: sticky;
-    top: 1.5rem;
-  }
+.resume-upload-icon-wrap {
+  @apply w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center;
 }
 
 .resume-detail-card {
@@ -105,7 +58,7 @@
 }
 
 .resume-detail-icon {
-  @apply w-10 h-10 sm:w-12 sm:h-12 bg-violet-600/15 border border-violet-500/25 rounded-xl flex items-center justify-center shrink-0;
+  @apply w-11 h-11 sm:w-12 sm:h-12 bg-violet-600/20 border border-violet-500/35 rounded-xl flex items-center justify-center shrink-0;
 }
 
 .resume-detail-actions {
@@ -127,7 +80,7 @@
 
 /* Skill tags */
 .resume-skill-tag {
-  @apply text-xs bg-slate-700/80 text-slate-200 px-2.5 py-1 rounded-lg border border-slate-600;
+  @apply text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700/80;
 }
 
 /* Label editing */
@@ -137,17 +90,21 @@
 
 /* Default badge */
 .resume-default-badge {
-  @apply inline-flex items-center gap-1 text-xs font-semibold text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded-full;
+  @apply inline-flex items-center gap-1 text-[10px] font-semibold text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded-full border border-yellow-400/20;
 }
 
 /* Empty detail state */
 .resume-empty-detail {
-  @apply flex flex-col items-center justify-center py-12 sm:py-20 text-center bg-slate-900 border border-slate-700 rounded-2xl;
+  @apply flex flex-col items-center justify-center py-14 sm:py-20 text-center bg-slate-900 border border-slate-700 rounded-2xl;
+}
+
+.resume-empty-icon-wrap {
+  @apply w-14 h-14 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center;
 }
 
 /* Action buttons */
 .resume-action-btn {
-  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white;
+  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-slate-300 border-slate-700 hover:bg-slate-800 hover:text-white;
 }
 
 .resume-action-btn-accent {
@@ -155,7 +112,7 @@
 }
 
 .resume-action-btn-danger {
-  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-red-400 border-red-500/20 hover:bg-red-500/10;
+  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-red-400 border-red-500/25 bg-red-500/5 hover:bg-red-500/15;
 }
 
 /* ── Structured Editor ─────────────────────────────────────────────────── */
@@ -169,7 +126,7 @@
 }
 
 .se-section + .se-section {
-  border-top: 1px solid rgb(30 41 59);
+  border-top: 1px solid rgb(51 65 85 / 0.5);
   margin-top: 1rem;
 }
 
@@ -189,11 +146,11 @@
 }
 
 .se-chip {
-  @apply inline-flex items-center gap-1 text-xs bg-slate-700/80 text-slate-200 px-2 py-0.5 rounded-lg border border-slate-600;
+  @apply inline-flex items-center gap-1 text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-700/80;
 }
 
 .se-chip-remove {
-  @apply text-slate-400 hover:text-red-400 transition-colors ml-0.5 flex items-center;
+  @apply text-slate-500 hover:text-red-400 transition-colors ml-0.5 flex items-center;
 }
 
 .se-chip-add {
@@ -211,8 +168,49 @@
 
 .se-exp-entry {}
 
+.se-exp-header-row {
+  @apply flex items-start justify-between gap-2 mb-1.5;
+}
+
 .se-exp-header {
-  @apply flex flex-wrap items-baseline gap-x-1 gap-y-0.5 mb-1.5;
+  @apply flex flex-wrap items-baseline gap-x-1 gap-y-0.5;
+}
+
+/* Entry delete button — visible on entry hover */
+.se-entry-delete {
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  flex-shrink: 0;
+  color: rgb(51 65 85);
+  opacity: 0;
+  transition: opacity 150ms, color 150ms;
+}
+
+.se-entry-delete:hover {
+  color: rgb(248 113 113);
+}
+
+.se-exp-entry:hover .se-entry-delete,
+.se-edu-entry:hover .se-entry-delete {
+  opacity: 1;
+}
+
+/* Inline header field inputs */
+.se-header-input-role {
+  @apply bg-transparent border-b border-violet-500/60 focus:outline-none focus:border-violet-400 text-xs font-semibold text-slate-200;
+}
+
+.se-header-input-company {
+  @apply bg-transparent border-b border-violet-500/60 focus:outline-none focus:border-violet-400 text-xs text-slate-400;
+}
+
+.se-header-input-dates {
+  @apply bg-transparent border-b border-violet-500/60 focus:outline-none focus:border-violet-400 text-[11px] text-slate-500 ml-auto;
+}
+
+.se-header-input-location {
+  @apply bg-transparent border-b border-violet-500/60 focus:outline-none focus:border-violet-400 text-[11px] text-slate-500;
 }
 
 .se-exp-role {
@@ -241,19 +239,50 @@
 }
 
 .se-bullet-dot {
-  @apply text-slate-500 text-sm leading-5 shrink-0;
+  @apply text-slate-600 text-sm leading-5 shrink-0;
 }
 
 .se-bullet-content {
   @apply text-xs text-slate-300 leading-5 flex-1;
 }
 
+.se-bullet-actions {
+  @apply flex items-center gap-1 shrink-0 mt-1;
+}
+
 .se-bullet-pencil {
-  @apply text-slate-700 shrink-0 mt-1 transition-colors;
+  @apply text-slate-700 transition-colors;
 }
 
 .se-bullet-text:hover .se-bullet-pencil {
   @apply text-slate-400;
+}
+
+/* Bullet delete button — visible on bullet hover */
+.se-bullet-delete-btn {
+  display: flex;
+  align-items: center;
+  color: rgb(51 65 85);
+  opacity: 0;
+  transition: opacity 150ms, color 150ms;
+}
+
+.se-bullet-delete-btn:hover {
+  color: rgb(248 113 113);
+}
+
+.se-bullet-text:hover .se-bullet-delete-btn {
+  opacity: 1;
+}
+
+/* Add bullet button */
+.se-add-bullet-btn {
+  @apply flex items-center gap-1 text-[11px] text-slate-600 hover:text-slate-400 px-1 py-0.5 transition-colors mt-0.5;
+}
+
+/* Add entry button */
+.se-add-entry-btn {
+  @apply flex items-center justify-center gap-1.5 w-full text-xs text-slate-500 hover:text-slate-300 border border-dashed border-slate-700 hover:border-slate-600 px-3 py-2 rounded-lg transition-colors mt-3;
 }
 
 .se-bullet-textarea {
@@ -278,4 +307,18 @@
 /* Parse structure button */
 .se-parse-btn {
   @apply flex items-center gap-2 px-3 py-2 text-xs font-medium text-violet-400 border border-violet-500/30 hover:bg-violet-500/10 rounded-lg transition-colors;
+}
+
+/* Inline PDF preview */
+.resume-pdf-preview {
+  @apply w-full rounded-lg overflow-hidden;
+  height: 70vh;
+}
+
+.resume-pdf-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 0.5rem;
+  background: white;
 }

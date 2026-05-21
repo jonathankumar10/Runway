@@ -12,6 +12,8 @@ import {
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext'
 import app from '../lib/firebase'
+import { usePagination } from '../hooks/usePagination'
+import Pagination from '../components/ui/Pagination'
 import './TargetCompaniesPage.css'
 
 const functions = getFunctions(app)
@@ -52,6 +54,11 @@ const SEED_COMPANIES = [
   { name: 'Lambda', domain: 'lambdalabs.com', space: 'GPU cloud', stage: 'Mid-size / growth', notes: 'AI cloud infrastructure with backend/platform, scheduling, observability, and reliability.', targetRoles: 'Backend Engineer, Cloud Infrastructure, Platform Engineer', careersUrl: 'https://lambdalabs.com/careers', searchQuery: 'Search Lambda recruiter engineering' },
   { name: 'Lightning AI', domain: 'lightning.ai', space: 'AI developer platform', stage: 'Startup / growth', notes: 'Wellfound shows backend roles; maps to MCP tooling, platform reliability, and cloud systems.', targetRoles: 'Backend Engineer, Platform Engineer, AI Infrastructure', careersUrl: 'https://lightning.ai/careers', searchQuery: 'Search Lightning AI recruiter' },
 ]
+
+// Lower number = higher up in the list.
+// Not-yet-searched companies come first so they get attention.
+// Fully contacted companies sink to the bottom.
+const TARGET_PRIORITY = { new: 0, retrieved: 1, tracked: 2, emailed: 3, contacted: 4 }
 
 export default function TargetCompaniesPage() {
   const { user } = useAuth()
@@ -142,6 +149,15 @@ export default function TargetCompaniesPage() {
     }
     return true
   })
+
+  // Sort: companies needing action first, fully contacted companies last
+  const sorted = [...displayed].sort((a, b) => TARGET_PRIORITY[getStatus(a)] - TARGET_PRIORITY[getStatus(b)])
+
+  const PAGE_SIZE = 10
+  const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(sorted, PAGE_SIZE)
+
+  // Jump back to page 1 whenever the user changes filter or search
+  useEffect(() => { goToPage(1) }, [filter, search])
 
   async function handlePrompt() {
     if (!prompt.trim()) return
@@ -303,7 +319,7 @@ export default function TargetCompaniesPage() {
                 </tr>
               </thead>
               <tbody>
-                {displayed.map(company => {
+                {paginatedItems.map(company => {
                   const status = getStatus(company)
                   const notesExpanded = expandedNotes.has(company.id)
                   return (
@@ -421,6 +437,13 @@ export default function TargetCompaniesPage() {
             </table>
           </div>
         )}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onGoToPage={goToPage}
+          totalItems={sorted.length}
+          pageSize={PAGE_SIZE}
+        />
       </div>
 
       {addOpen && <AddCompanyModal userId={user.uid} onClose={() => setAddOpen(false)} />}

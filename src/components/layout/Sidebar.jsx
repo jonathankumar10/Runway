@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import { BriefcaseBusiness, LayoutDashboard, Kanban, LogOut, FileText, User, X, Send, Target } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import NotificationBell from '../ui/NotificationBell'
@@ -10,10 +10,13 @@ export default function Sidebar({ isOpen, onClose }) {
   return (
     <aside className={`sidebar${isOpen ? ' sidebar--open' : ''}`}>
       <div className="sidebar-logo-bar">
-        <div className="sidebar-logo-icon">
-          <BriefcaseBusiness size={14} className="text-white" />
-        </div>
-        <span className="font-semibold text-white text-sm">Runway</span>
+        {/* Clicking the logo takes the user back to the welcome / home page */}
+        <Link to="/welcome" className="flex items-center gap-2">
+          <div className="sidebar-logo-icon">
+            <BriefcaseBusiness size={14} className="text-white" />
+          </div>
+          <span className="font-semibold text-white text-sm">Runway</span>
+        </Link>
         <button
           onClick={onClose}
           className="ml-auto text-slate-500 hover:text-slate-300 transition-colors md:hidden"
