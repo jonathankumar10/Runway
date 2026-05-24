@@ -5,6 +5,8 @@ import PipelineFunnel from '../components/dashboard/PipelineFunnel'
 import WeeklyChart from '../components/dashboard/WeeklyChart'
 import InterviewCountdown from '../components/dashboard/InterviewCountdown'
 import NextMoves from '../components/dashboard/NextMoves'
+import OutreachInsights from '../components/dashboard/OutreachInsights'
+import TargetCompaniesInsights from '../components/dashboard/TargetCompaniesInsights'
 
 function StatCard({ label, value, sub, icon: Icon, iconColor }) {
   return (
@@ -63,9 +65,13 @@ export default function DashboardPage() {
         <PipelineFunnel />
         <WeeklyChart />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <InterviewCountdown />
         <NextMoves />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <OutreachInsights />
+        <TargetCompaniesInsights />
       </div>
     </div>
   )

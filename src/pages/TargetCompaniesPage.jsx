@@ -167,11 +167,17 @@ export default function TargetCompaniesPage() {
       const fn = httpsCallable(functions, 'processCompanyPrompt')
       const result = await fn({ instruction: prompt.trim(), companyNames: companies.map(c => c.name) })
       const op = result.data
-      if (op.op === 'add' && op.company) {
-        await addDoc(collection(db, 'users', user.uid, 'targetCompanies'), {
-          ...op.company, createdAt: serverTimestamp(),
+      if (op.op === 'add' && (op.company || op.companies)) {
+        const toAdd = op.companies ?? [op.company]
+        for (const company of toAdd) {
+          await addDoc(collection(db, 'users', user.uid, 'targetCompanies'), {
+            ...company, createdAt: serverTimestamp(),
+          })
+        }
+        setPromptResult({
+          type: 'success',
+          msg: toAdd.length === 1 ? `Added ${toAdd[0].name}` : `Added ${toAdd.length} companies`,
         })
-        setPromptResult({ type: 'success', msg: `Added ${op.company.name}` })
       } else if (op.op === 'remove' && op.name) {
         const match = companies.find(c => c.name.toLowerCase() === op.name.toLowerCase())
         if (match) {

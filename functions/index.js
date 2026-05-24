@@ -504,18 +504,20 @@ exports.processCompanyPrompt = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true
   try {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 800,
+      max_tokens: 4000,
       system: `You manage a job search target companies list for a software engineer.
 Engineer background: 4 years at Amazon, Java/Spring Boot backend, AWS distributed systems, platform automation, H-1B visa needing sponsorship.
 
 Given an instruction, return exactly ONE JSON operation (no other text):
 
-Add:    {"op":"add","company":{"name":"...","domain":"...","space":"...","stage":"...","notes":"...","targetRoles":"...","careersUrl":"...","searchQuery":"..."}}
-Remove: {"op":"remove","name":"..."}
-Update: {"op":"update","name":"...","updates":{"field":"value"}}
-Error:  {"op":"error","message":"..."}
+Add one:  {"op":"add","company":{"name":"...","domain":"...","space":"...","stage":"...","notes":"...","targetRoles":"...","careersUrl":"...","searchQuery":"..."}}
+Add many: {"op":"add","companies":[{"name":"...","domain":"...","space":"...","stage":"...","notes":"...","targetRoles":"...","careersUrl":"...","searchQuery":"..."}]}
+Remove:   {"op":"remove","name":"..."}
+Update:   {"op":"update","name":"...","updates":{"field":"value"}}
+Error:    {"op":"error","message":"..."}
 
 For "add": generate realistic values. domain = primary domain (no https). targetRoles = 2–4 relevant roles comma-separated. careersUrl = likely URL. searchQuery = LinkedIn/Hunter search string. notes = 1–2 sentences on fit with engineer background. stage = "Startup / growth" | "Mid-size / growth" | "Large startup / growth" | "Public / mid-large".
+When the instruction asks for multiple companies (e.g. "add 10 similar companies"), use the "companies" array form and include ALL requested companies in a single response.
 Return ONLY valid JSON.`,
       messages: [{
         role: 'user',
