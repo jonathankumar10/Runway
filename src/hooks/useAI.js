@@ -27,6 +27,13 @@ export function useAI() {
     return result.data
   }
 
+  async function matchTailoredResume(resumeText, company, role, keySkills, notes) {
+    if (!resumeText) throw new Error('No tailored resume text found for this application.')
+    const fn = httpsCallable(functions, 'matchResume')
+    const result = await fn({ resumeText, company, role, keySkills, notes })
+    return result.data
+  }
+
   async function matchResume(jobId, company, role, keySkills, notes) {
     // Read default resume from new resumes subcollection
     const resumesSnap = await getDocs(
@@ -97,5 +104,5 @@ export function useAI() {
     return result.data
   }
 
-  return { parseJD, getCoaching, draftFollowUp, matchResume, importFromUrl, tailorResume, findRecruiter, draftRecruiterOutreach, parseResumeStructure }
+  return { parseJD, getCoaching, draftFollowUp, matchResume, matchTailoredResume, importFromUrl, tailorResume, findRecruiter, draftRecruiterOutreach, parseResumeStructure }
 }

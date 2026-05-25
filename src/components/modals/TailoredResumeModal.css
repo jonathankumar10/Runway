@@ -159,9 +159,14 @@
   @apply text-xs text-slate-400 leading-relaxed pt-0.5;
 }
 
-/* ── Resume column ── */
-.trm-resume-col {
-  @apply flex-1 flex-col overflow-y-auto bg-slate-950 items-center py-6 px-4 gap-3 min-w-0;
+/* ── Resume paper area (shown inside content on builder/resume/analysis tabs) ── */
+.trm-paper-area {
+  @apply flex-col items-center py-6 px-4 gap-3 bg-slate-950 overflow-y-auto min-w-0;
+}
+
+/* ── Analysis right panel (analysis tab, right half on desktop) ── */
+.trm-analysis-right {
+  @apply flex flex-col flex-1 overflow-y-auto bg-slate-950 border-l border-slate-700 min-w-0;
 }
 
 .trm-edit-hint {

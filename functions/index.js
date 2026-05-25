@@ -444,10 +444,11 @@ Field definitions:
 - sections[].type "summary": sentences must be EXACTLY the same 3 lines as rewrittenSummary — do not write a separate summary
 ${sectionHint}
 
-PAGE-FIT RULES — the renderer auto-fits content to one printed page via zoom, but shorter and tighter output always looks better:
-- Keep bullets punchy — aim for under 120 characters. Prefer 80–100.
-- Match the original bullet count exactly for each job/project — do not add bullets.
-- Do not pad bullets with extra context phrases like "demonstrating...", "in a fast-moving environment", "aligned with..." — cut these fillers.
+BULLET RULES:
+- Match the original bullet count exactly for each job/project — do not add or remove bullets.
+- Preserve the full substance of each bullet; do not summarize or compress the original content.
+- Do not pad bullets with empty filler phrases like "demonstrating...", "in a fast-moving environment", "aligned with..." — cut these only.
+- The renderer auto-fits to one printed page, so do not shorten bullets to save space.
 
 STRICT PRESERVATION RULES — violations will break the output:
 - Name: copy the candidate's name EXACTLY as it appears in the original resume, preserving its capitalization (e.g., "Jonathan Pasupulety", never "JONATHAN PASUPULETY")
@@ -462,6 +463,9 @@ STRICT PRESERVATION RULES — violations will break the output:
 ${lockedSkillsHint}${bulletCountHint}
 
 ATS bullet rules (apply to rewrittenBullets AND all experience bullets in sections):
+- PRESERVE the full substance of every bullet: the what (technology/system/feature built), the why (the problem solved or business need), and the how (the approach, architecture, or method used). Never strip this context.
+- Keyword-enrich, do not rewrite: keep the candidate's original language and sentence structure; only insert or swap in JD keywords where they are a genuine match for the work described.
+- If the original bullet already captures the what/why/how well, minimal changes are preferred — just bold the matching keywords and replace weak opening verbs.
 - Begin every bullet with a strong action verb: Spearheaded, Engineered, Architected, Optimized, Automated, Orchestrated, Deployed, Migrated, Designed, Built, Implemented, Streamlined, Reduced, Accelerated, Delivered, Launched, Scaled, Consolidated
 - Never use: "Responsible for", "Worked on", "Helped", "Assisted", "Participated in"
 - Quantify results with numbers, percentages, or dollar amounts ONLY when the original resume already provides those metrics; do NOT invent any numbers
@@ -470,7 +474,7 @@ ATS bullet rules (apply to rewrittenBullets AND all experience bullets in sectio
 - Do not use em dashes anywhere in the output`,
       messages: [{
         role: 'user',
-        content: `COMPANY: ${company || 'Unknown'}\nROLE: ${role}\nKEY SKILLS: ${(keySkills || []).join(', ')}\nJOB DESCRIPTION:\n${(jobDescription || 'Not provided').slice(0, 4000)}\nGAPS TO ADDRESS: ${(gaps || []).join('; ') || 'None'}\n\nORIGINAL RESUME:\n${resumeText.slice(0, 6000)}`,
+        content: `COMPANY: ${company || 'Unknown'}\nROLE: ${role}\nKEY SKILLS: ${(keySkills || []).join(', ')}\nJOB DESCRIPTION:\n${(jobDescription || 'Not provided').slice(0, 6000)}\nGAPS TO ADDRESS: ${(gaps || []).join('; ') || 'None'}\n\nORIGINAL RESUME:\n${resumeText.slice(0, 12000)}`,
       }],
     })
 

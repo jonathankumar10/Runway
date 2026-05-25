@@ -5,7 +5,7 @@ import {
   ArrowLeft, ExternalLink, Pencil, Sparkles, Loader2,
   CheckCircle2, Circle, Plus, Trash2, FileText,
   ChevronDown, ChevronUp, AlertTriangle, Search,
-  Mail, Calendar, Wand2, Eye, Copy, ClipboardCheck, Check,
+  Mail, Calendar, Wand2, Eye, Copy, ClipboardCheck, Check, TrendingUp,
 } from 'lucide-react'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext'
@@ -66,11 +66,12 @@ export default function ApplicationDetailPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { jobs, loading } = useJobs()
-  const { matchResume, tailorResume, findRecruiter, draftRecruiterOutreach } = useAI()
+  const { matchResume, matchTailoredResume, tailorResume, findRecruiter, draftRecruiterOutreach } = useAI()
   const { deleteJob } = useJobMutations()
 
   const [editing, setEditing] = useState(false)
   const [matching, setMatching] = useState(false)
+  const [matchingTailored, setMatchingTailored] = useState(false)
   const [notes, setNotes] = useState(null)
   const [notesSaving, setNotesSaving] = useState(false)
   const [jdExpanded, setJdExpanded] = useState(false)
@@ -167,6 +168,29 @@ export default function ApplicationDetailPage() {
     }
   }
 
+  async function handleMatchTailoredResume() {
+    setMatchingTailored(true)
+    try {
+      const result = await matchTailoredResume(
+        job.tailoredResumeText,
+        job.company, job.role,
+        job.keySkills ?? [],
+        job.jobDescription ?? job.notes ?? ''
+      )
+      if (result?.score != null) {
+        await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), {
+          tailoredMatchScore: result.score,
+          tailoredMatchHighlights: result.highlights ?? [],
+          tailoredMatchGaps: result.gaps ?? [],
+        })
+      }
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setMatchingTailored(false)
+    }
+  }
+
   async function handleSaveNotes() {
     if (notes === null || notes === job.notes) return
     setNotesSaving(true)
@@ -235,6 +259,10 @@ export default function ApplicationDetailPage() {
     if (styleOverrides && Object.keys(styleOverrides).length > 0) {
       payload.tailoredResumeStyleOverrides = styleOverrides
     }
+    // Persist analysis data so the Analysis tab survives a page reload / reopen
+    if (tailorDraft?.keywordAnalysis) payload.tailoredKeywordAnalysis = tailorDraft.keywordAnalysis
+    if (tailorDraft?.rewrittenBullets?.length) payload.tailoredRewrittenBullets = tailorDraft.rewrittenBullets
+    if (tailorDraft?.rewrittenSummary?.length) payload.tailoredRewrittenSummary = tailorDraft.rewrittenSummary
     await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), payload)
   }
 
@@ -373,16 +401,6 @@ export default function ApplicationDetailPage() {
         <button onClick={() => navigate('/board')} className="detail-back-btn">
           <ArrowLeft size={15} /> Back to applications
         </button>
-        <div className="flex items-center gap-2">
-          {job.jobUrl && (
-            <a href={job.jobUrl} target="_blank" rel="noopener noreferrer" className="detail-back-btn">
-              <ExternalLink size={13} /> View posting
-            </a>
-          )}
-          <button onClick={() => setEditing(true)} className="detail-edit-btn">
-            <Pencil size={12} /> Edit
-          </button>
-        </div>
       </div>
 
       <div className="px-4 py-4 sm:px-6 sm:py-5 max-w-7xl mx-auto">
@@ -395,7 +413,29 @@ export default function ApplicationDetailPage() {
             <div className="detail-logo-fallback">{job.company?.[0]?.toUpperCase() ?? '?'}</div>
           )}
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-white">{job.company || 'Untitled'}</h1>
+            <div className="flex items-center justify-between gap-2.5">
+              <h1 className="text-2xl font-bold text-white leading-tight">{job.company || 'Untitled'}</h1>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {job.jobUrl && (
+                  <a
+                    href={job.jobUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="detail-header-btn"
+                    title="Visit site"
+                  >
+                    <ExternalLink size={12} /> Visit site
+                  </a>
+                )}
+                <button
+                  onClick={() => setEditing(true)}
+                  className="detail-header-btn"
+                  title="Edit application"
+                >
+                  <Pencil size={12} /> Edit
+                </button>
+              </div>
+            </div>
             <p className="text-slate-400 mt-0.5">{job.role || 'No role'}</p>
             <div className="flex flex-wrap items-center gap-2 mt-2.5">
               <span className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 ${stage?.textClass ?? 'text-slate-300'}`}>
@@ -537,18 +577,62 @@ export default function ApplicationDetailPage() {
 
               {/* Saved banner */}
               {job.tailoredResumeText && (
-                <div className="flex items-center justify-between gap-3 p-3 bg-green-500/5 border border-green-500/20 rounded-xl mb-4">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 size={14} className="text-green-400 shrink-0" />
-                    <p className="text-xs text-slate-300">Tailored resume saved for this job</p>
+                <>
+                  <div className="flex items-center justify-between gap-3 p-3 bg-green-500/5 border border-green-500/20 rounded-xl mb-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={14} className="text-green-400 shrink-0" />
+                      <p className="text-xs text-slate-300">Tailored resume saved for this job</p>
+                    </div>
+                    <button
+                      onClick={() => setResumeModalOpen(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors"
+                    >
+                      <Eye size={11} /> View / Edit
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setResumeModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors"
-                  >
-                    <Eye size={11} /> View / Edit
-                  </button>
-                </div>
+
+                  {/* Tailored resume score */}
+                  {job.tailoredMatchScore != null ? (
+                    <div className="flex items-center justify-between gap-3 p-3 bg-slate-800/60 border border-slate-700 rounded-xl mb-4">
+                      <div className="flex items-center gap-3">
+                        <TrendingUp size={14} className="text-violet-400 shrink-0" />
+                        <div>
+                          <p className="text-xs text-slate-400">Tailored resume score</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-sm font-bold ${job.tailoredMatchScore >= 75 ? 'text-green-400' : job.tailoredMatchScore >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                              {job.tailoredMatchScore}%
+                            </span>
+                            {job.matchScore != null && (() => {
+                              const delta = job.tailoredMatchScore - job.matchScore
+                              return (
+                                <span className={`text-xs font-medium ${delta > 0 ? 'text-green-400' : delta < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                                  {delta > 0 ? `+${delta}` : delta} pts vs base ({job.matchScore}%)
+                                </span>
+                              )
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleMatchTailoredResume}
+                        disabled={matchingTailored}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors shrink-0 disabled:opacity-50"
+                      >
+                        {matchingTailored ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
+                        {matchingTailored ? 'Scoring...' : 'Re-score'}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleMatchTailoredResume}
+                      disabled={matchingTailored}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 mb-4 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {matchingTailored ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
+                      {matchingTailored ? 'Scoring...' : 'Score tailored resume'}
+                    </button>
+                  )}
+                </>
               )}
 
               {/* Suggestions from latest generation */}
@@ -899,9 +983,9 @@ export default function ApplicationDetailPage() {
           initialTemplate={job.tailoredResumeTemplate ?? undefined}
           initialStyleOverrides={job.tailoredResumeStyleOverrides ?? {}}
           styleMap={tailorDraft?.styleMap ?? null}
-          keywordAnalysis={tailorDraft?.keywordAnalysis}
-          rewrittenBullets={tailorDraft?.rewrittenBullets}
-          rewrittenSummary={tailorDraft?.rewrittenSummary}
+          keywordAnalysis={tailorDraft?.keywordAnalysis ?? job.tailoredKeywordAnalysis}
+          rewrittenBullets={tailorDraft?.rewrittenBullets ?? job.tailoredRewrittenBullets}
+          rewrittenSummary={tailorDraft?.rewrittenSummary ?? job.tailoredRewrittenSummary}
           onSave={handleSaveTailoredResume}
           onClose={() => setResumeModalOpen(false)}
         />

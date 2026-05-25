@@ -538,7 +538,6 @@ export default function TailoredResumeModal({
   const sectionsEffectSkip = useRef(true)
   const [mode, setMode] = useState('edit')
   const [activeTab, setActiveTab] = useState('builder')
-  const [activeLeftTab, setActiveLeftTab] = useState('builder')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [templateId, setTemplateId] = useState(
@@ -699,7 +698,7 @@ export default function TailoredResumeModal({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className={`trm-mode-toggle ${activeTab !== 'resume' ? 'hidden lg:flex' : 'flex'}`}>
+            <div className={`trm-mode-toggle ${activeTab === 'analysis' ? 'hidden' : 'flex'}`}>
               <button
                 onClick={() => setMode('edit')}
                 className={`trm-mode-btn ${mode === 'edit' ? 'trm-mode-btn-active' : 'trm-mode-btn-idle'}`}
@@ -743,22 +742,20 @@ export default function TailoredResumeModal({
           </div>
         </div>
 
-        {/* Mobile tab bar — always shown */}
-        <div className="trm-tab-bar lg:hidden">
+        {/* Tab bar — always visible */}
+        <div className="trm-tab-bar">
           <button
             onClick={() => setActiveTab('builder')}
             className={`trm-tab ${activeTab === 'builder' ? 'trm-tab-active' : 'trm-tab-idle'}`}
           >
             Builder
           </button>
-          {hasAnalysis && (
-            <button
-              onClick={() => setActiveTab('analysis')}
-              className={`trm-tab ${activeTab === 'analysis' ? 'trm-tab-active' : 'trm-tab-idle'}`}
-            >
-              Analysis
-            </button>
-          )}
+          <button
+            onClick={() => setActiveTab('analysis')}
+            className={`trm-tab ${activeTab === 'analysis' ? 'trm-tab-active' : 'trm-tab-idle'}`}
+          >
+            Analysis
+          </button>
           <button
             onClick={() => setActiveTab('resume')}
             className={`trm-tab ${activeTab === 'resume' ? 'trm-tab-active' : 'trm-tab-idle'}`}
@@ -767,7 +764,7 @@ export default function TailoredResumeModal({
           </button>
         </div>
 
-        {/* Mobile template strip — shown above paper when on resume tab */}
+        {/* Template strip — shown above paper on resume tab (small screens) */}
         {activeTab === 'resume' && (
           <div className="trm-template-strip sm:hidden">
             <span className="trm-template-strip-label">Style</span>
@@ -779,75 +776,62 @@ export default function TailoredResumeModal({
           </div>
         )}
 
-        {/* Main content — side by side on desktop, tabbed on mobile */}
+        {/* Main content */}
         <div className="trm-content">
 
-          {/* Left panel — Builder / Analysis */}
-          <div className={`trm-analysis-col ${(activeTab === 'builder' || activeTab === 'analysis') ? 'flex' : 'hidden'} lg:flex`}>
-
-            {/* Inner tab bar (desktop only, only when analysis data exists) */}
-            {hasAnalysis && (
-              <div className="trm-tab-bar sticky top-0 z-10">
-                <button
-                  onClick={() => setActiveLeftTab('builder')}
-                  className={`trm-tab ${activeLeftTab === 'builder' ? 'trm-tab-active' : 'trm-tab-idle'}`}
-                >
-                  Builder
-                </button>
-                <button
-                  onClick={() => setActiveLeftTab('analysis')}
-                  className={`trm-tab ${activeLeftTab === 'analysis' ? 'trm-tab-active' : 'trm-tab-idle'}`}
-                >
-                  Analysis
-                </button>
-              </div>
-            )}
-
-            {/* Builder panel */}
-            <div className={[
-              activeTab === 'builder' ? '' : 'hidden',
-              (!hasAnalysis || activeLeftTab === 'builder') ? 'lg:block' : 'lg:hidden',
-            ].join(' ')}>
-              <BuilderPanel
-                sections={sections}
-                onSectionsChange={setSections}
-                activeVars={activeVars}
-                onStyleOverride={handleStyleOverride}
-                onAccentChange={handleAccentChange}
-              />
-            </div>
-
-            {/* Analysis panel */}
-            {hasAnalysis && (
-              <div className={[
-                activeTab === 'analysis' ? '' : 'hidden',
-                activeLeftTab === 'analysis' ? 'lg:block' : 'lg:hidden',
-              ].join(' ')}>
-                <AnalysisPanel
-                  keywordAnalysis={keywordAnalysis}
-                  rewrittenBullets={rewrittenBullets}
-                  rewrittenSummary={rewrittenSummary}
-                />
-              </div>
-            )}
+          {/* Builder panel — visible only on builder tab */}
+          <div className={`trm-analysis-col ${activeTab === 'builder' ? 'flex' : 'hidden'}`}>
+            <BuilderPanel
+              sections={sections}
+              onSectionsChange={setSections}
+              activeVars={activeVars}
+              onStyleOverride={handleStyleOverride}
+              onAccentChange={handleAccentChange}
+            />
           </div>
 
-          {/* Resume panel */}
-          <div className={`trm-resume-col ${activeTab === 'resume' ? 'flex' : 'hidden'} lg:flex`}>
-            {mode === 'edit' && (
+          {/* Resume paper — always mounted to preserve editorRef.
+              Builder tab: hidden on mobile, right-side column on desktop.
+              Resume tab: full width on all sizes.
+              Analysis tab: hidden on mobile, left half on desktop. */}
+          <div className={`trm-paper-area ${
+            activeTab === 'builder'  ? 'hidden lg:flex flex-1' :
+            activeTab === 'resume'   ? 'flex flex-1' :
+            /* analysis */             'hidden lg:flex lg:w-1/2 lg:shrink-0'
+          }`}>
+            {mode === 'edit' && activeTab !== 'analysis' && (
               <p className="trm-edit-hint">Click anywhere on the resume to edit</p>
             )}
             <div className="trm-paper-wrap">
               <div
                 ref={editorRef}
-                contentEditable={mode === 'edit'}
+                contentEditable={mode === 'edit' && activeTab !== 'analysis'}
                 suppressContentEditableWarning
-                spellCheck={mode === 'edit'}
-                className={`trm-paper ${mode === 'edit' ? 'trm-paper-editable' : ''}`}
+                spellCheck={mode === 'edit' && activeTab !== 'analysis'}
+                className={`trm-paper ${mode === 'edit' && activeTab !== 'analysis' ? 'trm-paper-editable' : ''}`}
                 style={activeVars}
               />
             </div>
           </div>
+
+          {/* Analysis panel — visible only on analysis tab, fills right half on desktop */}
+          {activeTab === 'analysis' && (
+            <div className="trm-analysis-right">
+              {hasAnalysis ? (
+                <AnalysisPanel
+                  keywordAnalysis={keywordAnalysis}
+                  rewrittenBullets={rewrittenBullets}
+                  rewrittenSummary={rewrittenSummary}
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center p-8">
+                  <p className="text-xs text-slate-400 text-center leading-relaxed max-w-xs">
+                    No analysis data yet. Generate a new tailored resume to see keyword mapping, ATS bullets, and gap analysis.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </div>

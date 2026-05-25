@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ExternalLink, Trash2 } from 'lucide-react'
+import { ExternalLink, Pencil, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { STAGE_MAP } from '../../constants/stages'
 import { useJobMutations } from '../../hooks/useJobMutations'
@@ -62,9 +62,32 @@ export default function ApplicationCard({ job, isDragging, isSelected, onCardCli
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <p className="app-card-company">{job.company || 'Untitled'}</p>
-              <MatchPill score={job.matchScore} />
+            <div className="flex items-center justify-between gap-1.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <p className="app-card-company">{job.company || 'Untitled'}</p>
+                <MatchPill score={job.matchScore} />
+              </div>
+              <div className="flex items-center gap-0.5 shrink-0" onPointerDown={e => e.stopPropagation()}>
+                {job.jobUrl && (
+                  <a
+                    href={job.jobUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    className="app-card-widget-btn"
+                    title="Visit site"
+                  >
+                    <ExternalLink size={11} />
+                  </a>
+                )}
+                <button
+                  onClick={e => { e.stopPropagation(); navigate(`/applications/${job.id}`) }}
+                  className="app-card-widget-btn"
+                  title="Edit application"
+                >
+                  <Pencil size={11} />
+                </button>
+              </div>
             </div>
             <p className="app-card-role">{job.role || 'No role'}</p>
           </div>
@@ -76,11 +99,6 @@ export default function ApplicationCard({ job, isDragging, isSelected, onCardCli
         </div>
 
         <div className="app-card-actions" onPointerDown={e => e.stopPropagation()}>
-          {job.jobUrl && (
-            <a href={job.jobUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="app-card-action-btn">
-              <ExternalLink size={11} />
-            </a>
-          )}
           <button onClick={handleDelete} className="p-1 text-slate-500 hover:text-red-400 transition-colors rounded">
             <Trash2 size={11} />
           </button>
