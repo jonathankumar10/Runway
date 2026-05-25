@@ -66,6 +66,7 @@ export function useAI() {
     const resumeDoc = resumesSnap.docs[0]
     let resumeText = resumeDoc?.data()?.resumeText
     const parsedStructure = resumeDoc?.data()?.parsedStructure ?? null
+    const styleMap = resumeDoc?.data()?.styleMap ?? null
 
     if (!resumeText) {
       resumeText = (await getDoc(doc(db, 'users', user.uid, 'settings', 'resume'))).data()?.resumeText
@@ -81,7 +82,7 @@ export function useAI() {
 
     const fn = httpsCallable(functions, 'tailorResume', { timeout: 120000 })
     const result = await fn({ resumeText, company, role, jobDescription, keySkills, gaps, sectionOrder, parsedStructure })
-    return result.data
+    return { ...result.data, styleMap }
   }
 
   async function findRecruiter(domain) {

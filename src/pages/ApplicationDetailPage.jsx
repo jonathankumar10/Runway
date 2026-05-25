@@ -85,7 +85,7 @@ export default function ApplicationDetailPage() {
   const [contactedEmails, setContactedEmails] = useState(new Set())
   const domainPreFilled = useRef(false)
   const [tailoring, setTailoring] = useState(false)
-  const [tailorDraft, setTailorDraft] = useState(null)   // { suggestions, sections } — unsaved working copy
+  const [tailorDraft, setTailorDraft] = useState(null)   // { suggestions, sections, styleMap } — unsaved working copy
   const [tailorSaving, setTailorSaving] = useState(false)
   const [resumeModalOpen, setResumeModalOpen] = useState(false)
   const [editingRecruiter, setEditingRecruiter] = useState(false)
@@ -214,6 +214,7 @@ export default function ApplicationDetailPage() {
         keywordAnalysis: result.keywordAnalysis ?? { extracted: [], mapped: [], unmappable: [] },
         rewrittenBullets: result.rewrittenBullets ?? [],
         rewrittenSummary: result.rewrittenSummary ?? [],
+        styleMap: result.styleMap ?? null,
       })
       setResumeModalOpen(true)
     } catch (err) {
@@ -223,13 +224,17 @@ export default function ApplicationDetailPage() {
     }
   }
 
-  async function handleSaveTailoredResume(html, text, sections) {
+  async function handleSaveTailoredResume(html, text, sections, templateId, styleOverrides) {
     const payload = {
       tailoredResumeText: text,
       tailoredResumeHtml: html,
       tailoredResumeGeneratedAt: new Date().toISOString(),
     }
     if (sections) payload.tailoredResumeSections = sections
+    if (templateId) payload.tailoredResumeTemplate = templateId
+    if (styleOverrides && Object.keys(styleOverrides).length > 0) {
+      payload.tailoredResumeStyleOverrides = styleOverrides
+    }
     await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), payload)
   }
 
@@ -891,6 +896,9 @@ export default function ApplicationDetailPage() {
           initialSections={tailorDraft?.sections ?? job.tailoredResumeSections}
           initialHtml={!tailorDraft?.sections?.length && !job.tailoredResumeSections?.length ? (tailorDraft ? undefined : job.tailoredResumeHtml) : undefined}
           initialText={!tailorDraft?.sections?.length && !job.tailoredResumeSections?.length ? (tailorDraft ? undefined : job.tailoredResumeText) : undefined}
+          initialTemplate={job.tailoredResumeTemplate ?? undefined}
+          initialStyleOverrides={job.tailoredResumeStyleOverrides ?? {}}
+          styleMap={tailorDraft?.styleMap ?? null}
           keywordAnalysis={tailorDraft?.keywordAnalysis}
           rewrittenBullets={tailorDraft?.rewrittenBullets}
           rewrittenSummary={tailorDraft?.rewrittenSummary}

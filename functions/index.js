@@ -444,9 +444,8 @@ Field definitions:
 - sections[].type "summary": sentences must be EXACTLY the same 3 lines as rewrittenSummary — do not write a separate summary
 ${sectionHint}
 
-PAGE-FIT RULES — the output must fit on one printed page; violations cause resume overflow:
-- HARD LIMIT: every bullet in sections[] (experience AND projects) must be ≤ 130 characters including spaces. Count every character. If a bullet exceeds 130 characters, cut words until it fits.
-- rewrittenBullets follow the same 130-character hard limit.
+PAGE-FIT RULES — the renderer auto-fits content to one printed page via zoom, but shorter and tighter output always looks better:
+- Keep bullets punchy — aim for under 120 characters. Prefer 80–100.
 - Match the original bullet count exactly for each job/project — do not add bullets.
 - Do not pad bullets with extra context phrases like "demonstrating...", "in a fast-moving environment", "aligned with..." — cut these fillers.
 

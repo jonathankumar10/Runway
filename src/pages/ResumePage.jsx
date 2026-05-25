@@ -42,6 +42,55 @@ async function extractPDFText(file) {
   return text.trim()
 }
 
+async function extractStyleMap(file) {
+  try {
+    const arrayBuffer = await file.arrayBuffer()
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
+    const page = await pdf.getPage(1)
+    const content = await page.getTextContent()
+
+    const sizes = content.items
+      .filter(item => item.str?.trim())
+      .map(item => {
+        const size = item.height > 0
+          ? item.height
+          : Math.sqrt(item.transform[0] ** 2 + item.transform[1] ** 2)
+        return Math.round(size * 10) / 10
+      })
+      .filter(s => s >= 4 && s <= 36)
+
+    if (sizes.length === 0) return null
+
+    // Find mode (body = most common size)
+    const freq = {}
+    for (const s of sizes) freq[s] = (freq[s] ?? 0) + 1
+    let bodyFontSizePt = parseFloat(Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0])
+    bodyFontSizePt = Math.min(14, Math.max(8, bodyFontSizePt))
+
+    // Heading cluster = items noticeably larger than body
+    const headingItems = sizes.filter(s => s >= bodyFontSizePt + 1.5)
+    let headingFontSizePt, confident
+
+    if (headingItems.length >= 3) {
+      const sorted = [...headingItems].sort((a, b) => a - b)
+      headingFontSizePt = sorted[Math.floor(sorted.length / 2)]
+      headingFontSizePt = Math.min(20, Math.max(9, headingFontSizePt))
+      confident = true
+    } else {
+      headingFontSizePt = parseFloat((bodyFontSizePt * 1.12).toFixed(1))
+      confident = false
+    }
+
+    // If all sizes are nearly identical, extraction is unreliable
+    const range = Math.max(...sizes) - Math.min(...sizes)
+    if (range < 1.5) confident = false
+
+    return { bodyFontSizePt, headingFontSizePt, extractedAt: new Date().toISOString(), confident }
+  } catch {
+    return null
+  }
+}
+
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -125,6 +174,24 @@ export default function ResumePage() {
     }
   }
 
+  async function handleExtractStyle(resumeId, pdfBase64) {
+    setParsingId(resumeId)
+    try {
+      const res = await fetch(pdfBase64)
+      const blob = await res.blob()
+      const file = new File([blob], 'resume.pdf', { type: 'application/pdf' })
+      const styleMap = await extractStyleMap(file)
+      if (styleMap) {
+        await updateDoc(doc(db, 'users', user.uid, 'resumes', resumeId), { styleMap })
+        setResumes(prev => prev.map(r => r.id === resumeId ? { ...r, styleMap } : r))
+      }
+    } catch (err) {
+      console.error('Style extraction failed:', err)
+    } finally {
+      setParsingId(null)
+    }
+  }
+
   async function handleParseStructure(resumeId, resumeText) {
     setParsingId(resumeId)
     try {
@@ -151,7 +218,11 @@ export default function ResumePage() {
     let savedId = null
     let savedText = null
     try {
-      const [resumeText, pdfBase64] = await Promise.all([extractPDFText(file), fileToBase64(file)])
+      const [resumeText, pdfBase64, styleMap] = await Promise.all([
+        extractPDFText(file),
+        fileToBase64(file),
+        extractStyleMap(file),
+      ])
       savedText = resumeText
       const isFirst = resumes.length === 0
       const data = {
@@ -162,6 +233,7 @@ export default function ResumePage() {
         resumeText,
         pdfBase64,
         isDefault: isFirst,
+        ...(styleMap ? { styleMap } : {}),
       }
       const newRef = await addDoc(collection(db, 'users', user.uid, 'resumes'), data)
       savedId = newRef.id
@@ -311,6 +383,7 @@ export default function ResumePage() {
             onUpdate={updates => handleUpdateResume(selectedResume.id, updates)}
             parsingId={parsingId}
             onParseStructure={() => handleParseStructure(selectedResume.id, selectedResume.resumeText)}
+            onExtractStyle={() => handleExtractStyle(selectedResume.id, selectedResume.pdfBase64)}
           />
         ) : (
           <div className="resume-empty-detail">
@@ -355,7 +428,7 @@ function ResumeLibraryCard({ resume, isSelected, onSelect }) {
   )
 }
 
-function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetDefault, onDelete, onUpdateLabel, onUpdate, parsingId, onParseStructure }) {
+function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetDefault, onDelete, onUpdateLabel, onUpdate, parsingId, onParseStructure, onExtractStyle }) {
   const [editingLabel, setEditingLabel] = useState(false)
   const [labelDraft, setLabelDraft] = useState('')
   const [view, setView] = useState('details')
@@ -493,9 +566,16 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
               ) : (
                 <p className="text-sm text-slate-500 mb-4">Text extraction failed — try re-uploading this file.</p>
               )}
-              <button onClick={onParseStructure} className="se-parse-btn">
-                <Sparkles size={13} /> Parse Structure
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button onClick={onParseStructure} className="se-parse-btn">
+                  <Sparkles size={13} /> Parse Structure
+                </button>
+                {resume.pdfBase64 && !resume.styleMap && (
+                  <button onClick={onExtractStyle} className="se-parse-btn" title="Extract font sizes from your PDF to enable the Original resume template">
+                    <Sparkles size={13} /> Extract PDF Style
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </>

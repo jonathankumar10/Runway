@@ -168,30 +168,24 @@
   @apply text-xs text-slate-500 text-center shrink-0;
 }
 
-/* Paper wrapper */
+/* Paper wrapper — Letter page width at 1.25× screen zoom for readability */
 .trm-paper-wrap {
   width: 100%;
-  max-width: 760px;
+  max-width: 900px;
 }
 
-/* The resume paper itself */
+/* The resume paper itself — uses print values so preview matches PDF exactly */
 .trm-paper {
   background: #fff;
   color: #111;
-  padding: 40px 48px;
-  min-height: 900px;
+  padding: var(--rp-print-padding, 0.44in);
+  min-height: 972px; /* 10.12in × 96px — one Letter page */
   box-shadow: 0 8px 40px rgba(0,0,0,0.5);
   border-radius: 4px;
-  font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: 10.5pt;
-  line-height: 1.55;
+  font-family: var(--rp-font-body, 'Georgia', 'Times New Roman', serif);
+  font-size: var(--rp-print-body-size, 9pt);
+  line-height: var(--rp-print-line-height, 1.3);
   outline: none;
-}
-
-@media (min-width: 640px) {
-  .trm-paper {
-    padding: 52px 60px;
-  }
 }
 
 .trm-paper-editable {
@@ -205,32 +199,34 @@
 /* ── Resume typography ── */
 
 .trm-paper h1.rp-name {
-  font-size: 22pt;
+  font-size: calc(var(--rp-name-size, 18pt) * 0.88);
+  font-family: var(--rp-font-body, 'Georgia', serif);
   font-weight: bold;
   text-align: center;
   letter-spacing: -0.3px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   color: #111;
 }
 
 .trm-paper p.rp-contact {
-  font-size: 10pt;
-  color: #555;
+  font-size: calc(var(--rp-print-body-size, 9pt) * 0.95);
+  color: #444;
   text-align: center;
-  margin-bottom: 2px;
-  font-family: system-ui, sans-serif;
+  margin-bottom: 1px;
+  line-height: var(--rp-print-line-height, 1.3);
+  font-family: var(--rp-font-heading, system-ui, sans-serif);
 }
 
 .trm-paper h2.rp-section {
-  font-family: system-ui, sans-serif;
-  font-size: 10.5pt;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #1565C0;
-  border-bottom: 1.5px solid #1565C0;
-  padding-bottom: 2px;
-  margin: 16px 0 6px;
+  font-family: var(--rp-font-heading, system-ui, sans-serif);
+  font-size: var(--rp-print-section-size, 7.5pt);
+  font-weight: var(--rp-section-weight, 700);
+  text-transform: var(--rp-section-case, uppercase);
+  letter-spacing: 0.6px;
+  color: var(--rp-accent, #1565C0);
+  border-bottom: var(--rp-section-border, 1.5px solid #1565C0);
+  padding-bottom: 1px;
+  margin: 7px 0 2px;
 }
 
 .trm-paper p.rp-title-row {
@@ -238,14 +234,14 @@
   justify-content: space-between;
   align-items: baseline;
   font-weight: 600;
-  font-size: 10.5pt;
-  margin: 6px 0 2px;
+  font-size: var(--rp-print-body-size, 9pt);
+  margin: 3px 0 1px;
   color: #111;
 }
 
 .trm-paper .rp-date {
   font-weight: normal;
-  font-size: 10pt;
+  font-size: calc(var(--rp-print-body-size, 9pt) * 0.95);
   color: #333;
   white-space: nowrap;
   margin-left: 8px;
@@ -253,21 +249,23 @@
 }
 
 .trm-paper p.rp-body {
-  font-size: 10.5pt;
+  font-size: var(--rp-print-body-size, 9pt);
   color: #222;
-  margin: 2px 0;
+  margin: 0;
+  line-height: var(--rp-print-line-height, 1.3);
 }
 
 .trm-paper ul.rp-list {
-  padding-left: 18px;
-  margin: 3px 0 6px;
+  list-style-type: disc;
+  padding-left: 13px;
+  margin: 1px 0 2px;
 }
 
 .trm-paper ul.rp-list li {
-  font-size: 10.5pt;
+  font-size: var(--rp-print-body-size, 9pt);
   color: #222;
-  margin-bottom: 3px;
-  line-height: 1.5;
+  margin-bottom: 0;
+  line-height: var(--rp-print-line-height, 1.3);
 }
 
 /* Bold keywords render distinctly in the printed resume */
@@ -278,5 +276,116 @@
 }
 
 .trm-paper .rp-spacer {
-  height: 5px;
+  height: 1px;
+}
+
+/* ── Template swatch picker ── */
+.trm-template-picker {
+  @apply flex items-center gap-1;
+}
+
+.trm-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+
+.trm-swatch:hover {
+  transform: scale(1.1);
+}
+
+.trm-swatch-active {
+  border-color: #7c3aed !important;
+}
+
+.trm-swatch-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.trm-swatch-disabled:hover {
+  transform: none;
+}
+
+.trm-swatch-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 7px;
+}
+
+.trm-swatch-label {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 7px;
+  font-weight: 700;
+  color: #444;
+  line-height: 1;
+  font-family: system-ui, sans-serif;
+}
+
+/* Mobile template strip above the paper */
+.trm-template-strip {
+  @apply flex items-center gap-2 px-4 py-2 bg-slate-900 border-b border-slate-800 shrink-0 overflow-x-auto;
+}
+
+.trm-template-strip-label {
+  @apply text-xs text-slate-500 shrink-0;
+}
+
+/* ── Builder panel ── */
+.trm-builder {
+  @apply flex flex-col;
+}
+
+.trm-builder-row {
+  @apply flex items-center justify-between gap-4 px-4 py-3 border-b border-slate-800;
+}
+
+.trm-builder-label {
+  @apply text-xs font-semibold text-slate-300 uppercase tracking-wider shrink-0;
+}
+
+.trm-builder-select {
+  @apply text-xs bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2 py-1.5 min-w-0 max-w-[160px];
+}
+
+.trm-color-input {
+  @apply rounded border border-slate-600 cursor-pointer;
+  -webkit-appearance: none;
+  width: 2rem;
+  height: 1.75rem;
+  padding: 2px;
+}
+
+/* Section drag-and-drop items */
+.trm-section-item {
+  @apply flex items-center gap-2.5 px-4 py-2.5 border-b border-slate-800 hover:bg-slate-800/40 transition-colors;
+}
+
+.trm-drag-handle {
+  @apply text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing shrink-0 p-0.5 transition-colors;
+}
+
+.trm-section-icon {
+  @apply text-slate-500 shrink-0;
+}
+
+.trm-section-title-text {
+  @apply text-xs text-slate-300 flex-1 min-w-0 truncate;
+}
+
+.trm-visibility-btn {
+  @apply text-slate-500 hover:text-slate-200 shrink-0 p-0.5 rounded transition-colors;
 }
