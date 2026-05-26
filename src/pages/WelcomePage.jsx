@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
-  BriefcaseBusiness, Kanban, FileText,
+  Kanban, FileText,
   Target, Send, LayoutDashboard, User, ArrowRight,
 } from 'lucide-react'
 import './WelcomePage.css'
+import RunwayLogoMark from '../components/brand/RunwayLogoMark'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STEPS
@@ -118,9 +119,7 @@ export default function WelcomePage() {
       {/* ── Top bar ── */}
       <div className="wp-topbar">
         <div className="wp-logo">
-          <div className="wp-logo-icon">
-            <BriefcaseBusiness size={13} className="text-white" />
-          </div>
+          <RunwayLogoMark size="sm" className="wp-logo-icon" />
           <span className="wp-logo-wordmark">Runway</span>
         </div>
 

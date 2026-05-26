@@ -1,5 +1,6 @@
-import { BriefcaseBusiness, BarChart3, Zap, Target } from 'lucide-react'
+import { BarChart3, Zap, Target } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import RunwayLogoMark from '../components/brand/RunwayLogoMark'
 import './LoginPage.css'
 
 function GoogleIcon() {
@@ -36,9 +37,7 @@ export default function LoginPage() {
         <div className="login-card">
 
           <div className="flex items-center gap-2.5">
-            <div className="login-logo-icon">
-              <BriefcaseBusiness size={20} className="text-white" />
-            </div>
+            <RunwayLogoMark size="lg" className="login-logo-icon" />
             <span className="text-xl font-bold text-white tracking-tight">Runway</span>
           </div>
 

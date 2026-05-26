@@ -1,0 +1,76 @@
+.runway-logo-mark {
+  --logo-size: 1.75rem;
+  position: relative;
+  display: inline-block;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  flex: 0 0 auto;
+  border-radius: 22%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 72% 28%, rgba(139, 92, 246, 0.72), transparent 52%),
+    linear-gradient(145deg, #111827 0%, #312e81 100%);
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  box-shadow: 0 0 16px rgba(79, 70, 229, 0.32);
+}
+
+.runway-logo-mark--sm { --logo-size: 1.5rem; }
+.runway-logo-mark--md { --logo-size: 1.75rem; }
+.runway-logo-mark--lg { --logo-size: 2rem; }
+.runway-logo-mark--xl { --logo-size: 2.75rem; }
+
+.runway-logo-mark__runway,
+.runway-logo-mark__plane {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+  transform-origin: center;
+}
+
+.runway-logo-mark__runway {
+  background: #7dd3fc;
+}
+
+.runway-logo-mark__runway--a {
+  width: 58%;
+  height: 10%;
+  left: 21%;
+  top: 49%;
+  transform: rotate(-56deg);
+}
+
+.runway-logo-mark__runway--b {
+  width: 54%;
+  height: 7%;
+  left: 37%;
+  top: 55%;
+  transform: rotate(-58deg);
+}
+
+.runway-logo-mark__plane {
+  background: #f8fafc;
+}
+
+.runway-logo-mark__plane--body {
+  width: 50%;
+  height: 8%;
+  left: 25%;
+  top: 42%;
+  transform: rotate(-24deg);
+}
+
+.runway-logo-mark__plane--wing {
+  width: 30%;
+  height: 8%;
+  left: 39%;
+  top: 54%;
+  transform: rotate(62deg);
+}
+
+.runway-logo-mark__plane--tail {
+  width: 22%;
+  height: 6%;
+  left: 26%;
+  top: 56%;
+  transform: rotate(76deg);
+}

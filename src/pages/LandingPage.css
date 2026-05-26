@@ -72,9 +72,7 @@
 }
 
 .lp-nav-icon {
-  @apply w-7 h-7 rounded-lg flex items-center justify-center;
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
-  box-shadow: 0 0 16px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 0 16px rgba(79, 70, 229, 0.36);
 }
 
 .lp-nav-wordmark {

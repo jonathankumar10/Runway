@@ -37,10 +37,6 @@
   @apply flex items-center gap-2.5 px-4 h-14 border-b border-slate-700;
 }
 
-.sidebar-logo-icon {
-  @apply w-7 h-7 rounded-md bg-violet-600 flex items-center justify-center;
-}
-
 .sidebar-nav {
   @apply flex-1 px-3 py-4 flex flex-col gap-4 overflow-y-auto;
 }

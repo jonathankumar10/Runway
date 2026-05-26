@@ -18,4 +18,27 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    files: ['functions/**/*.js', '**/*.test.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
+    files: ['extension/src/**/*.js'],
+    languageOptions: {
+      globals: {
+        chrome: 'readonly',
+        __FIREBASE_API_KEY__: 'readonly',
+        __FIREBASE_PROJECT_ID__: 'readonly',
+        __GOOGLE_WEB_CLIENT_ID__: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['extension/build.js', 'extension/scripts/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])

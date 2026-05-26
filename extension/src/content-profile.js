@@ -1,3 +1,5 @@
+import { setRunwayButtonContent } from './button-ui.js'
+
 const RECRUITER_KEYWORDS = /recruit|talent|hiring|hr\b|human resource|people ops|people partner|staffing|sourcer|acquisition/i
 
 function waitForElement(selector, timeout = 6000) {
@@ -52,7 +54,7 @@ async function injectButton() {
   const btn = document.createElement('button')
   btn.id = 'runway-recruiter-btn'
   btn.className = 'runway-btn'
-  btn.textContent = '✈ Track in Runway'
+  setRunwayButtonContent(btn, 'Track in Runway')
 
   btn.addEventListener('click', async () => {
     setState('loading', 'Adding…')
@@ -80,8 +82,8 @@ async function injectButton() {
   function setState(state, label) {
     btn.disabled = state === 'loading' || state === 'success'
     btn.className = `runway-btn${state !== 'idle' ? ` runway-btn--${state}` : ''}`
-    if (label) btn.textContent = label
-    if (state === 'idle') btn.textContent = '✈ Track in Runway'
+    setRunwayButtonContent(btn, label || 'Track in Runway')
+    if (state === 'idle') setRunwayButtonContent(btn, 'Track in Runway')
   }
 
   actionBar.appendChild(btn)

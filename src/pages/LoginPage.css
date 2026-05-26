@@ -32,7 +32,7 @@
 
 /* Logo icon */
 .login-logo-icon {
-  @apply w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shadow-violet-900/50;
+  box-shadow: 0 12px 28px rgba(79, 70, 229, 0.35);
 }
 
 /* Tabs */

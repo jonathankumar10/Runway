@@ -1,72 +1,19 @@
 import { useState } from 'react'
 import { X, Zap, Loader2, CheckCircle2, XCircle } from 'lucide-react'
-import { useAI } from '../../hooks/useAI'
+import { useJobImport } from '../../hooks/useJobImport'
 import { useJobMutations } from '../../hooks/useJobMutations'
+import { parseImportUrls } from '../../lib/imports/importUtils'
+import { runBulkJobImport } from '../../lib/imports/bulkImportRunner'
 import './BulkImportModal.css'
-
-const EXTENSION_ONLY = [
-  { match: h => h === 'www.linkedin.com' || h === 'linkedin.com',  name: 'LinkedIn' },
-  { match: h => h.endsWith('.myworkdayjobs.com'),                   name: 'Workday' },
-  { match: h => h.endsWith('.taleo.net'),                           name: 'Taleo' },
-  { match: h => h.endsWith('.icims.com'),                           name: 'iCIMS' },
-  { match: h => h.endsWith('.bamboohr.com'),                        name: 'BambooHR' },
-  { match: h => h === 'jobs.smartrecruiters.com',                   name: 'SmartRecruiters' },
-]
-
-function getBlockedPlatform(url) {
-  try {
-    const { hostname } = new URL(url)
-    return EXTENSION_ONLY.find(e => e.match(hostname)) ?? null
-  } catch {
-    return null
-  }
-}
-
-function normalizeUrl(value) {
-  const trimmed = value.trim()
-  if (!trimmed) return null
-
-  try {
-    const parsed = new URL(trimmed)
-    if (!['http:', 'https:'].includes(parsed.protocol)) return null
-    return parsed.href
-  } catch {
-    return null
-  }
-}
-
-function parseUrls(text) {
-  const seen = new Set()
-  const invalid = []
-  const urls = []
-
-  text
-    .split(/[\n,]+/)
-    .map(u => u.trim())
-    .filter(Boolean)
-    .forEach(value => {
-      const normalized = normalizeUrl(value)
-      if (!normalized) {
-        invalid.push(value)
-        return
-      }
-      if (!seen.has(normalized)) {
-        seen.add(normalized)
-        urls.push(normalized)
-      }
-    })
-
-  return { urls, invalid }
-}
 
 export default function BulkImportModal({ onClose }) {
   const [urlText, setUrlText] = useState('')
   const [items, setItems] = useState([])
   const [phase, setPhase] = useState('input') // 'input' | 'running' | 'done'
-  const { importFromUrl } = useAI()
+  const { importJobFromUrl } = useJobImport()
   const { addJob } = useJobMutations()
 
-  const { urls, invalid } = parseUrls(urlText)
+  const { urls, invalid } = parseImportUrls(urlText)
   const doneCount = items.filter(i => i.status === 'success' || i.status === 'error').length
   const successCount = items.filter(i => i.status === 'success').length
   const errorCount = items.filter(i => i.status === 'error').length
@@ -82,44 +29,12 @@ export default function BulkImportModal({ onClose }) {
     setItems(initial)
     setPhase('running')
 
-    for (let i = 0; i < initial.length; i++) {
-      setItemStatus(i, { status: 'loading' })
-      try {
-        const blocked = getBlockedPlatform(initial[i].url)
-        if (blocked) throw new Error(`${blocked.name} requires login — use the browser extension instead`)
-
-        const fields = await importFromUrl(initial[i].url)
-        if (fields.error) {
-          const msg =
-            fields.error === 'FETCH_FAILED' ? 'Could not fetch this page (blocked or requires login)' :
-            fields.error === 'PARSE_ERROR'  ? 'Page was fetched but could not be parsed' :
-            'Could not parse this page'
-          throw new Error(msg)
-        }
-        if (!fields.role) {
-          throw new Error('Page loaded but no job role found — try the extension instead')
-        }
-
-        await addJob({
-          company: fields.company || '',
-          role: fields.role || '',
-          jobUrl: initial[i].url,
-          location: fields.location || '',
-          salaryMin: fields.salaryMin || null,
-          salaryMax: fields.salaryMax || null,
-          jobDescription: fields.jobDescription || '',
-          keySkills: fields.keySkills || [],
-          stage: 'saved',
-        })
-
-        setItemStatus(i, {
-          status: 'success',
-          result: { company: fields.company, role: fields.role },
-        })
-      } catch (err) {
-        setItemStatus(i, { status: 'error', error: err.message || 'Import failed' })
-      }
-    }
+    await runBulkJobImport({
+      urls,
+      importJobFromUrl,
+      addJob,
+      onItemUpdate: setItemStatus,
+    })
 
     setPhase('done')
   }

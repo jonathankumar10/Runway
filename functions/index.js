@@ -4,6 +4,7 @@ const { defineSecret } = require('firebase-functions/params')
 const admin = require('firebase-admin')
 const Anthropic = require('@anthropic-ai/sdk')
 const nodemailer = require('nodemailer')
+const { htmlToJobText, normalizeImportUrl, readCappedText } = require('./lib/importFromUrlUtils')
 
 admin.initializeApp()
 const db = admin.firestore()
@@ -189,7 +190,7 @@ exports.findRecruiter = onCall({ secrets: [HUNTER_API_KEY], cors: true }, async 
           return { recruiters: cached.recruiters, domain: normalized, fromCache: true }
         }
       }
-    } catch (_) { /* cache miss is fine */ }
+    } catch { /* cache miss is fine */ }
   }
 
   // High-confidence recruiter terms (position must contain at least one)
@@ -272,8 +273,10 @@ Rules:
 
 // ── importFromUrl ─────────────────────────────────────────────────────────────
 exports.importFromUrl = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, async (request) => {
-  const { url } = request.data
-  if (!url || typeof url !== 'string') return { error: 'INVALID_INPUT' }
+  if (!request.auth) return { error: 'UNAUTHENTICATED' }
+
+  const url = normalizeImportUrl(request.data?.url)
+  if (!url) return { error: 'INVALID_INPUT' }
 
   let html
   try {
@@ -285,19 +288,14 @@ exports.importFromUrl = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, asy
       signal: AbortSignal.timeout(10000),
     })
     if (!res.ok) return { error: 'FETCH_FAILED' }
-    html = await res.text()
+    html = await readCappedText(res)
   } catch (err) {
     console.error('importFromUrl fetch error:', err)
     return { error: 'FETCH_FAILED' }
   }
 
-  const text = html
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 15000)
+  const text = htmlToJobText(html)
+  if (!text) return { error: 'PARSE_ERROR' }
 
   const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
 
@@ -541,7 +539,6 @@ Return ONLY valid JSON.`,
 exports.notificationChecker = onSchedule(
   { schedule: 'every 1 hours', secrets: [GMAIL_USER, GMAIL_PASS] },
   async () => {
-    const now = admin.firestore.Timestamp.now()
     const usersSnap = await db.collection('users').get()
 
     for (const userDoc of usersSnap.docs) {

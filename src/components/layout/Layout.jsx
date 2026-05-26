@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import { Menu, BriefcaseBusiness } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import Sidebar from './Sidebar'
+import RunwayLogoMark from '../brand/RunwayLogoMark'
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -26,9 +27,7 @@ export default function Layout() {
             <Menu size={20} />
           </button>
           <div className="flex items-center gap-2 ml-3">
-            <div className="w-6 h-6 rounded-md bg-violet-600 flex items-center justify-center">
-              <BriefcaseBusiness size={12} className="text-white" />
-            </div>
+            <RunwayLogoMark size="sm" />
             <span className="text-sm font-semibold text-white">Runway</span>
           </div>
         </div>

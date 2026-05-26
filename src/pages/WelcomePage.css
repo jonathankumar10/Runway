@@ -28,9 +28,9 @@
   @apply flex items-center gap-2;
 }
 
-/* The small violet square that holds the briefcase icon */
+/* App logo mark */
 .wp-logo-icon {
-  @apply w-6 h-6 rounded-md bg-violet-600 flex items-center justify-center;
+  box-shadow: 0 0 14px rgba(79, 70, 229, 0.28);
 }
 
 /* "Runway" text next to the icon */

@@ -1,0 +1,136 @@
+.runway-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 34px;
+  margin: 8px 0;
+  padding: 7px 13px 7px 8px;
+  background: linear-gradient(135deg, #111827 0%, #312e81 100%);
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 650;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1;
+  border: 1px solid rgba(125, 211, 252, 0.34);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+  z-index: 9999;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28);
+}
+
+.runway-btn:hover:not(:disabled) {
+  border-color: rgba(125, 211, 252, 0.72);
+  box-shadow: 0 10px 24px rgba(49, 46, 129, 0.36);
+  transform: translateY(-1px);
+}
+
+.runway-btn:disabled {
+  opacity: 0.74;
+  cursor: default;
+}
+
+.runway-btn__mark {
+  width: 22px;
+  height: 22px;
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  border-radius: 22%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 72% 28%, rgba(139, 92, 246, 0.72), transparent 52%),
+    linear-gradient(145deg, #111827 0%, #312e81 100%);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+}
+
+.runway-btn__runway,
+.runway-btn__plane {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+}
+
+.runway-btn__runway { background: #7dd3fc; }
+.runway-btn__plane { background: #f8fafc; }
+
+.runway-btn__runway--a {
+  width: 58%;
+  height: 10%;
+  left: 21%;
+  top: 49%;
+  transform: rotate(-56deg);
+}
+
+.runway-btn__runway--b {
+  width: 54%;
+  height: 7%;
+  left: 37%;
+  top: 55%;
+  transform: rotate(-58deg);
+}
+
+.runway-btn__plane--body {
+  width: 50%;
+  height: 8%;
+  left: 25%;
+  top: 42%;
+  transform: rotate(-24deg);
+}
+
+.runway-btn__plane--wing {
+  width: 30%;
+  height: 8%;
+  left: 39%;
+  top: 54%;
+  transform: rotate(62deg);
+}
+
+.runway-btn__plane--tail {
+  width: 22%;
+  height: 6%;
+  left: 26%;
+  top: 56%;
+  transform: rotate(76deg);
+}
+
+.runway-btn--success {
+  background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+  border-color: rgba(52, 211, 153, 0.5);
+}
+
+.runway-btn--error {
+  background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%);
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+.runway-btn--loading {
+  background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 100%);
+}
+
+.runway-btn--loading .runway-btn__mark {
+  animation: runway-btn-pulse 1s ease-in-out infinite;
+}
+
+.runway-btn--floating {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  min-height: 42px;
+  padding: 9px 16px 9px 10px;
+  font-size: 14px;
+  box-shadow: 0 12px 32px rgba(2, 6, 23, 0.42);
+}
+
+.runway-btn--floating .runway-btn__mark {
+  width: 24px;
+  height: 24px;
+}
+
+@keyframes runway-btn-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.78; transform: scale(0.94); }
+}

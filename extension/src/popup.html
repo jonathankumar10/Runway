@@ -7,8 +7,8 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      width: 280px;
-      background: #0f172a;
+      width: 316px;
+      background: #0b1120;
       color: #f1f5f9;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 13px;
@@ -16,56 +16,110 @@
     .header {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 14px 16px;
-      border-bottom: 1px solid #1e293b;
+      gap: 10px;
+      padding: 15px 16px;
+      border-bottom: 1px solid #1f2937;
     }
     .header-icon {
-      width: 28px; height: 28px;
-      background: #7c3aed;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(145deg, #111827, #312e81);
+      border: 1px solid rgba(125, 211, 252, 0.35);
       border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
     }
-    .header h1 { font-size: 14px; font-weight: 600; color: #fff; }
+    .header-icon::before {
+      content: "";
+      width: 17px;
+      height: 3px;
+      border-radius: 999px;
+      background: #f8fafc;
+      transform: rotate(-24deg);
+      box-shadow: -6px 5px 0 -1px #7dd3fc, 7px -5px 0 -1px #7dd3fc;
+    }
+    .header h1 { font-size: 14px; font-weight: 650; color: #fff; }
+    .header p { font-size: 11px; color: #64748b; margin-top: 1px; }
     .body { padding: 16px; }
     .status-card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 10px;
+      background: #111827;
+      border: 1px solid #273449;
+      border-radius: 8px;
       padding: 12px 14px;
       margin-bottom: 12px;
     }
-    .status-card .label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .status-card .value { font-size: 13px; color: #e2e8f0; font-weight: 500; }
+    .status-card .label {
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .status-card .value {
+      font-size: 13px;
+      color: #e2e8f0;
+      font-weight: 500;
+      word-break: break-word;
+    }
     .btn {
       width: 100%;
       padding: 9px;
       border: none;
-      border-radius: 8px;
+      border-radius: 7px;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s, color 0.15s;
     }
-    .btn-primary { background: #7c3aed; color: #fff; }
-    .btn-primary:hover { background: #6d28d9; }
-    .btn-secondary { background: #1e293b; color: #94a3b8; margin-top: 6px; }
-    .btn-secondary:hover { background: #334155; color: #e2e8f0; }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary {
+      background: #111827;
+      color: #94a3b8;
+      margin-top: 6px;
+      border: 1px solid #273449;
+    }
+    .btn-secondary:hover { background: #1f2937; color: #e2e8f0; }
+    .site-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 12px 0;
+    }
+    .site-list span {
+      font-size: 10px;
+      color: #cbd5e1;
+      background: #111827;
+      border: 1px solid #273449;
+      border-radius: 999px;
+      padding: 4px 7px;
+    }
     .hint {
       font-size: 11px;
-      color: #475569;
+      color: #64748b;
       text-align: center;
       margin-top: 10px;
       line-height: 1.5;
     }
-    #error { font-size: 11px; color: #f87171; margin-top: 8px; text-align: center; min-height: 16px; }
+    #error {
+      font-size: 11px;
+      color: #f87171;
+      margin-top: 8px;
+      text-align: center;
+      min-height: 16px;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="header-icon">✈</div>
-    <h1>Runway</h1>
+    <div class="header-icon"></div>
+    <div>
+      <h1>Runway</h1>
+      <p>Job import assistant</p>
+    </div>
   </div>
   <div class="body">
     <div id="signed-out">
@@ -76,11 +130,24 @@
     <div id="signed-in" style="display:none">
       <div class="status-card">
         <div class="label">Signed in as</div>
-        <div class="value" id="user-email">—</div>
+        <div class="value" id="user-email">-</div>
       </div>
       <p class="hint" style="margin-bottom:12px;">
-        Visit a LinkedIn job posting to see <strong style="color:#a78bfa">✈ Add to Runway</strong>.<br/>
-        Visit a recruiter profile to see <strong style="color:#a78bfa">✈ Track in Runway</strong>.
+        Open a supported job page and click <strong style="color:#7dd3fc">Add to Runway</strong>.
+      </p>
+      <div class="site-list" aria-label="Supported job sites">
+        <span>LinkedIn</span>
+        <span>Greenhouse</span>
+        <span>Lever</span>
+        <span>Ashby</span>
+        <span>Workday</span>
+        <span>Taleo</span>
+        <span>iCIMS</span>
+        <span>BambooHR</span>
+        <span>SmartRecruiters</span>
+      </div>
+      <p class="hint" style="margin-bottom:12px;">
+        Recruiter profiles on LinkedIn can be tracked for outreach.
       </p>
       <button class="btn btn-secondary" id="sign-out-btn">Sign out</button>
     </div>

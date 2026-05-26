@@ -1,7 +1,8 @@
 import { NavLink, Link } from 'react-router-dom'
-import { BriefcaseBusiness, LayoutDashboard, Kanban, LogOut, FileText, User, X, Send, Target } from 'lucide-react'
+import { LayoutDashboard, Kanban, LogOut, FileText, User, X, Send, Target } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import NotificationBell from '../ui/NotificationBell'
+import RunwayLogoMark from '../brand/RunwayLogoMark'
 import './Sidebar.css'
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -12,9 +13,7 @@ export default function Sidebar({ isOpen, onClose }) {
       <div className="sidebar-logo-bar">
         {/* Clicking the logo takes the user back to the welcome / home page */}
         <Link to="/welcome" className="flex items-center gap-2">
-          <div className="sidebar-logo-icon">
-            <BriefcaseBusiness size={14} className="text-white" />
-          </div>
+          <RunwayLogoMark size="md" />
           <span className="font-semibold text-white text-sm">Runway</span>
         </Link>
         <button

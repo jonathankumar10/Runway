@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { X, Zap, Loader2, User, FileText, LayoutGrid } from 'lucide-react'
 import { STAGES } from '../../constants/stages'
 import { useJobMutations } from '../../hooks/useJobMutations'
-import { useAI } from '../../hooks/useAI'
+import { useJobImport } from '../../hooks/useJobImport'
 import './ApplicationModal.css'
 
 const EMPTY = {
@@ -51,7 +51,7 @@ export default function ApplicationModal({ job, onClose }) {
   const [importError, setImportError] = useState(null)
   const [imported, setImported] = useState(false)
   const { addJob, updateJob } = useJobMutations()
-  const { importFromUrl } = useAI()
+  const { importJobFromUrl } = useJobImport()
 
   function set(field, value) {
     setForm(f => ({ ...f, [field]: value }))
@@ -63,8 +63,9 @@ export default function ApplicationModal({ job, onClose }) {
     setImportError(null)
     setImported(false)
     try {
-      const fields = await importFromUrl(importUrl.trim())
-      if (fields.error) throw new Error('Could not parse the page. Try pasting the job description in the Notes tab.')
+      const result = await importJobFromUrl(importUrl)
+      if (!result.success) throw new Error(result.errorMessage)
+      const { fields } = result
       setForm(f => ({
         ...f,
         company: fields.company || f.company,
@@ -72,7 +73,7 @@ export default function ApplicationModal({ job, onClose }) {
         location: fields.location || f.location,
         salaryMin: fields.salaryMin ?? f.salaryMin,
         salaryMax: fields.salaryMax ?? f.salaryMax,
-        jobUrl: importUrl.trim(),
+        jobUrl: result.sourceUrl,
         jobDescription: fields.jobDescription || f.jobDescription,
       }))
       setImported(true)

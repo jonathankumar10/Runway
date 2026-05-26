@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Runway",
-  "version": "1.0.0",
-  "description": "Add LinkedIn jobs and recruiters directly to Runway",
+  "version": "1.1.1",
+  "description": "Save jobs and recruiters from LinkedIn and major ATS pages to Runway",
   "permissions": ["storage", "identity"],
   "host_permissions": [
     "https://www.linkedin.com/*",
@@ -11,6 +11,10 @@
     "https://jobs.lever.co/*",
     "https://jobs.ashbyhq.com/*",
     "https://*.myworkdayjobs.com/*",
+    "https://*.taleo.net/*",
+    "https://*.icims.com/*",
+    "https://*.bamboohr.com/*",
+    "https://jobs.smartrecruiters.com/*",
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",
     "https://firestore.googleapis.com/*"
@@ -38,7 +42,11 @@
         "https://job-boards.greenhouse.io/*",
         "https://jobs.lever.co/*",
         "https://jobs.ashbyhq.com/*",
-        "https://*.myworkdayjobs.com/*"
+        "https://*.myworkdayjobs.com/*",
+        "https://*.taleo.net/*",
+        "https://*.icims.com/*",
+        "https://*.bamboohr.com/*",
+        "https://jobs.smartrecruiters.com/*"
       ],
       "js": ["dist/content-ats.js"],
       "css": ["dist/content.css"],

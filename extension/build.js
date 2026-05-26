@@ -1,7 +1,7 @@
 import * as esbuild from 'esbuild'
 import * as dotenv from 'dotenv'
 import * as path from 'path'
-import * as fs from 'fs'
+import { copyFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -26,6 +26,10 @@ const entryPoints = [
   'src/popup.js',
 ]
 
+function copyContentCss() {
+  copyFileSync(path.join(__dirname, 'src/content.css'), path.join(__dirname, 'dist/content.css'))
+}
+
 const ctx = await esbuild.context({
   entryPoints: entryPoints.map(e => path.join(__dirname, e)),
   outdir: path.join(__dirname, 'dist'),
@@ -38,10 +42,12 @@ const ctx = await esbuild.context({
 })
 
 if (isWatch) {
+  copyContentCss()
   await ctx.watch()
   console.log('Watching for changes…')
 } else {
   await ctx.rebuild()
+  copyContentCss()
   await ctx.dispose()
   console.log('Extension built → extension/dist/')
 }

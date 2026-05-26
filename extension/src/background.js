@@ -1,3 +1,5 @@
+import { hasEnoughJobData, normalizeJobPayload } from './import-utils.js'
+
 const FIREBASE_API_KEY = __FIREBASE_API_KEY__
 const FIREBASE_PROJECT_ID = __FIREBASE_PROJECT_ID__
 
@@ -103,13 +105,23 @@ async function signInWithGoogle() {
 // ── Firestore REST ────────────────────────────────────────────────────────────
 
 function toFirestoreFields(obj) {
+  function toFieldValue(v) {
+    if (v === null || v === undefined) return { nullValue: null }
+    if (typeof v === 'string') return { stringValue: v }
+    if (typeof v === 'number') return { integerValue: String(Math.round(v)) }
+    if (typeof v === 'boolean') return { booleanValue: v }
+    if (v instanceof Date) return { timestampValue: v.toISOString() }
+    if (Array.isArray(v)) {
+      const values = v.map(toFieldValue).filter(Boolean)
+      return values.length ? { arrayValue: { values } } : { arrayValue: {} }
+    }
+    return null
+  }
+
   const fields = {}
   for (const [k, v] of Object.entries(obj)) {
-    if (v === null || v === undefined) fields[k] = { nullValue: null }
-    else if (typeof v === 'string') fields[k] = { stringValue: v }
-    else if (typeof v === 'number') fields[k] = { integerValue: String(Math.round(v)) }
-    else if (typeof v === 'boolean') fields[k] = { booleanValue: v }
-    else if (v instanceof Date) fields[k] = { timestampValue: v.toISOString() }
+    const field = toFieldValue(v)
+    if (field) fields[k] = field
   }
   return fields
 }
@@ -156,17 +168,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
 
   if (msg.type === 'ADD_JOB') {
-    firestoreAdd('applications', {
-      company: msg.company,
-      role: msg.role,
-      jobUrl: msg.jobUrl,
-      jobDescription: msg.jobDescription,
-      location: msg.location,
-      stage: 'saved',
-      source: 'extension',
-      notes: '',
-      createdAt: new Date(),
-    })
+    const job = normalizeJobPayload(msg)
+    if (!hasEnoughJobData(job)) {
+      sendResponse({ ok: false, error: 'Could not read job details from this page' })
+      return true
+    }
+
+    firestoreAdd('applications', job)
       .then(() => sendResponse({ ok: true }))
       .catch(err => sendResponse({ ok: false, error: err.message }))
     return true

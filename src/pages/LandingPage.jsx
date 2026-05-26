@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  BriefcaseBusiness, Sparkles, Kanban,
+  Sparkles, Kanban,
   MessageSquare, CheckCircle2,
   ArrowRight, Zap, ChevronRight,
 } from 'lucide-react'
 import './LandingPage.css'
+import RunwayLogoMark from '../components/brand/RunwayLogoMark'
 
 // ── Scroll-reveal hook ────────────────────────────────────────────────────────
 
@@ -170,9 +171,7 @@ export default function LandingPage() {
       <nav className="lp-nav">
         <div className="lp-nav-inner">
           <div className="lp-nav-logo">
-            <div className="lp-nav-icon">
-              <BriefcaseBusiness size={14} className="text-white" />
-            </div>
+            <RunwayLogoMark size="md" className="lp-nav-icon" />
             <span className="lp-nav-wordmark">Runway</span>
           </div>
           <div className="lp-nav-actions">
@@ -258,7 +257,7 @@ export default function LandingPage() {
       <footer className="lp-footer">
         <div className="lp-footer-inner">
           <div className="lp-nav-logo">
-            <div className="lp-nav-icon"><BriefcaseBusiness size={12} className="text-white" /></div>
+            <RunwayLogoMark size="md" className="lp-nav-icon" />
             <span className="lp-nav-wordmark">Runway</span>
           </div>
           <p className="lp-footer-copy">© {new Date().getFullYear()} Runway. Built for job seekers.</p>

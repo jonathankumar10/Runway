@@ -89,6 +89,10 @@ Security rules allow a user to read and write only their own subtree (`request.a
 | `tailorResume` | Resume text + full job context | Structured resume JSON + change summary |
 | `notificationChecker` | *(scheduled, runs hourly)* | Writes notifications + sends FCM push + email |
 
+Web URL imports use `importFromUrl` and save through the app's job mutations. The browser extension has a separate authenticated page-scraping path for sites that require login, such as LinkedIn and Workday.
+
+See [Import Strategy](docs/import-strategy.md) for the current plan around web import, extension import, and job-site coverage.
+
 ## Getting Started
 
 ### Prerequisites

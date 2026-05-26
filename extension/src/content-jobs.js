@@ -1,3 +1,5 @@
+import { setRunwayButtonContent } from './button-ui.js'
+
 function waitForAnyElement(selectors, timeout = 8000) {
   return new Promise((resolve) => {
     const check = () => {
@@ -130,7 +132,7 @@ function getOrCreateBtn() {
   const btn = document.createElement('button')
   btn.id = 'runway-job-btn'
   btn.className = 'runway-btn runway-btn--floating'
-  btn.textContent = '✈ Add to Runway'
+  setRunwayButtonContent(btn, 'Add to Runway')
 
   btn.addEventListener('click', async () => {
     setState('loading', 'Adding…')
@@ -161,8 +163,8 @@ function getOrCreateBtn() {
   function setState(state, label) {
     btn.disabled = state === 'loading'
     btn.className = `runway-btn runway-btn--floating${state !== 'idle' ? ` runway-btn--${state}` : ''}`
-    if (label) btn.textContent = label
-    if (state === 'idle') btn.textContent = '✈ Add to Runway'
+    setRunwayButtonContent(btn, label || 'Add to Runway')
+    if (state === 'idle') setRunwayButtonContent(btn, 'Add to Runway')
   }
 
   document.body.appendChild(btn)
