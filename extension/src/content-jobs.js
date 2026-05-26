@@ -1,4 +1,4 @@
-import { createJobDiscoveryUI } from './job-discovery-ui.js'
+import { createRunwayPanel } from './runway-panel.js'
 
 function waitForAnyElement(selectors, timeout = 8000) {
   return new Promise((resolve) => {
@@ -374,21 +374,33 @@ function sendRuntimeMessage(message) {
   return chrome.runtime.sendMessage(message)
 }
 
-const discovery = createJobDiscoveryUI({
-  getJobs: getDiscoverableJobs,
-  addJob: addDiscoveredJob,
+const runwayPanel = createRunwayPanel({
+  getContext: () => {
+    const jobs = getDiscoverableJobs()
+    return {
+      visible: jobs.length > 0,
+      mode: 'job',
+      jobs,
+      subtitle: isOnJobPage()
+        ? 'Save this job and prepare your resume.'
+        : 'Save detected jobs to Runway.',
+    }
+  },
+  actions: {
+    addJob: addDiscoveredJob,
+  },
 })
 
 function showBtn() {
   const btn = document.getElementById('runway-job-btn')
   if (btn) btn.style.display = 'none'
-  discovery.refresh()
+  runwayPanel.refresh()
 }
 
 function hideBtn() {
   const btn = document.getElementById('runway-job-btn')
   if (btn) btn.style.display = 'none'
-  discovery.refresh()
+  runwayPanel.refresh()
 }
 
 async function handleNavigation() {
@@ -416,6 +428,6 @@ new MutationObserver(() => {
     lastUrl = location.href
     setTimeout(handleNavigation, 1000)
   } else {
-    discovery.refresh(700)
+    runwayPanel.refresh(700)
   }
 }).observe(document.body, { childList: true, subtree: true })

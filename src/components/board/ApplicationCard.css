@@ -24,6 +24,25 @@
   @apply text-xs text-slate-300 truncate;
 }
 
+.app-card-prep {
+  @apply inline-flex w-fit mt-1 text-[10px] font-semibold rounded-full px-1.5 py-0.5 border;
+}
+
+.app-card-prep--matching,
+.app-card-prep--tailoring,
+.app-card-prep--queued {
+  @apply text-sky-300 bg-sky-500/10 border-sky-500/25;
+}
+
+.app-card-prep--ready {
+  @apply text-emerald-300 bg-emerald-500/10 border-emerald-500/25;
+}
+
+.app-card-prep--needs_resume,
+.app-card-prep--error {
+  @apply text-amber-300 bg-amber-500/10 border-amber-500/25;
+}
+
 .app-card-salary {
   @apply text-xs text-slate-300 bg-slate-700 rounded-md px-1.5 py-0.5;
 }

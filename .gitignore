@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.firebase/
 extension/dist
 extension/node_modules
 *.local

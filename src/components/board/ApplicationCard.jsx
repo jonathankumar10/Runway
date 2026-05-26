@@ -21,6 +21,21 @@ function MatchPill({ score }) {
   return <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${color}`}>{score}%</span>
 }
 
+function PrepPill({ status }) {
+  if (!status || status === 'ready') return status === 'ready'
+    ? <span className="app-card-prep app-card-prep--ready">Tailored ready</span>
+    : null
+
+  const label = {
+    matching: 'Scoring',
+    tailoring: 'Tailoring',
+    needs_resume: 'Needs resume',
+    error: 'Prep failed',
+  }[status] || 'Preparing'
+
+  return <span className={`app-card-prep app-card-prep--${status}`}>{label}</span>
+}
+
 export default function ApplicationCard({ job, isDragging, isSelected, onCardClick }) {
   const { deleteJob } = useJobMutations()
   const navigate = useNavigate()
@@ -90,6 +105,7 @@ export default function ApplicationCard({ job, isDragging, isSelected, onCardCli
               </div>
             </div>
             <p className="app-card-role">{job.role || 'No role'}</p>
+            <PrepPill status={job.aiPrepStatus} />
           </div>
         </div>
 

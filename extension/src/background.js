@@ -2,6 +2,7 @@ import { hasEnoughJobData, normalizeJobPayload } from './import-utils.js'
 
 const FIREBASE_API_KEY = __FIREBASE_API_KEY__
 const FIREBASE_PROJECT_ID = __FIREBASE_PROJECT_ID__
+const FIREBASE_FUNCTIONS_REGION = 'us-central1'
 
 // Web Application OAuth client ID (not the Chrome Extension one)
 // Authorized redirect URI must include: https://{extensionId}.chromiumapp.org/
@@ -126,6 +127,24 @@ function toFirestoreFields(obj) {
   return fields
 }
 
+function fromFirestoreFields(fields = {}) {
+  function fromFieldValue(field) {
+    if ('stringValue' in field) return field.stringValue
+    if ('integerValue' in field) return Number(field.integerValue)
+    if ('doubleValue' in field) return Number(field.doubleValue)
+    if ('booleanValue' in field) return Boolean(field.booleanValue)
+    if ('timestampValue' in field) return field.timestampValue
+    if ('nullValue' in field) return null
+    if ('arrayValue' in field) return (field.arrayValue.values || []).map(fromFieldValue)
+    if ('mapValue' in field) return fromFirestoreFields(field.mapValue.fields)
+    return undefined
+  }
+
+  return Object.fromEntries(
+    Object.entries(fields).map(([key, value]) => [key, fromFieldValue(value)])
+  )
+}
+
 async function firestoreAdd(subcollection, data) {
   const { idToken, uid } = await getValidIdToken()
   const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${uid}/${subcollection}?key=${FIREBASE_API_KEY}`
@@ -139,6 +158,86 @@ async function firestoreAdd(subcollection, data) {
     throw new Error(err.error?.message || `Firestore error ${res.status}`)
   }
   return res.json()
+}
+
+async function firestoreGet(path) {
+  const { idToken, uid } = await getValidIdToken()
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${uid}/${path}?key=${FIREBASE_API_KEY}`
+  const res = await fetch(url, {
+    headers: { 'Authorization': `Bearer ${idToken}` },
+  })
+  if (res.status === 404) return null
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error?.message || `Firestore error ${res.status}`)
+  }
+  const doc = await res.json()
+  return fromFirestoreFields(doc.fields)
+}
+
+async function firestoreList(subcollection, params = {}) {
+  const { idToken, uid } = await getValidIdToken()
+  const search = new URLSearchParams(params)
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${uid}/${subcollection}?key=${FIREBASE_API_KEY}&${search}`
+  const res = await fetch(url, {
+    headers: { 'Authorization': `Bearer ${idToken}` },
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error?.message || `Firestore error ${res.status}`)
+  }
+  const json = await res.json()
+  return (json.documents || []).map(document => ({
+    id: firestoreDocumentId(document.name),
+    ...fromFirestoreFields(document.fields),
+  }))
+}
+
+async function callFunction(name, data) {
+  const { idToken } = await getValidIdToken()
+  const url = `https://${FIREBASE_FUNCTIONS_REGION}-${FIREBASE_PROJECT_ID}.cloudfunctions.net/${name}`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data }),
+  })
+
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok || json.error) {
+    throw new Error(json.error?.message || json.result?.error || `Function ${name} failed`)
+  }
+  return json.result
+}
+
+function firestoreDocumentId(documentName) {
+  return String(documentName || '').split('/').pop()
+}
+
+function normalizedText(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+}
+
+function scoreApplicationForContext(app, { pageUrl = '', pageText = '' } = {}) {
+  const text = normalizedText(pageText)
+  try {
+    const page = pageUrl ? new URL(pageUrl) : null
+    const job = app.jobUrl ? new URL(app.jobUrl) : null
+    let score = 0
+    if (page && job?.hostname === page.hostname) score += 20
+    if (page && job?.pathname && page.pathname.includes(job.pathname.split('/').filter(Boolean)[0] || '')) score += 4
+    if (app.company && page?.href.toLowerCase().includes(String(app.company).toLowerCase().replace(/\s+/g, ''))) score += 8
+    if (app.company && text.includes(normalizedText(app.company))) score += 30
+    if (app.role && text.includes(normalizedText(app.role))) score += 30
+    for (const skill of app.keySkills || []) {
+      if (skill && text.includes(normalizedText(skill))) score += 2
+    }
+    return score
+  } catch {
+    let score = 0
+    if (app.company && text.includes(normalizedText(app.company))) score += 30
+    if (app.role && text.includes(normalizedText(app.role))) score += 30
+    return score
+  }
 }
 
 // ── Message handlers ──────────────────────────────────────────────────────────
@@ -167,6 +266,125 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true
   }
 
+  if (msg.type === 'GET_AUTOFILL_PROFILE') {
+    chrome.storage.local.get(['userEmail', 'userDisplayName', 'firebaseUid'], async data => {
+      try {
+        if (!data.firebaseUid) {
+          sendResponse({ ok: false, error: 'Sign in to Runway first' })
+          return
+        }
+
+        const prefs = await firestoreGet('settings/preferences')
+        const displayName = data.userDisplayName || prefs?.name || ''
+        const [firstName = '', ...lastParts] = displayName.trim().split(/\s+/).filter(Boolean)
+
+        sendResponse({
+          ok: true,
+          profile: {
+            fullName: displayName,
+            firstName: prefs?.firstName || firstName,
+            lastName: prefs?.lastName || lastParts.join(' '),
+            email: prefs?.email || data.userEmail || '',
+            phone: prefs?.phone || '',
+            location: prefs?.location || '',
+            linkedInUrl: prefs?.linkedInUrl || prefs?.linkedin || '',
+            githubUrl: prefs?.githubUrl || prefs?.github || '',
+            portfolioUrl: prefs?.portfolioUrl || prefs?.portfolio || '',
+            workAuthorization: prefs?.workAuthorization || '',
+            sponsorship: prefs?.sponsorship || '',
+            salaryExpectation: prefs?.salaryExpectation || '',
+            remotePreference: prefs?.remotePreference || '',
+          },
+        })
+      } catch (err) {
+        sendResponse({ ok: false, error: err.message })
+      }
+    })
+    return true
+  }
+
+  if (msg.type === 'GET_APPLY_RESOURCES') {
+    chrome.storage.local.get(['firebaseUid'], async data => {
+      try {
+        if (!data.firebaseUid) {
+          sendResponse({ ok: false, error: 'Sign in to Runway first' })
+          return
+        }
+
+        const applications = await firestoreList('applications', {
+          pageSize: '25',
+          orderBy: 'createdAt desc',
+        })
+        const tailoredCandidates = applications
+          .filter(item => item.aiPrepStatus === 'ready' && (item.tailoredResumeText || item.tailoredResumeSections?.length))
+          .map(item => ({ ...item, _score: scoreApplicationForContext(item, { pageUrl: msg.pageUrl, pageText: msg.pageText }) }))
+          .sort((a, b) => b._score - a._score)
+          .slice(0, 5)
+
+        const resumes = await firestoreList('resumes', { pageSize: '25' })
+        const defaultResume = resumes.find(resume => resume.isDefault) || resumes[0] || null
+
+        sendResponse({
+          ok: true,
+          defaultResume: defaultResume ? {
+            id: defaultResume.id,
+            label: defaultResume.label || 'Base resume',
+            resumeText: defaultResume.resumeText || '',
+          } : null,
+          tailoredResumes: tailoredCandidates.map(app => ({
+            id: app.id,
+            company: app.company || '',
+            role: app.role || '',
+            tailoredResumeText: app.tailoredResumeText || '',
+            tailoredResumeSections: app.tailoredResumeSections || [],
+            score: app._score,
+          })),
+        })
+      } catch (err) {
+        sendResponse({ ok: false, error: err.message })
+      }
+    })
+    return true
+  }
+
+  if (msg.type === 'DRAFT_APPLICATION_ANSWER') {
+    chrome.storage.local.get(['firebaseUid'], async data => {
+      try {
+        if (!data.firebaseUid) {
+          sendResponse({ ok: false, error: 'Sign in to Runway first' })
+          return
+        }
+
+        let app = {}
+        if (msg.applicationId) {
+          app = await firestoreGet(`applications/${msg.applicationId}`) || {}
+        }
+        if (!app.role && !app.company) {
+          const applications = await firestoreList('applications', {
+            pageSize: '10',
+            orderBy: 'createdAt desc',
+          })
+          app = applications.find(item => item.role && item.company) || applications[0] || {}
+        }
+        const result = await callFunction('draftApplicationAnswer', {
+          question: msg.question,
+          company: app.company || '',
+          role: app.role || '',
+          jobDescription: app.jobDescription || '',
+        })
+
+        if (result?.error) {
+          sendResponse({ ok: false, error: result.error })
+          return
+        }
+        sendResponse({ ok: true, answer: result.answer || '' })
+      } catch (err) {
+        sendResponse({ ok: false, error: err.message })
+      }
+    })
+    return true
+  }
+
   if (msg.type === 'SET_JOB_BADGE') {
     const tabId = _sender.tab?.id
     const count = Number(msg.count) || 0
@@ -189,7 +407,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     }
 
     firestoreAdd('applications', job)
-      .then(() => sendResponse({ ok: true }))
+      .then(async doc => {
+        const applicationId = firestoreDocumentId(doc.name)
+        callFunction('prepareApplication', { applicationId }).catch(err => {
+          console.warn('[Runway] prepareApplication failed:', err)
+        })
+        sendResponse({ ok: true, applicationId, prepStarted: true })
+      })
       .catch(err => sendResponse({ ok: false, error: err.message }))
     return true
   }

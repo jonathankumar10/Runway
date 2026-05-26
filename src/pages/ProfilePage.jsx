@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, writeBatch } from 'firebase/firestore'
 import { deleteUser } from 'firebase/auth'
 import {
-  User, Bell, Mail, Clock, CheckCircle2, Loader2, Shield,
+  User, Bell, Clock, CheckCircle2, Loader2, Shield,
   Palette, Trash2, AlertTriangle, BellOff,
 } from 'lucide-react'
 import { db, auth } from '../lib/firebase'
@@ -30,6 +30,17 @@ export default function ProfilePage() {
     emailReminders: false,
     email: '',
     accentColor: 'violet',
+    firstName: '',
+    lastName: '',
+    phone: '',
+    location: '',
+    linkedInUrl: '',
+    githubUrl: '',
+    portfolioUrl: '',
+    workAuthorization: '',
+    sponsorship: '',
+    salaryExpectation: '',
+    remotePreference: '',
   })
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState(false)
@@ -51,6 +62,17 @@ export default function ProfilePage() {
           emailReminders: d.emailReminders ?? false,
           email:          d.email          ?? '',
           accentColor:    d.accentColor    ?? 'violet',
+          firstName:      d.firstName      ?? '',
+          lastName:       d.lastName       ?? '',
+          phone:          d.phone          ?? '',
+          location:       d.location       ?? '',
+          linkedInUrl:    d.linkedInUrl    ?? '',
+          githubUrl:      d.githubUrl      ?? '',
+          portfolioUrl:   d.portfolioUrl   ?? '',
+          workAuthorization: d.workAuthorization ?? '',
+          sponsorship:    d.sponsorship    ?? '',
+          salaryExpectation: d.salaryExpectation ?? '',
+          remotePreference: d.remotePreference ?? '',
         }
         setPrefs(loaded)
         applyAccent(loaded.accentColor)
@@ -94,8 +116,10 @@ export default function ProfilePage() {
           await batch.commit()
         }
       }
-      try { await deleteDoc(doc(db, 'users', user.uid, 'settings', 'preferences')) } catch {}
-      try { await deleteDoc(doc(db, 'users', user.uid, 'settings', 'resume')) }      catch {}
+      await Promise.allSettled([
+        deleteDoc(doc(db, 'users', user.uid, 'settings', 'preferences')),
+        deleteDoc(doc(db, 'users', user.uid, 'settings', 'resume')),
+      ])
       await deleteUser(auth.currentUser)
       // onAuthStateChanged fires → router redirects to landing automatically
     } catch (err) {
@@ -241,6 +265,58 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Autofill profile card */}
+          <div className="profile-card">
+            <SectionHeader icon={User} title="Autofill Profile" />
+
+            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+              Used by the browser extension to fill application forms. You still review before submitting.
+            </p>
+
+            <div className="profile-form-grid">
+              <Field label="First name" value={prefs.firstName} onChange={v => set('firstName', v)} />
+              <Field label="Last name" value={prefs.lastName} onChange={v => set('lastName', v)} />
+              <Field label="Phone" value={prefs.phone} onChange={v => set('phone', v)} />
+              <Field label="Location" value={prefs.location} onChange={v => set('location', v)} placeholder="City, State" />
+              <Field label="LinkedIn URL" value={prefs.linkedInUrl} onChange={v => set('linkedInUrl', v)} type="url" />
+              <Field label="GitHub URL" value={prefs.githubUrl} onChange={v => set('githubUrl', v)} type="url" />
+              <Field label="Portfolio URL" value={prefs.portfolioUrl} onChange={v => set('portfolioUrl', v)} type="url" />
+              <Field label="Salary expectation" value={prefs.salaryExpectation} onChange={v => set('salaryExpectation', v)} placeholder="e.g. $160k-$190k" />
+              <SelectField
+                label="Work authorization"
+                value={prefs.workAuthorization}
+                onChange={v => set('workAuthorization', v)}
+                options={[
+                  ['', 'Choose...'],
+                  ['authorized', 'Authorized to work in the U.S.'],
+                  ['not_authorized', 'Not currently authorized'],
+                ]}
+              />
+              <SelectField
+                label="Need sponsorship"
+                value={prefs.sponsorship}
+                onChange={v => set('sponsorship', v)}
+                options={[
+                  ['', 'Choose...'],
+                  ['yes', 'Yes'],
+                  ['no', 'No'],
+                ]}
+              />
+              <SelectField
+                label="Work preference"
+                value={prefs.remotePreference}
+                onChange={v => set('remotePreference', v)}
+                options={[
+                  ['', 'Choose...'],
+                  ['remote', 'Remote'],
+                  ['hybrid', 'Hybrid'],
+                  ['onsite', 'On-site'],
+                  ['flexible', 'Flexible'],
+                ]}
+              />
+            </div>
+          </div>
+
           {/* Appearance card */}
           <div className="profile-card">
             <SectionHeader icon={Palette} title="Appearance" />
@@ -370,6 +446,38 @@ function ToggleRow({ label, description, checked, onChange }) {
       </div>
       <p className="text-xs text-slate-500">{description}</p>
     </div>
+  )
+}
+
+function Field({ label, value, onChange, placeholder, type = 'text' }) {
+  return (
+    <label>
+      <span className="profile-field-label">{label}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="profile-input w-full"
+      />
+    </label>
+  )
+}
+
+function SelectField({ label, value, onChange, options }) {
+  return (
+    <label>
+      <span className="profile-field-label">{label}</span>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="profile-input w-full"
+      >
+        {options.map(([optionValue, optionLabel]) => (
+          <option key={optionValue} value={optionValue}>{optionLabel}</option>
+        ))}
+      </select>
+    </label>
   )
 }
 

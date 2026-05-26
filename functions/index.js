@@ -14,6 +14,171 @@ const GMAIL_USER = defineSecret('GMAIL_USER')
 const GMAIL_PASS = defineSecret('GMAIL_PASS')
 const HUNTER_API_KEY = defineSecret('HUNTER_API_KEY')
 
+function parseJsonObject(raw) {
+  const text = raw.trim()
+  return text.startsWith('{') ? JSON.parse(text) : JSON.parse(text.match(/\{[\s\S]*\}/)[0])
+}
+
+async function getDefaultResume(uid) {
+  const resumesSnap = await db
+    .collection(`users/${uid}/resumes`)
+    .where('isDefault', '==', true)
+    .limit(1)
+    .get()
+
+  let resumeDoc = resumesSnap.docs[0] ?? null
+  let resumeText = resumeDoc?.data()?.resumeText
+  let parsedStructure = resumeDoc?.data()?.parsedStructure ?? null
+
+  if (!resumeText) {
+    const legacyResume = await db.doc(`users/${uid}/settings/resume`).get()
+    const legacyPrefs = await db.doc(`users/${uid}/settings/preferences`).get()
+    resumeText = legacyResume.data()?.resumeText ?? legacyPrefs.data()?.resumeText ?? ''
+    parsedStructure = legacyResume.data()?.parsedStructure ?? legacyPrefs.data()?.parsedStructure ?? null
+  }
+
+  return { resumeText, parsedStructure }
+}
+
+async function runResumeMatch(anthropic, { resumeText, company, role, keySkills, jobDescription }) {
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 900,
+    system: `You are a resume-job match evaluator.
+Given a resume and a job posting, return ONLY valid JSON with:
+- score (integer 0-100, how well the resume matches the job)
+- highlights (array of 3 strings: strongest matching qualifications)
+- gaps (array of up to 3 strings: missing or weak areas)
+- resumeSuggestions (array of 4-5 objects, each with:
+    "section": the resume section to update
+    "suggestion": a single, specific, ready-to-use line of text the user can add or substitute)
+
+No text outside the JSON.`,
+    messages: [{
+      role: 'user',
+      content: `JOB: ${company || ''} — ${role}
+Key skills required: ${(keySkills || []).join(', ')}
+JOB DESCRIPTION:
+${(jobDescription || '').slice(0, 6000)}
+
+RESUME:
+${resumeText.slice(0, 8000)}`,
+    }],
+  })
+
+  const json = parseJsonObject(response.content[0].text)
+  return {
+    score: Math.min(100, Math.max(0, Number(json.score))),
+    highlights: Array.isArray(json.highlights) ? json.highlights : [],
+    gaps: Array.isArray(json.gaps) ? json.gaps : [],
+    resumeSuggestions: Array.isArray(json.resumeSuggestions) ? json.resumeSuggestions : [],
+  }
+}
+
+async function runTailoredResume(anthropic, { resumeText, company, role, jobDescription, keySkills, gaps, parsedStructure }) {
+  const structureHint = parsedStructure
+    ? `Use this parsed resume structure as the source of truth. Preserve all real jobs, schools, dates, contact details, and skills. Do not invent facts.\n${JSON.stringify(parsedStructure).slice(0, 8000)}`
+    : 'Preserve the resume facts exactly. Do not invent companies, dates, degrees, metrics, or skills.'
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 7000,
+    system: `You are a senior technical recruiter and resume writer.
+Create a tailored resume package for the provided job.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "suggestions": ["string", ...],
+  "keywordAnalysis": {
+    "extracted": ["string", ...],
+    "mapped": [{ "keyword": "string", "experience": "string", "action": "added | strengthened" }],
+    "unmappable": ["string", ...]
+  },
+  "rewrittenSummary": ["line1", "line2", "line3"],
+  "rewrittenBullets": ["bullet1", "bullet2", "bullet3", "bullet4", "bullet5"],
+  "sections": [
+    { "type": "header", "name": "Exact Name From Resume", "contact": ["email", "phone", "city", "linkedin url"] },
+    { "type": "summary", "title": "SUMMARY", "bullets": ["line1", "line2", "line3"] },
+    { "type": "experience", "title": "EXPERIENCE", "entries": [{ "role": "Job Title", "company": "Company Name", "location": "City, ST", "dates": "2018 - 2022", "bullets": ["bullet"] }] },
+    { "type": "education", "title": "EDUCATION", "entries": [{ "degree": "Degree", "school": "School", "location": "City, ST", "dates": "2018 - 2022", "details": [] }] },
+    { "type": "skills", "title": "SKILLS", "groups": [{ "label": "Languages", "items": ["Python"] }] },
+    { "type": "generic", "title": "SECTION TITLE", "entries": [{ "heading": "title", "subheading": "date", "bullets": ["detail"] }] }
+  ]
+}
+
+Rules:
+- Preserve all real resume facts.
+- Do not add skills to the skills section unless they already exist in the resume.
+- Keyword-enrich bullets only when the resume supports the keyword.
+- Keep the tailored resume concise and ATS-friendly.
+- Do not use em dashes.
+
+${structureHint}`,
+    messages: [{
+      role: 'user',
+      content: `COMPANY: ${company || 'Unknown'}
+ROLE: ${role}
+KEY SKILLS: ${(keySkills || []).join(', ')}
+GAPS TO ADDRESS: ${(gaps || []).join('; ') || 'None'}
+JOB DESCRIPTION:
+${(jobDescription || 'Not provided').slice(0, 6000)}
+
+ORIGINAL RESUME:
+${resumeText.slice(0, 12000)}`,
+    }],
+  })
+
+  const json = parseJsonObject(response.content[0].text)
+  return {
+    suggestions: Array.isArray(json.suggestions) ? json.suggestions : [],
+    keywordAnalysis: {
+      extracted: Array.isArray(json.keywordAnalysis?.extracted) ? json.keywordAnalysis.extracted : [],
+      mapped: Array.isArray(json.keywordAnalysis?.mapped) ? json.keywordAnalysis.mapped : [],
+      unmappable: Array.isArray(json.keywordAnalysis?.unmappable) ? json.keywordAnalysis.unmappable : [],
+    },
+    rewrittenSummary: Array.isArray(json.rewrittenSummary) ? json.rewrittenSummary.slice(0, 3) : [],
+    rewrittenBullets: Array.isArray(json.rewrittenBullets) ? json.rewrittenBullets.slice(0, 10) : [],
+    sections: Array.isArray(json.sections) ? json.sections : [],
+  }
+}
+
+function sectionsToPlainText(sections = []) {
+  const lines = []
+  for (const section of sections) {
+    if (section.title) lines.push(section.title)
+    if (section.type === 'header') {
+      if (section.name) lines.push(section.name)
+      if (section.contact?.length) lines.push(section.contact.join(' | '))
+    }
+    if (section.type === 'summary') lines.push(...(section.bullets ?? []))
+    if (section.type === 'experience') {
+      for (const entry of section.entries ?? []) {
+        lines.push([entry.role, entry.company, entry.location, entry.dates].filter(Boolean).join(' | '))
+        lines.push(...(entry.bullets ?? []).map(b => `- ${b}`))
+      }
+    }
+    if (section.type === 'education') {
+      for (const entry of section.entries ?? []) {
+        lines.push([entry.degree, entry.school, entry.location, entry.dates].filter(Boolean).join(' | '))
+        lines.push(...(entry.details ?? []))
+      }
+    }
+    if (section.type === 'skills') {
+      for (const group of section.groups ?? []) {
+        lines.push([group.label, ...(group.items ?? [])].filter(Boolean).join(': '))
+      }
+    }
+    if (section.type === 'generic') {
+      for (const entry of section.entries ?? []) {
+        lines.push([entry.heading, entry.subheading].filter(Boolean).join(' | '))
+        lines.push(...(entry.bullets ?? []).map(b => `- ${b}`))
+      }
+    }
+    lines.push('')
+  }
+  return lines.join('\n').replace(/\*\*(.+?)\*\*/g, '$1').trim()
+}
+
 // ── parseJD ──────────────────────────────────────────────────────────────────
 exports.parseJD = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true }, async (request) => {
   const { text } = request.data
@@ -323,6 +488,148 @@ If a value cannot be determined, use null. Do not include any text outside the J
   } catch (err) {
     console.error('importFromUrl parse error:', err)
     return { error: 'PARSE_ERROR' }
+  }
+})
+
+// ── prepareApplication ───────────────────────────────────────────────────────
+exports.prepareApplication = onCall({
+  secrets: [ANTHROPIC_API_KEY],
+  cors: true,
+  timeoutSeconds: 180,
+}, async (request) => {
+  const uid = request.auth?.uid
+  const applicationId = request.data?.applicationId
+  if (!uid) return { error: 'UNAUTHENTICATED' }
+  if (!applicationId || typeof applicationId !== 'string') return { error: 'INVALID_INPUT' }
+
+  const appRef = db.doc(`users/${uid}/applications/${applicationId}`)
+  const appSnap = await appRef.get()
+  if (!appSnap.exists) return { error: 'NOT_FOUND' }
+
+  const app = appSnap.data()
+  if (!app.role) return { error: 'MISSING_ROLE' }
+
+  await appRef.set({
+    aiPrepStatus: 'matching',
+    aiPrepStartedAt: admin.firestore.FieldValue.serverTimestamp(),
+    aiPrepError: '',
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  }, { merge: true })
+
+  try {
+    const { resumeText, parsedStructure } = await getDefaultResume(uid)
+    if (!resumeText) {
+      await appRef.set({
+        aiPrepStatus: 'needs_resume',
+        aiPrepError: 'No default resume found',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true })
+      return { error: 'NO_DEFAULT_RESUME' }
+    }
+
+    const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
+    const match = await runResumeMatch(anthropic, {
+      resumeText,
+      company: app.company,
+      role: app.role,
+      keySkills: app.keySkills ?? [],
+      jobDescription: app.jobDescription ?? app.notes ?? '',
+    })
+
+    await appRef.set({
+      matchScore: match.score,
+      matchHighlights: match.highlights,
+      matchGaps: match.gaps,
+      matchSuggestions: match.resumeSuggestions,
+      aiPrepStatus: 'tailoring',
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true })
+
+    const tailored = await runTailoredResume(anthropic, {
+      resumeText,
+      parsedStructure,
+      company: app.company,
+      role: app.role,
+      jobDescription: app.jobDescription ?? '',
+      keySkills: app.keySkills ?? [],
+      gaps: match.gaps ?? [],
+    })
+
+    const tailoredText = sectionsToPlainText(tailored.sections)
+    await appRef.set({
+      tailoredResumeText: tailoredText,
+      tailoredResumeSections: tailored.sections,
+      tailoredResumeGeneratedAt: new Date().toISOString(),
+      tailoredKeywordAnalysis: tailored.keywordAnalysis,
+      tailoredRewrittenBullets: tailored.rewrittenBullets,
+      tailoredRewrittenSummary: tailored.rewrittenSummary,
+      tailoredSuggestions: tailored.suggestions,
+      aiPrepStatus: 'ready',
+      aiPrepCompletedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true })
+
+    return {
+      ok: true,
+      matchScore: match.score,
+      tailoredResumeReady: tailored.sections.length > 0 || Boolean(tailoredText),
+    }
+  } catch (err) {
+    console.error('prepareApplication error:', err)
+    await appRef.set({
+      aiPrepStatus: 'error',
+      aiPrepError: err.message || 'Application preparation failed',
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true })
+    return { error: 'PREPARE_ERROR' }
+  }
+})
+
+// ── draftApplicationAnswer ──────────────────────────────────────────────────
+exports.draftApplicationAnswer = onCall({
+  secrets: [ANTHROPIC_API_KEY],
+  cors: true,
+}, async (request) => {
+  const uid = request.auth?.uid
+  const { question, company, role, jobDescription } = request.data || {}
+  if (!uid) return { error: 'UNAUTHENTICATED' }
+  if (!question || typeof question !== 'string') return { error: 'INVALID_INPUT' }
+
+  try {
+    const { resumeText } = await getDefaultResume(uid)
+    if (!resumeText) return { error: 'NO_DEFAULT_RESUME' }
+
+    const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 500,
+      system: `Draft a concise job application answer for the candidate.
+Rules:
+- Use only facts supported by the resume and job context.
+- Do not fabricate experience, credentials, metrics, employers, or work authorization.
+- Answer directly in first person.
+- Keep the answer under 140 words unless the question explicitly asks for detail.
+- Return ONLY valid JSON: {"answer":"..."}`,
+      messages: [{
+        role: 'user',
+        content: `QUESTION:
+${question.slice(0, 2000)}
+
+COMPANY: ${company || 'Unknown'}
+ROLE: ${role || 'Unknown'}
+JOB DESCRIPTION:
+${(jobDescription || '').slice(0, 4000)}
+
+RESUME:
+${resumeText.slice(0, 8000)}`,
+      }],
+    })
+
+    const json = parseJsonObject(response.content[0].text)
+    return { answer: String(json.answer || '').trim() }
+  } catch (err) {
+    console.error('draftApplicationAnswer error:', err)
+    return { error: 'GENERATION_ERROR' }
   }
 })
 

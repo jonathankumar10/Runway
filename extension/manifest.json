@@ -17,7 +17,8 @@
     "https://jobs.smartrecruiters.com/*",
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",
-    "https://firestore.googleapis.com/*"
+    "https://firestore.googleapis.com/*",
+    "https://*.cloudfunctions.net/*"
   ],
   "background": {
     "service_worker": "dist/background.js",

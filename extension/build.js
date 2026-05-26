@@ -14,6 +14,7 @@ const define = {
   __FIREBASE_PROJECT_ID__: JSON.stringify(process.env.VITE_FIREBASE_PROJECT_ID),
   __FIREBASE_AUTH_DOMAIN__: JSON.stringify(process.env.VITE_FIREBASE_AUTH_DOMAIN),
   __GOOGLE_WEB_CLIENT_ID__: JSON.stringify(process.env.VITE_GOOGLE_WEB_CLIENT_ID ?? ''),
+  __RUNWAY_APP_URL__: JSON.stringify(process.env.VITE_RUNWAY_APP_URL ?? 'http://localhost:5173'),
 }
 
 const isWatch = process.argv.includes('--watch')

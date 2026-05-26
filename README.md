@@ -93,6 +93,8 @@ Web URL imports use `importFromUrl` and save through the app's job mutations. Th
 
 See [Import Strategy](docs/import-strategy.md) for the current plan around web import, extension import, and job-site coverage.
 
+See [Extension Apply Assistant Roadmap](docs/extension-apply-assistant-roadmap.md) for the planned end-to-end extension flow: save a job, score the base resume, generate a tailored resume, assist with ATS autofill, and help draft application answers.
+
 ## Getting Started
 
 ### Prerequisites
