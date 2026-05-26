@@ -167,6 +167,20 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true
   }
 
+  if (msg.type === 'SET_JOB_BADGE') {
+    const tabId = _sender.tab?.id
+    const count = Number(msg.count) || 0
+    const badgeText = count > 0 ? String(Math.min(count, 99)) : ''
+
+    if (tabId) {
+      chrome.action.setBadgeText({ tabId, text: badgeText })
+      chrome.action.setBadgeBackgroundColor({ tabId, color: '#312e81' })
+    }
+
+    sendResponse({ ok: true })
+    return true
+  }
+
   if (msg.type === 'ADD_JOB') {
     const job = normalizeJobPayload(msg)
     if (!hasEnoughJobData(job)) {

@@ -1,6 +1,6 @@
 # Runway Browser Extension
 
-Adds **"Add to Runway"** buttons on job pages and LinkedIn recruiter profiles.
+Detects job listings on supported sites, shows a small **Runway jobs found** launcher when jobs are available, and adds LinkedIn recruiter profiles to Runway.
 
 ## One-time setup
 
@@ -41,8 +41,8 @@ Click the Runway icon in the toolbar → **Sign in with Google** using the same 
 
 | Page | Button |
 |------|--------|
-| `linkedin.com/jobs/view/*` | **✈ Add to Runway** — adds the job to your Applications board |
-| Greenhouse, Lever, Ashby, Workday, Taleo, iCIMS, BambooHR, SmartRecruiters job pages | **✈ Add to Runway** — adds the job to your Applications board |
+| LinkedIn job search and job detail pages | **Runway jobs found** launcher — review detected jobs and add them to your Applications board |
+| Greenhouse, Lever, Ashby, Workday, Taleo, iCIMS, BambooHR, SmartRecruiters pages | **Runway jobs found** launcher — review detected jobs and add them to your Applications board |
 | `linkedin.com/in/*` (recruiters only) | **✈ Track in Runway** — adds the person to your Outreach tracker |
 
 The recruiter button only appears when the profile headline contains recruiter keywords (recruiter, talent, hiring, staffing, etc.).

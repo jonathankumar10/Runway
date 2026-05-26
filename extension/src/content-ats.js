@@ -2,7 +2,7 @@
 // Supports: Greenhouse, Lever, Ashby, Workday, Taleo, iCIMS, BambooHR, SmartRecruiters
 
 import { cleanText, detectPlatformFromUrl, slugToName } from './import-utils.js'
-import { setRunwayButtonContent } from './button-ui.js'
+import { createJobDiscoveryUI } from './job-discovery-ui.js'
 
 function detectPlatform() {
   return detectPlatformFromUrl(location.href) || null
@@ -43,6 +43,14 @@ function textFromSelectors(selectors) {
   return ''
 }
 
+function imageFromSelectors(selectors) {
+  for (const selector of selectors) {
+    const src = document.querySelector(selector)?.src || document.querySelector(selector)?.content
+    if (src) return new URL(src, location.href).href
+  }
+  return ''
+}
+
 function metaTitleRole(separator = '-') {
   return cleanText(metaContent('og:title').split(separator)[0])
 }
@@ -66,7 +74,10 @@ function extractGreenhouse() {
   const jobDescription =
     textFromSelectors(['#content', '.job-post', 'main'])
 
-  return { role, company, location: location_, jobDescription }
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]', '#header img'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
 }
 
 function extractLever() {
@@ -84,7 +95,10 @@ function extractLever() {
   const jobDescription =
     textFromSelectors(['.posting-body', '[class*="posting-requirements"]', 'main'])
 
-  return { role, company, location: location_, jobDescription }
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]', '.main-header-logo img'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
 }
 
 function extractAshby() {
@@ -103,7 +117,10 @@ function extractAshby() {
   const jobDescription =
     textFromSelectors(['[class*="ashby-job-posting-description"]', '[class*="description"]', 'article', 'main'])
 
-  return { role, company, location: location_, jobDescription }
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
 }
 
 function extractWorkday() {
@@ -121,7 +138,10 @@ function extractWorkday() {
   const jobDescription =
     textFromSelectors(['[data-automation-id="jobDescription"]', '[class*="description"]', 'main'])
 
-  return { role, company, location: location_, jobDescription }
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
 }
 
 function extractTaleo() {
@@ -140,7 +160,10 @@ function extractTaleo() {
   const jobDescription =
     textFromSelectors(['#requisitionDescriptionInterface\\.ID1615\\.row1', '[id*="requisitionDescription"]', '[class*="description"]', 'main', 'body'])
 
-  return { role, company, location: location_, jobDescription }
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
 }
 
 function extractIcims() {
@@ -159,7 +182,10 @@ function extractIcims() {
   const jobDescription =
     textFromSelectors(['.iCIMS_JobContent', '.iCIMS_JobDescription', '[class*="description"]', 'main'])
 
-  return { role, company, location: location_, jobDescription }
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
 }
 
 function extractBamboohr() {
@@ -177,7 +203,10 @@ function extractBamboohr() {
   const jobDescription =
     textFromSelectors(['[class*="description"]', '[class*="Description"]', '[class*="posting"]', 'main'])
 
-  return { role, company, location: location_, jobDescription }
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
 }
 
 function extractSmartRecruiters() {
@@ -196,12 +225,15 @@ function extractSmartRecruiters() {
   const jobDescription =
     textFromSelectors(['[data-testid="job-description"]', '.job-description', '[class*="description"]', 'main'])
 
-  return { role, company, location: location_, jobDescription }
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
 }
 
 function extractJob() {
   const platform = detectPlatform()
-  let data = { role: '', company: '', location: '', jobDescription: '' }
+  let data = { role: '', company: '', location: '', jobDescription: '', logoUrl: '' }
 
   switch (platform) {
     case 'greenhouse': data = extractGreenhouse(); break
@@ -220,64 +252,102 @@ function extractJob() {
     location: cleanText(data.location),
     jobDescription: cleanText(data.jobDescription, 5000),
     jobUrl: location.href,
+    logoUrl: cleanText(data.logoUrl),
     atsPlatform: platform,
   }
 }
 
-// ── Button ──────────────────────────────────────────────────────────────────
+function isLikelyJobUrl(url) {
+  const platform = detectPlatformFromUrl(url)
+  if (!platform) return false
 
-function getOrCreateBtn() {
-  const existing = document.getElementById('runway-job-btn')
-  if (existing) return existing
+  const parsed = new URL(url)
+  const segments = parsed.pathname.split('/').filter(Boolean)
+  switch (platform) {
+    case 'greenhouse': return segments.includes('jobs') && segments.some(segment => /^\d+$/.test(segment))
+    case 'lever': return segments.length >= 2 && /^[0-9a-f-]{36}$/i.test(segments[1])
+    case 'ashby': return segments.length >= 2
+    case 'workday': return parsed.pathname.includes('/job/')
+    case 'taleo': return parsed.pathname.includes('jobdetail') || parsed.search.includes('job=')
+    case 'icims': return segments.includes('jobs') && (segments.some(segment => /^\d+$/.test(segment)) || parsed.pathname.includes('/job'))
+    case 'bamboohr': return segments.includes('careers') && (segments.some(segment => /^\d+$/.test(segment)) || parsed.search.includes('id='))
+    case 'smartrecruiters': return segments.length >= 2 && !segments[0].toLowerCase().includes('search')
+    default: return false
+  }
+}
 
-  const btn = document.createElement('button')
-  btn.id = 'runway-job-btn'
-  btn.className = 'runway-btn runway-btn--floating'
-  setRunwayButtonContent(btn, 'Add to Runway')
+function extractJobsFromListings() {
+  const platform = detectPlatform()
+  const company =
+    metaContent('og:site_name') ||
+    slugToName(location.pathname.split('/')[1] || location.hostname.split('.')[0])
 
-  btn.addEventListener('click', async () => {
-    setState('loading', 'Adding…')
-    const { role, company, location, jobDescription, jobUrl, atsPlatform } = extractJob()
-    try {
-      const res = await chrome.runtime.sendMessage({
-        type: 'ADD_JOB',
+  return [...document.querySelectorAll('a[href]')]
+    .map(anchor => {
+      const jobUrl = new URL(anchor.href, location.href).href
+      if (!isLikelyJobUrl(jobUrl)) return null
+
+      const card = anchor.closest('li, article, [class*="job"], [data-automation-id*="job"]') || anchor.parentElement
+      const role =
+        cleanText(anchor.textContent) ||
+        cleanText(card?.querySelector('h1, h2, h3, [class*="title"], [class*="Title"]')?.textContent)
+      const location_ =
+        cleanText(card?.querySelector('[class*="location"], [class*="Location"], [data-automation-id*="location"]')?.textContent)
+      const logoUrl =
+        card?.querySelector('img[class*="logo"], img[src]')?.src ||
+        imageFromSelectors(['meta[property="og:image"]'])
+
+      return {
         role,
         company,
-        location,
-        jobDescription,
+        location: location_,
+        jobDescription: '',
         jobUrl,
-        atsPlatform,
-      })
-      if (res?.ok) {
-        setState('success', '✓ Added!')
-        setTimeout(() => setState('idle'), 3000)
-      } else {
-        setState('error', '✗ ' + (res?.error || 'Failed'))
-        setTimeout(() => setState('idle'), 3000)
+        logoUrl,
+        atsPlatform: platform,
       }
-    } catch {
-      setState('error', '✗ Sign in first')
-      setTimeout(() => setState('idle'), 3000)
-    }
-  })
-
-  function setState(state, label) {
-    btn.disabled = state === 'loading'
-    btn.className = `runway-btn runway-btn--floating${state !== 'idle' ? ` runway-btn--${state}` : ''}`
-    setRunwayButtonContent(btn, label || 'Add to Runway')
-    if (state === 'idle') setRunwayButtonContent(btn, 'Add to Runway')
-  }
-
-  document.body.appendChild(btn)
-  return btn
+    })
+    .filter(job => job?.role || job?.jobUrl)
 }
+
+function getDiscoverableJobs() {
+  if (isJobPage()) {
+    const job = extractJob()
+    return job.role || job.jobDescription ? [job] : extractJobsFromListings()
+  }
+  return extractJobsFromListings()
+}
+
+function addDiscoveredJob(job) {
+  return sendRuntimeMessage({
+    type: 'ADD_JOB',
+    role: job.role || '',
+    company: job.company || '',
+    location: job.location || '',
+    jobDescription: job.jobDescription || '',
+    jobUrl: job.jobUrl,
+    atsPlatform: job.atsPlatform || detectPlatform(),
+  })
+}
+
+function sendRuntimeMessage(message) {
+  if (typeof chrome === 'undefined' || !chrome.runtime?.id) {
+    throw new Error('Extension was reloaded. Refresh this tab and try again.')
+  }
+  return chrome.runtime.sendMessage(message)
+}
+
+const discovery = createJobDiscoveryUI({
+  getJobs: getDiscoverableJobs,
+  addJob: addDiscoveredJob,
+})
 
 // ── Init ────────────────────────────────────────────────────────────────────
 
 function init() {
-  if (!isJobPage()) return
-  const btn = getOrCreateBtn()
-  btn.style.display = 'inline-flex'
+  const btn = document.getElementById('runway-job-btn')
+  if (btn) btn.style.display = 'none'
+  discovery.refresh()
 }
 
 // ATS pages are mostly server-rendered, but Workday is a SPA
@@ -293,5 +363,7 @@ new MutationObserver(() => {
   if (location.href !== lastUrl) {
     lastUrl = location.href
     setTimeout(init, 1000)
+  } else {
+    discovery.refresh(700)
   }
 }).observe(document.body, { childList: true, subtree: true })
