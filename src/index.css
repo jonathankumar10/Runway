@@ -46,6 +46,12 @@
   --color-accent-text:  #a78bfa;    /* violet-400 — accent text and icons   */
 }
 
+@media (max-width: 640px) {
+  :root {
+    font-size: 100%;
+  }
+}
+
 html {
   color-scheme: dark;
 }
@@ -56,11 +62,14 @@ body {
   color: #f1f5f9;
   font-family: system-ui, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 #root {
   min-height: 100svh;
   display: flex;
+  width: 100%;
+  min-width: 0;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

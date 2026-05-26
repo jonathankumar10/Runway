@@ -13,7 +13,7 @@
 }
 
 .detail-header-btn {
-  @apply flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-400 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors;
+  @apply flex items-center gap-1 px-2.5 py-1.5 sm:py-1 text-xs font-medium text-slate-400 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors;
 }
 
 .detail-logo {
@@ -53,11 +53,11 @@
 }
 
 .detail-section-card {
-  @apply bg-slate-900 border border-slate-700 rounded-xl p-5;
+  @apply bg-slate-900 border border-slate-700 rounded-xl p-4 sm:p-5;
 }
 
 .detail-section-header {
-  @apply flex items-center justify-between mb-4;
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4;
 }
 
 .detail-section-title {

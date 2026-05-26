@@ -5,7 +5,7 @@
 }
 
 .rm-box {
-  @apply w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden;
+  @apply w-full max-w-lg max-h-[calc(100svh-2rem)] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden;
 }
 
 .rm-header {
@@ -13,7 +13,7 @@
 }
 
 .rm-footer {
-  @apply flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-700;
+  @apply flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2 px-5 py-3 border-t border-slate-700;
 }
 
 .rm-upload-btn {
@@ -25,7 +25,7 @@
 }
 
 .rm-submit-btn {
-  @apply flex items-center gap-1.5 px-4 py-1.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors;
+  @apply flex items-center justify-center gap-1.5 px-4 py-2 sm:py-1.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors;
 }
 
 .rm-cancel-btn {

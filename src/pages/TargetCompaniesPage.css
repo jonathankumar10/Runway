@@ -18,6 +18,7 @@
 
 .targets-table-wrap {
   @apply overflow-x-auto rounded-xl border border-slate-700;
+  -webkit-overflow-scrolling: touch;
 }
 
 .targets-table {
@@ -66,7 +67,7 @@
 }
 
 .targets-action-btn {
-  @apply flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-violet-400 border border-violet-500/30 hover:bg-violet-500/10 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50;
+  @apply flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] font-medium text-violet-400 border border-violet-500/30 hover:bg-violet-500/10 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50;
 }
 
 .targets-stage-badge {

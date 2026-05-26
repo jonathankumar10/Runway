@@ -53,7 +53,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <StatCard label="Total Applied" value={totalApplied} icon={Send} iconColor="text-blue-400" />
         <StatCard label="Interviews" value={interviewed} sub={`${interviewRate}% interview rate`} icon={Users} iconColor="text-violet-400" />
         <StatCard label="Offers" value={offers} sub={`${offerRate}% offer rate`} icon={Trophy} iconColor="text-emerald-400" />

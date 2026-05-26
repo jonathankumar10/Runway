@@ -217,7 +217,7 @@ export default function OutreachPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="outreach-topnav">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="outreach-header-icon">
               <Send size={15} className="text-violet-400" />
@@ -230,7 +230,7 @@ export default function OutreachPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 xl:pb-0">
             <div className="flex items-center gap-0.5 p-0.5 bg-slate-800 rounded-lg border border-slate-700">
               <button
                 onClick={() => setView('cards')}
@@ -251,7 +251,7 @@ export default function OutreachPage() {
               <button
                 onClick={() => selectedIds.size > 0 ? handleBulkDraft() : handleBulkDraft(eligibleForBulk)}
                 disabled={bulkCreating}
-                className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
               >
                 {bulkCreating ? <Loader2 size={13} className="animate-spin" /> : <Mail size={13} />}
                 {bulkCreating
@@ -269,7 +269,7 @@ export default function OutreachPage() {
             {eligibleForLinkedIn.length > 0 && (
               <button
                 onClick={startLinkedInQueue}
-                className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
               >
                 <ExternalLink size={13} />
                 LinkedIn unsent
@@ -278,7 +278,7 @@ export default function OutreachPage() {
             )}
             <button
               onClick={() => setAddOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
             >
               <Plus size={13} /> Add Recruiter
             </button>
@@ -288,7 +288,7 @@ export default function OutreachPage() {
 
       <div className="px-4 py-4 sm:px-6">
         {/* Filter tabs */}
-        <div className="flex items-center gap-1 mb-5 flex-wrap">
+        <div className="flex items-center gap-1 mb-5 overflow-x-auto pb-1">
           {FILTERS.map(f => (
             <button
               key={f.key}
@@ -370,7 +370,7 @@ export default function OutreachPage() {
 
       {/* Bulk action bar */}
       {(selectedIds.size > 0 || bulkResult) && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl">
+        <div className="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 flex flex-wrap items-center justify-center gap-3 px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl">
           {bulkResult ? (
             <>
               <p className="text-xs text-slate-300">
@@ -463,7 +463,7 @@ export default function OutreachPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(record.linkedInMessage).catch(() => {})
@@ -813,7 +813,7 @@ function OutreachCard({ record, userId, defaultResume, gmailTokenRef, onNeedGmai
               <p className="text-xs text-slate-300 leading-relaxed bg-slate-800/50 border border-slate-700 rounded-lg p-2.5">
                 {record.linkedInMessage}
               </p>
-              <div className="flex gap-2 mt-2">
+              <div className="flex flex-col sm:flex-row gap-2 mt-2">
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(record.linkedInMessage)
@@ -1223,7 +1223,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
 
             {jobLinkMode === 'url' && (
               <div className="space-y-2">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     value={jobPostingUrl}
                     onChange={e => { setJobPostingUrl(e.target.value); setFetchedJob(null); setFetchJobError(null) }}
@@ -1234,7 +1234,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
                   <button
                     onClick={handleFetchJobUrl}
                     disabled={fetchingJob || !jobPostingUrl.trim()}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors shrink-0"
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors shrink-0"
                   >
                     {fetchingJob ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
                     {fetchingJob ? 'Fetching…' : 'Fetch'}
@@ -1258,7 +1258,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
             <>
               {/* Company + Role — hidden when a job is linked */}
               {!linkedJob && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="outreach-form-label">Company</label>
                     <input
@@ -1283,7 +1283,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
               {/* Domain search */}
               <div>
                 <label className="outreach-form-label">Company domain</label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     value={domain}
                     onChange={e => { setDomain(e.target.value); setSearchResults(null); setSearchError(null) }}
@@ -1294,7 +1294,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
                   <button
                     onClick={handleSearch}
                     disabled={searching || !domain.trim()}
-                    className={`flex items-center gap-1.5 px-3 py-2 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors shrink-0 ${domainCached ? 'bg-green-700 hover:bg-green-600' : 'bg-violet-600 hover:bg-violet-500'}`}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors shrink-0 ${domainCached ? 'bg-green-700 hover:bg-green-600' : 'bg-violet-600 hover:bg-violet-500'}`}
                   >
                     {searching ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
                     {searching ? 'Loading…' : domainCached ? 'Use saved results' : 'Search Hunter'}
@@ -1375,7 +1375,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
           ) : (
             <>
               {!selectedJob && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="outreach-form-label">Company *</label>
                     <input value={manual.company} onChange={e => setManual(m => ({ ...m, company: e.target.value }))} placeholder="Stripe" className="outreach-form-input" />

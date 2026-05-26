@@ -1,7 +1,8 @@
 @reference "tailwindcss";
 
 .sidebar {
-  @apply w-52 shrink-0 flex flex-col bg-slate-900 border-r border-slate-700;
+  @apply md:w-52 shrink-0 flex flex-col bg-slate-900 border-r border-slate-700;
+  width: min(18rem, 82vw);
   /* Mobile: fixed off-screen drawer */
   position: fixed;
   top: 0;
@@ -19,6 +20,7 @@
 /* Desktop: sticky to viewport height */
 @media (min-width: 768px) {
   .sidebar {
+    width: 13rem;
     position: sticky;
     top: 0;
     left: auto;
@@ -26,7 +28,7 @@
     z-index: auto;
     transform: none;
     transition: none;
-    height: 100vh;
+    height: 100svh;
     overflow-y: auto;
   }
 }

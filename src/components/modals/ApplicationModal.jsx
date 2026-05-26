@@ -114,8 +114,10 @@ export default function ApplicationModal({ job, onClose }) {
               <span className="text-violet-400 text-sm font-bold">+</span>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white">{job ? 'Edit Application' : 'Add Application'}</h2>
-              <p className="text-xs text-slate-500">Track a new job opportunity</p>
+              <h2 className="text-sm font-semibold text-white">{job ? 'Edit Application' : 'Single Import'}</h2>
+              <p className="text-xs text-slate-500">
+                {job ? 'Update this job opportunity' : 'Paste one job URL or enter details manually'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-200 transition-colors mt-0.5">
@@ -128,18 +130,18 @@ export default function ApplicationModal({ job, onClose }) {
             <div className="modal-import-icon">
               <Zap size={12} className="text-blue-400" />
             </div>
-            <span className="text-[11px] font-bold text-blue-400 tracking-wide uppercase">Auto-Import</span>
+            <span className="text-[11px] font-bold text-blue-400 tracking-wide uppercase">Single URL Import</span>
             {imported && (
               <span className="ml-auto text-[10px] text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">✓ Fields filled</span>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="url"
               value={importUrl}
               onChange={e => { setImportUrl(e.target.value); setImportError(null); setImported(false) }}
               onKeyDown={e => e.key === 'Enter' && handleAutoImport()}
-              placeholder="Paste job URL..."
+              placeholder="Paste one job URL..."
               className="modal-input flex-1"
             />
             <button
@@ -149,7 +151,7 @@ export default function ApplicationModal({ job, onClose }) {
               className="modal-import-btn"
             >
               {importing ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
-              {importing ? 'Importing...' : 'Auto-Import'}
+              {importing ? 'Importing...' : 'Import URL'}
             </button>
           </div>
           {importError && <p className="text-[11px] text-red-400 mt-1.5">{importError}</p>}
@@ -174,25 +176,25 @@ export default function ApplicationModal({ job, onClose }) {
 
             {tab === 'basics' && (
               <div className="space-y-3 pb-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Company *" value={form.company} onChange={v => set('company', v)} placeholder="e.g. Google" required />
                   <Field label="Job Title *" value={form.role} onChange={v => set('role', v)} placeholder="e.g. Software Engineer" required />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <SelectField label="Status" value={form.stage} onChange={v => set('stage', v)}>
                     {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </SelectField>
                   <Field label="Location" value={form.location} onChange={v => set('location', v)} placeholder="e.g. Remote" />
                 </div>
                 <Field label="Job URL" value={form.jobUrl} onChange={v => set('jobUrl', v)} placeholder="https://..." type="url" />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Applied Date" value={form.dateApplied} onChange={v => set('dateApplied', v)} type="date" />
                   <SelectField label="Source" value={form.source} onChange={v => set('source', v)}>
                     {SOURCES.map(s => <option key={s} value={s}>{s || '—'}</option>)}
                   </SelectField>
                 </div>
                 <Field label="Next Step" value={form.nextStep} onChange={v => set('nextStep', v)} placeholder="e.g. Recruiter screen, take-home, follow-up email" />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Salary Min ($)" value={form.salaryMin} onChange={v => set('salaryMin', v)} placeholder="e.g. 150000" type="number" />
                   <Field label="Salary Max ($)" value={form.salaryMax} onChange={v => set('salaryMax', v)} placeholder="e.g. 200000" type="number" />
                 </div>
@@ -232,7 +234,7 @@ export default function ApplicationModal({ job, onClose }) {
 
           <div className="modal-footer">
             <button type="submit" disabled={saving} className="modal-submit-btn">
-              {saving ? 'Saving...' : job ? 'Save Changes' : 'Add Application'}
+              {saving ? 'Saving...' : job ? 'Save Changes' : 'Save Application'}
             </button>
             <button type="button" onClick={onClose} className="modal-cancel-btn">
               Cancel

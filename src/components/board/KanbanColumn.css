@@ -1,7 +1,8 @@
 @reference "tailwindcss";
 
 .kanban-col {
-  @apply flex flex-col w-64 shrink-0 transition-opacity;
+  @apply flex flex-col w-[calc(100vw-2rem)] sm:w-64 shrink-0 transition-opacity;
+  max-width: 22rem;
 }
 
 .kanban-col-header {

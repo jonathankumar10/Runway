@@ -4,8 +4,59 @@ import { useAI } from '../../hooks/useAI'
 import { useJobMutations } from '../../hooks/useJobMutations'
 import './BulkImportModal.css'
 
+const EXTENSION_ONLY = [
+  { match: h => h === 'www.linkedin.com' || h === 'linkedin.com',  name: 'LinkedIn' },
+  { match: h => h.endsWith('.myworkdayjobs.com'),                   name: 'Workday' },
+  { match: h => h.endsWith('.taleo.net'),                           name: 'Taleo' },
+  { match: h => h.endsWith('.icims.com'),                           name: 'iCIMS' },
+  { match: h => h.endsWith('.bamboohr.com'),                        name: 'BambooHR' },
+  { match: h => h === 'jobs.smartrecruiters.com',                   name: 'SmartRecruiters' },
+]
+
+function getBlockedPlatform(url) {
+  try {
+    const { hostname } = new URL(url)
+    return EXTENSION_ONLY.find(e => e.match(hostname)) ?? null
+  } catch {
+    return null
+  }
+}
+
+function normalizeUrl(value) {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  try {
+    const parsed = new URL(trimmed)
+    if (!['http:', 'https:'].includes(parsed.protocol)) return null
+    return parsed.href
+  } catch {
+    return null
+  }
+}
+
 function parseUrls(text) {
-  return text.split('\n').map(u => u.trim()).filter(Boolean)
+  const seen = new Set()
+  const invalid = []
+  const urls = []
+
+  text
+    .split(/[\n,]+/)
+    .map(u => u.trim())
+    .filter(Boolean)
+    .forEach(value => {
+      const normalized = normalizeUrl(value)
+      if (!normalized) {
+        invalid.push(value)
+        return
+      }
+      if (!seen.has(normalized)) {
+        seen.add(normalized)
+        urls.push(normalized)
+      }
+    })
+
+  return { urls, invalid }
 }
 
 export default function BulkImportModal({ onClose }) {
@@ -15,7 +66,7 @@ export default function BulkImportModal({ onClose }) {
   const { importFromUrl } = useAI()
   const { addJob } = useJobMutations()
 
-  const urls = parseUrls(urlText)
+  const { urls, invalid } = parseUrls(urlText)
   const doneCount = items.filter(i => i.status === 'success' || i.status === 'error').length
   const successCount = items.filter(i => i.status === 'success').length
   const errorCount = items.filter(i => i.status === 'error').length
@@ -34,8 +85,20 @@ export default function BulkImportModal({ onClose }) {
     for (let i = 0; i < initial.length; i++) {
       setItemStatus(i, { status: 'loading' })
       try {
+        const blocked = getBlockedPlatform(initial[i].url)
+        if (blocked) throw new Error(`${blocked.name} requires login — use the browser extension instead`)
+
         const fields = await importFromUrl(initial[i].url)
-        if (fields.error) throw new Error('Could not parse this page')
+        if (fields.error) {
+          const msg =
+            fields.error === 'FETCH_FAILED' ? 'Could not fetch this page (blocked or requires login)' :
+            fields.error === 'PARSE_ERROR'  ? 'Page was fetched but could not be parsed' :
+            'Could not parse this page'
+          throw new Error(msg)
+        }
+        if (!fields.role) {
+          throw new Error('Page loaded but no job role found — try the extension instead')
+        }
 
         await addJob({
           company: fields.company || '',
@@ -45,6 +108,7 @@ export default function BulkImportModal({ onClose }) {
           salaryMin: fields.salaryMin || null,
           salaryMax: fields.salaryMax || null,
           jobDescription: fields.jobDescription || '',
+          keySkills: fields.keySkills || [],
           stage: 'saved',
         })
 
@@ -71,7 +135,7 @@ export default function BulkImportModal({ onClose }) {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">Bulk Import Jobs</h2>
-              <p className="text-xs text-slate-500">One URL per line — Claude extracts each job</p>
+              <p className="text-xs text-slate-500">Paste multiple job URLs; each valid URL is imported separately</p>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-100 transition-colors">
@@ -90,9 +154,12 @@ export default function BulkImportModal({ onClose }) {
                 className="bulk-textarea"
                 autoFocus
               />
-              {urls.length > 0 && (
+              {(urls.length > 0 || invalid.length > 0) && (
                 <p className="text-xs text-slate-500 mt-2">
-                  {urls.length} URL{urls.length !== 1 ? 's' : ''} detected
+                  {urls.length} valid URL{urls.length !== 1 ? 's' : ''} detected
+                  {invalid.length > 0 && (
+                    <span className="text-amber-400"> · {invalid.length} ignored</span>
+                  )}
                 </p>
               )}
             </div>

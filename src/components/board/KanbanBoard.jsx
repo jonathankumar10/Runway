@@ -7,7 +7,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { Plus, Zap } from 'lucide-react'
+import { ListPlus, Zap } from 'lucide-react'
 import { STAGES } from '../../constants/stages'
 import { useJobs } from '../../context/JobsContext'
 import { useJobMutations } from '../../hooks/useJobMutations'
@@ -57,25 +57,27 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
   return (
     <div className="flex flex-col flex-1 min-w-0 h-full">
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 px-4 sm:px-6 py-3 border-b border-slate-700 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-6 py-3 border-b border-slate-700 shrink-0">
         <p className="text-xs text-slate-300 shrink-0">
           {filteredJobs.length} application{filteredJobs.length !== 1 ? 's' : ''}
           {activeStage !== 'all' && <span className="text-slate-500"> · filtered</span>}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => setBulkOpen(true)}
-            className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2 sm:px-3 py-2 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors"
           >
-            <Zap size={13} />
+            <ListPlus size={13} />
+            <span className="sm:hidden">Bulk</span>
             <span className="hidden sm:inline">Bulk Import</span>
           </button>
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
+            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2 sm:px-3 py-2 sm:py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
           >
-            <Plus size={13} />
-            <span className="hidden sm:inline">Add Application</span>
+            <Zap size={13} />
+            <span className="sm:hidden">Single</span>
+            <span className="hidden sm:inline">Single Import</span>
           </button>
         </div>
       </div>
@@ -88,7 +90,7 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-3 px-6 py-4 h-full min-w-max">
+          <div className="flex gap-3 px-4 sm:px-6 py-4 h-full min-w-max">
             {STAGES.map(stage => (
               <KanbanColumn
                 key={stage.id}

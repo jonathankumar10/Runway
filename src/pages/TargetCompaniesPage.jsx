@@ -225,7 +225,7 @@ export default function TargetCompaniesPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="targets-topnav">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="targets-header-icon">
               <Target size={15} className="text-sky-400" />
@@ -239,7 +239,7 @@ export default function TargetCompaniesPage() {
           </div>
           <button
             onClick={() => setAddOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium rounded-lg transition-colors"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium rounded-lg transition-colors w-full sm:w-auto"
           >
             <Plus size={13} /> Add Company
           </button>
@@ -253,7 +253,7 @@ export default function TargetCompaniesPage() {
           <p className="text-xs font-medium text-slate-300 mb-2 flex items-center gap-1.5">
             <Sparkles size={11} className="text-sky-400" /> Update list with AI
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
@@ -278,8 +278,8 @@ export default function TargetCompaniesPage() {
         </div>
 
         {/* Filters + search */}
-        <div className="flex items-center gap-3 mb-4 flex-wrap">
-          <div className="flex items-center gap-1">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
             {STATUS_FILTERS.map(f => (
               <button
                 key={f.key}
@@ -301,7 +301,7 @@ export default function TargetCompaniesPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search companies…"
-            className="ml-auto bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 w-48"
+            className="lg:ml-auto bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 lg:py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 w-full lg:w-48"
           />
         </div>
 

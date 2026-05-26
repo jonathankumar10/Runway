@@ -2,6 +2,11 @@
 
 .stage-tabs {
   @apply flex items-center gap-1 px-4 sm:px-6 py-2 border-b border-slate-700 overflow-x-auto;
+  scrollbar-width: none;
+}
+
+.stage-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .stage-tab {

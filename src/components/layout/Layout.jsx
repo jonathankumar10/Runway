@@ -7,7 +7,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex w-full min-h-screen">
+    <div className="flex w-full min-h-svh min-w-0">
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-20 md:hidden"
@@ -18,7 +18,7 @@ export default function Layout() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="flex-1 overflow-hidden flex flex-col min-w-0">
-        <div className="flex items-center h-14 px-4 border-b border-slate-700 bg-slate-900 md:hidden shrink-0">
+        <div className="flex items-center h-14 px-4 border-b border-slate-700 bg-slate-900 md:hidden shrink-0 sticky top-0 z-10">
           <button
             onClick={() => setSidebarOpen(true)}
             className="text-slate-400 hover:text-white transition-colors p-1"

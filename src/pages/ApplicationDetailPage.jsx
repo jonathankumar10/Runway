@@ -406,16 +406,16 @@ export default function ApplicationDetailPage() {
       <div className="px-4 py-4 sm:px-6 sm:py-5 max-w-7xl mx-auto">
         <p className="text-xs text-slate-400 mb-4">WORKSPACE &rsaquo; {job.company?.toUpperCase()}</p>
 
-        <div className="flex items-start gap-4 mb-6">
+        <div className="flex items-start gap-3 sm:gap-4 mb-6">
           {job.logoUrl ? (
             <img src={job.logoUrl} alt="" className="detail-logo" onError={e => { e.target.style.display = 'none' }} />
           ) : (
             <div className="detail-logo-fallback">{job.company?.[0]?.toUpperCase() ?? '?'}</div>
           )}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
               <h1 className="text-2xl font-bold text-white leading-tight">{job.company || 'Untitled'}</h1>
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
                 {job.jobUrl && (
                   <a
                     href={job.jobUrl}
@@ -455,7 +455,7 @@ export default function ApplicationDetailPage() {
         </div>
 
         {/* Action cards */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div className="detail-action-card">
             <div className="flex items-center gap-2 mb-3">
               <div className="detail-action-icon-violet">
@@ -480,7 +480,7 @@ export default function ApplicationDetailPage() {
 
         </div>
 
-        <div className="grid grid-cols-[3fr_2fr] gap-6 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6 items-start">
           {/* Left column — analysis & content */}
           <div className="min-w-0 space-y-5">
 
@@ -507,7 +507,7 @@ export default function ApplicationDetailPage() {
               <Section title="Match Analysis" icon={Sparkles}>
                 {/* Strengths + Gaps */}
                 {(job.matchHighlights?.length > 0 || job.matchGaps?.length > 0) && (
-                  <div className="grid grid-cols-2 gap-6 mb-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-5">
                     {job.matchHighlights?.length > 0 && (
                       <div>
                         <p className="text-xs font-semibold text-green-400 uppercase tracking-wide mb-2">Strengths</p>
@@ -716,7 +716,7 @@ export default function ApplicationDetailPage() {
                   ))}
                   {addingRound && (
                     <div className="detail-round-form">
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <select value={newRound.type} onChange={e => setNewRound(r => ({ ...r, type: e.target.value }))} className="detail-form-select">
                           {ROUND_TYPES.map(t => <option key={t}>{t}</option>)}
                         </select>
@@ -727,7 +727,7 @@ export default function ApplicationDetailPage() {
                       </select>
                       <textarea value={newRound.notes} onChange={e => setNewRound(r => ({ ...r, notes: e.target.value }))}
                         placeholder="Notes (optional)" rows={2} className="detail-form-select w-full resize-none placeholder-slate-600" />
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <button onClick={handleAddRound} className="flex-1 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors">
                           Save Round
                         </button>
@@ -805,7 +805,7 @@ export default function ApplicationDetailPage() {
                         placeholder="LinkedIn URL"
                         className="detail-form-select w-full text-xs"
                       />
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <button onClick={handleSaveRecruiter} className="flex-1 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors">
                           Save
                         </button>
@@ -846,7 +846,7 @@ export default function ApplicationDetailPage() {
               )}
 
               <p className="text-xs text-slate-500 mb-2">Search by company domain</p>
-              <div className="flex gap-2 mb-2">
+              <div className="flex flex-col sm:flex-row gap-2 mb-2">
                 <input
                   type="text"
                   value={finderDomain}
@@ -858,7 +858,7 @@ export default function ApplicationDetailPage() {
                 <button
                   onClick={handleFindRecruiter}
                   disabled={finding || !finderDomain.trim()}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg transition-colors shrink-0"
+                  className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg transition-colors shrink-0"
                 >
                   {finding ? <Loader2 size={11} className="animate-spin" /> : <Search size={11} />}
                   {finding ? 'Searching…' : 'Search'}

@@ -6,7 +6,7 @@
 
 /* Top stats bar */
 .resume-stats-row {
-  @apply grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6;
+  @apply grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-6;
 }
 
 .resume-stat-card {
