@@ -152,13 +152,17 @@ export function createRunwayPanel({ getContext, actions }) {
     grid.className = 'runway-panel__grid'
     for (const action of [
       ['Autofill', actions.autofill, true],
+      ['Attach base', actions.attachBaseResume, false],
+      ['Attach tailored', actions.attachTailoredResume, false],
       ['Tailored text', () => actions.downloadResume('tailored'), false],
       ['Tailored HTML', () => actions.downloadResume('tailored', 'html'), false],
       ['Print PDF', actions.printResume, false],
       ['Base resume', () => actions.downloadResume('base'), false],
+      ['Generate CV', actions.generateCoverLetter, false],
+      ['Attach CV', actions.attachCoverLetter, false],
       ['Draft answer', actions.draftAnswer, false],
       ['Open Runway', actions.openRunway, false],
-    ]) {
+    ].filter(action => typeof action[1] === 'function')) {
       grid.appendChild(createActionButton(action[0], action[1], action[2]))
     }
     panel.appendChild(grid)

@@ -467,8 +467,24 @@ function safeFilePart(value) {
     .slice(0, 60) || 'runway-resume'
 }
 
+function safeUnderscoreFilePart(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 60) || 'company'
+}
+
+function tailoredResumePdfFilename(company) {
+  return `joanthan_pasupulety_${safeUnderscoreFilePart(company)}.pdf`
+}
+
 function downloadTextFile(filename, text) {
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+  downloadBlob(filename, blob)
+}
+
+function downloadBlob(filename, blob) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
@@ -530,16 +546,46 @@ function sectionsToHtml(sections) {
   </style></head><body>${chunks.join('\n')}</body></html>`
 }
 
+function sectionsToPlainText(sections = []) {
+  const lines = []
+  for (const section of sections) {
+    if (section.title) lines.push(section.title)
+    if (section.type === 'header') {
+      if (section.name) lines.push(section.name)
+      if (section.contact?.length) lines.push(section.contact.join(' | '))
+    }
+    if (section.type === 'summary') lines.push(...(section.bullets || []))
+    if (section.type === 'experience') {
+      for (const entry of section.entries || []) {
+        lines.push([entry.role, entry.company, entry.location, entry.dates].filter(Boolean).join(' | '))
+        lines.push(...(entry.bullets || []).map(item => `- ${item}`))
+      }
+    }
+    if (section.type === 'education') {
+      for (const entry of section.entries || []) {
+        lines.push([entry.degree, entry.school, entry.location, entry.dates].filter(Boolean).join(' | '))
+        lines.push(...(entry.details || []))
+      }
+    }
+    if (section.type === 'skills') {
+      for (const group of section.groups || []) {
+        lines.push([group.label, ...(group.items || [])].filter(Boolean).join(': '))
+      }
+    }
+    if (section.type === 'generic') {
+      for (const entry of section.entries || []) {
+        lines.push([entry.heading, entry.subheading].filter(Boolean).join(' | '))
+        lines.push(...(entry.bullets || []).map(item => `- ${item}`))
+      }
+    }
+    lines.push('')
+  }
+  return lines.join('\n').replace(/\*\*(.+?)\*\*/g, '$1').trim()
+}
+
 function downloadHtmlFile(filename, html) {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  downloadBlob(filename, blob)
 }
 
 function printHtmlDocument(html) {
@@ -582,6 +628,10 @@ async function loadApplyResources(force = false) {
     })
   }
   return applyResourcesPromise
+}
+
+function selectedTailoredResume(resources = applyResources) {
+  return resources?.tailoredResumes?.find(item => item.id === selectedApplicationId) || resources?.tailoredResumes?.[0] || null
 }
 
 function getQuestionField() {
@@ -675,6 +725,262 @@ async function downloadResume(kind, format = 'txt') {
     downloadTextFile(`${basename}.txt`, tailored.tailoredResumeText)
   }
   return `${tailored.company || 'Runway'} ${tailored.role || 'tailored resume'}`.trim()
+}
+
+function fileFromBase64(dataUrlOrBase64, filename, fallbackType = 'application/pdf') {
+  const [meta, payload] = String(dataUrlOrBase64 || '').includes(',')
+    ? String(dataUrlOrBase64).split(',', 2)
+    : ['', String(dataUrlOrBase64 || '')]
+  if (!payload) return null
+
+  const mime = meta.match(/data:([^;]+)/)?.[1] || fallbackType
+  const binary = atob(payload)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i)
+  return new File([bytes], filename, { type: mime })
+}
+
+function pdfFileFromText(filename, text) {
+  const blob = pdfBlobFromText(text)
+  return new File([blob], filename, { type: 'application/pdf' })
+}
+
+function pdfBlobFromText(text) {
+  const pageWidth = 612
+  const pageHeight = 792
+  const margin = 54
+  const fontSize = 10
+  const lineHeight = 13
+  const maxChars = 92
+  const lines = wrapPdfLines(cleanPdfText(text), maxChars)
+  const linesPerPage = Math.max(1, Math.floor((pageHeight - margin * 2) / lineHeight))
+  const pages = []
+  for (let i = 0; i < lines.length; i += linesPerPage) pages.push(lines.slice(i, i + linesPerPage))
+  if (!pages.length) pages.push([''])
+
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    `<< /Type /Pages /Kids [${pages.map((_, index) => `${3 + index * 2} 0 R`).join(' ')}] /Count ${pages.length} >>`,
+  ]
+
+  pages.forEach((pageLines, index) => {
+    const pageObj = 3 + index * 2
+    const contentObj = pageObj + 1
+    const content = [
+      'BT',
+      `/F1 ${fontSize} Tf`,
+      `${margin} ${pageHeight - margin} Td`,
+      `${lineHeight} TL`,
+      ...pageLines.map(line => `(${escapePdfString(line)}) Tj T*`),
+      'ET',
+    ].join('\n')
+
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents ${contentObj} 0 R >>`)
+    objects.push(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`)
+  })
+
+  let pdf = '%PDF-1.4\n'
+  const offsets = [0]
+  objects.forEach((object, index) => {
+    offsets.push(pdf.length)
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`
+  })
+  const xrefOffset = pdf.length
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
+  offsets.slice(1).forEach(offset => {
+    pdf += `${String(offset).padStart(10, '0')} 00000 n \n`
+  })
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`
+
+  return new Blob([pdf], { type: 'application/pdf' })
+}
+
+function cleanPdfText(text) {
+  return String(text || '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\r/g, '')
+    .split('')
+    .filter(char => {
+      const code = char.charCodeAt(0)
+      return code === 10 || code === 13 || (code >= 32 && code <= 126)
+    })
+    .join('')
+    .trim()
+}
+
+function wrapPdfLines(text, maxChars) {
+  const output = []
+  for (const paragraph of String(text || '').split('\n')) {
+    const words = paragraph.trim().split(/\s+/).filter(Boolean)
+    if (!words.length) {
+      output.push('')
+      continue
+    }
+    let line = ''
+    for (const word of words) {
+      const next = line ? `${line} ${word}` : word
+      if (next.length > maxChars && line) {
+        output.push(line)
+        line = word
+      } else {
+        line = next
+      }
+    }
+    if (line) output.push(line)
+  }
+  return output
+}
+
+function escapePdfString(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)')
+}
+
+function uploadFieldText(input) {
+  return cleanText([
+    input.id ? document.querySelector(`label[for="${CSS.escape(input.id)}"]`)?.textContent : '',
+    input.getAttribute('aria-label'),
+    input.getAttribute('name'),
+    input.id,
+    input.closest('label, div, section, form')?.innerText,
+  ].filter(Boolean).join(' ')).toLowerCase()
+}
+
+function fileAccepts(input, filename, mime) {
+  const accept = cleanText(input.accept).toLowerCase()
+  if (!accept) return true
+  const ext = `.${filename.split('.').pop().toLowerCase()}`
+  return accept.split(',').map(item => item.trim()).some(item =>
+    item === ext ||
+    item === mime.toLowerCase() ||
+    item === `${mime.split('/')[0]}/*`
+  )
+}
+
+function findFileInput(kind, file) {
+  const inputs = [...document.querySelectorAll('input[type="file"]')]
+    .filter(input => !input.disabled && fileAccepts(input, file.name, file.type))
+
+  if (!inputs.length) return null
+
+  const patterns = kind === 'cover'
+    ? [/cover\s*letter|letter|cv/]
+    : [/resume|cv|curriculum|upload/]
+
+  return inputs
+    .map(input => {
+      const text = uploadFieldText(input)
+      const score = patterns.some(pattern => pattern.test(text)) ? 20 : 0
+      return { input, score }
+    })
+    .sort((a, b) => b.score - a.score)[0]?.input || inputs[0]
+}
+
+function attachFileToInput(file, kind) {
+  if (!file) throw new Error('No file is ready yet.')
+  const input = findFileInput(kind, file)
+  if (!input) throw new Error(`Could not find a ${kind === 'cover' ? 'cover letter' : 'resume'} upload field that accepts this file.`)
+
+  const transfer = new DataTransfer()
+  transfer.items.add(file)
+  input.files = transfer.files
+  input.dispatchEvent(new Event('input', { bubbles: true }))
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  input.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  return input
+}
+
+async function attachBaseResume() {
+  const res = await loadApplyResources()
+  const resume = res.defaultResume
+  const file = fileFromBase64(resume?.pdfBase64, resume?.filename || `${safeFilePart(resume?.label)}.pdf`)
+  if (!file) throw new Error('No base resume PDF found. Upload a PDF on the Runway Resumes page first.')
+  attachFileToInput(file, 'resume')
+  return `Attached ${file.name}. Review before submitting.`
+}
+
+async function attachTailoredResume() {
+  const res = await loadApplyResources()
+  const tailored = selectedTailoredResume(res)
+  if (!tailored) throw new Error('Choose a prepared Runway application first.')
+
+  const text = tailored.tailoredResumeText || (tailored.tailoredResumeSections?.length ? sectionsToPlainText(tailored.tailoredResumeSections) : '')
+  const file = text ? pdfFileFromText(tailoredResumePdfFilename(tailored.company), text) : null
+  if (!file) throw new Error('No tailored resume is ready yet.')
+
+  try {
+    attachFileToInput(file, 'resume')
+    return `Attached ${file.name}. Review before submitting.`
+  } catch (err) {
+    downloadBlob(file.name, file)
+    throw new Error(`${err.message} Downloaded ${file.name} instead.`, { cause: err })
+  }
+}
+
+async function generateCoverLetter() {
+  if (!selectedApplicationId) throw new Error('Choose a Runway application first.')
+  const currentResources = await loadApplyResources()
+  try {
+    const res = await sendRuntimeMessage({ type: 'GENERATE_COVER_LETTER', applicationId: selectedApplicationId })
+    if (!res?.ok || !res.coverLetterText) throw new Error(res?.error || 'Could not generate cover letter.')
+    await loadApplyResources(true)
+    return 'Generated cover letter for this application.'
+  } catch (err) {
+    const tailored = selectedTailoredResume(currentResources)
+    const fallback = buildFallbackCoverLetter({
+      application: tailored,
+      resumeText: currentResources.defaultResume?.resumeText,
+    })
+    if (!fallback) throw new Error(err.message || 'Could not generate cover letter.', { cause: err })
+    applyResources = {
+      ...currentResources,
+      tailoredResumes: currentResources.tailoredResumes.map(item =>
+        item.id === selectedApplicationId ? { ...item, coverLetterText: fallback } : item
+      ),
+    }
+    return 'Generated a basic CV locally. Deploy the Firebase function for the AI version.'
+  }
+}
+
+function buildFallbackCoverLetter({ application, resumeText }) {
+  if (!application || !resumeText) return ''
+
+  const resumeLines = cleanText(resumeText, 1600)
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map(line => cleanText(line))
+    .filter(line => line.length > 40)
+    .slice(0, 4)
+
+  const company = application.company || 'your team'
+  const role = application.role || 'this role'
+  const skills = resumeLines.slice(0, 2).join(' ')
+
+  return [
+    `Dear Hiring Team,`,
+    `I am writing to express my interest in the ${role} position at ${company}. My background aligns with the role through hands-on experience reflected in my resume, and I am interested in contributing to the work your team is doing.`,
+    skills || `I bring practical experience across software engineering, delivery, and cross-functional problem solving, with a focus on building reliable systems and improving product outcomes.`,
+    `I would welcome the opportunity to discuss how my experience can support ${company}'s goals for this position. Thank you for your time and consideration.`,
+    `Sincerely,`,
+  ].join('\n\n')
+}
+
+async function attachCoverLetter() {
+  const res = await loadApplyResources()
+  let tailored = selectedTailoredResume(res)
+  if (!tailored?.coverLetterText) {
+    await generateCoverLetter()
+    tailored = selectedTailoredResume(await loadApplyResources(true))
+  }
+  if (!tailored?.coverLetterText) throw new Error('No cover letter is ready yet.')
+
+  const filename = `${safeFilePart(tailored.company)}-${safeFilePart(tailored.role)}-cover-letter.pdf`
+  const file = pdfFileFromText(filename, tailored.coverLetterText)
+  try {
+    attachFileToInput(file, 'cover')
+    return `Attached ${filename}. Review before submitting.`
+  } catch (err) {
+    downloadBlob(filename, file)
+    throw new Error(`${err.message} Downloaded ${filename} instead.`, { cause: err })
+  }
 }
 
 async function printTailoredResume() {
@@ -777,11 +1083,15 @@ function ensureRunwayPanel() {
         const count = await autofillApplication()
         return count ? `Filled ${count} field${count === 1 ? '' : 's'}.` : 'No empty matching fields found.'
       },
+      attachBaseResume,
+      attachTailoredResume,
       downloadResume: async (kind, format) => {
         const label = await downloadResume(kind, format)
         return `Downloaded ${label}. Upload it manually.`
       },
       printResume: printTailoredResume,
+      generateCoverLetter,
+      attachCoverLetter,
       draftAnswer: async () => {
         await draftApplicationAnswer()
         return 'Inserted a draft answer. Review before submitting.'

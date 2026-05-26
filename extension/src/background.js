@@ -202,9 +202,21 @@ async function callFunction(name, data) {
     body: JSON.stringify({ data }),
   })
 
-  const json = await res.json().catch(() => ({}))
+  const text = await res.text()
+  let json
+  try {
+    json = text ? JSON.parse(text) : {}
+  } catch {
+    json = {}
+  }
   if (!res.ok || json.error) {
-    throw new Error(json.error?.message || json.result?.error || `Function ${name} failed`)
+    const detail =
+      json.error?.message ||
+      json.result?.error ||
+      json.error?.status ||
+      text?.slice(0, 240) ||
+      `HTTP ${res.status}`
+    throw new Error(`Function ${name} failed: ${detail}`)
   }
   return json.result
 }
@@ -329,17 +341,51 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           defaultResume: defaultResume ? {
             id: defaultResume.id,
             label: defaultResume.label || 'Base resume',
+            filename: defaultResume.filename || `${defaultResume.label || 'base-resume'}.pdf`,
             resumeText: defaultResume.resumeText || '',
+            pdfBase64: defaultResume.pdfBase64 || '',
           } : null,
           tailoredResumes: tailoredCandidates.map(app => ({
             id: app.id,
             company: app.company || '',
             role: app.role || '',
+            jobDescription: app.jobDescription || '',
             tailoredResumeText: app.tailoredResumeText || '',
             tailoredResumeSections: app.tailoredResumeSections || [],
+            coverLetterText: app.coverLetterText || '',
+            coverLetterGeneratedAt: app.coverLetterGeneratedAt || '',
             score: app._score,
           })),
         })
+      } catch (err) {
+        sendResponse({ ok: false, error: err.message })
+      }
+    })
+    return true
+  }
+
+  if (msg.type === 'GENERATE_COVER_LETTER') {
+    chrome.storage.local.get(['firebaseUid'], async data => {
+      try {
+        if (!data.firebaseUid) {
+          sendResponse({ ok: false, error: 'Sign in to Runway first' })
+          return
+        }
+
+        if (!msg.applicationId) {
+          sendResponse({ ok: false, error: 'Choose a Runway application first' })
+          return
+        }
+
+        const result = await callFunction('generateCoverLetter', {
+          applicationId: msg.applicationId,
+        })
+
+        if (result?.error) {
+          sendResponse({ ok: false, error: result.error })
+          return
+        }
+        sendResponse({ ok: true, coverLetterText: result.coverLetterText || '' })
       } catch (err) {
         sendResponse({ ok: false, error: err.message })
       }

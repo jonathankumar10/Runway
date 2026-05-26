@@ -633,6 +633,70 @@ ${resumeText.slice(0, 8000)}`,
   }
 })
 
+// ── generateCoverLetter ─────────────────────────────────────────────────────
+exports.generateCoverLetter = onCall({
+  secrets: [ANTHROPIC_API_KEY],
+  cors: true,
+  timeoutSeconds: 90,
+}, async (request) => {
+  const uid = request.auth?.uid
+  const applicationId = request.data?.applicationId
+  if (!uid) return { error: 'UNAUTHENTICATED' }
+  if (!applicationId || typeof applicationId !== 'string') return { error: 'INVALID_INPUT' }
+
+  const appRef = db.doc(`users/${uid}/applications/${applicationId}`)
+  const appSnap = await appRef.get()
+  if (!appSnap.exists) return { error: 'NOT_FOUND' }
+
+  const app = appSnap.data()
+  if (!app.role && !app.company) return { error: 'MISSING_APPLICATION_CONTEXT' }
+
+  try {
+    const { resumeText } = await getDefaultResume(uid)
+    if (!resumeText) return { error: 'NO_DEFAULT_RESUME' }
+
+    const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 900,
+      system: `Write a concise, credible job application cover letter.
+Rules:
+- Use only facts supported by the resume and job context.
+- Do not fabricate experience, credentials, metrics, employers, work authorization, or personal details.
+- 3 to 5 short paragraphs.
+- Professional and direct, not generic.
+- Mention the company and role when available.
+- Do not use em dashes.
+- Return ONLY valid JSON: {"coverLetterText":"..."}`,
+      messages: [{
+        role: 'user',
+        content: `COMPANY: ${app.company || 'Unknown'}
+ROLE: ${app.role || 'Unknown'}
+JOB DESCRIPTION:
+${(app.jobDescription || app.notes || '').slice(0, 6000)}
+
+RESUME:
+${resumeText.slice(0, 10000)}`,
+      }],
+    })
+
+    const json = parseJsonObject(response.content[0].text)
+    const coverLetterText = String(json.coverLetterText || '').trim()
+    if (!coverLetterText) return { error: 'EMPTY_COVER_LETTER' }
+
+    await appRef.set({
+      coverLetterText,
+      coverLetterGeneratedAt: new Date().toISOString(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true })
+
+    return { ok: true, coverLetterText }
+  } catch (err) {
+    console.error('generateCoverLetter error:', err)
+    return { error: 'GENERATION_ERROR' }
+  }
+})
+
 // ── parseResumeStructure ──────────────────────────────────────────────────────
 exports.parseResumeStructure = onCall({ secrets: [ANTHROPIC_API_KEY], cors: true, timeoutSeconds: 60 }, async (request) => {
   const { resumeText } = request.data

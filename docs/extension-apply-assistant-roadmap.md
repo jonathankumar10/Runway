@@ -63,7 +63,7 @@ Current implementation:
 
 ## Phase 2: Apply Assistant Panel
 
-Status: MVP implementation complete.
+Status: MVP implementation in progress.
 
 On supported ATS application pages, the extension should show a top-right Runway assistant panel with:
 
@@ -153,25 +153,34 @@ The extension should provide the tailored resume in a user-controlled way.
 
 Supported actions:
 
-- download tailored resume as PDF
+- attach base resume PDF to compatible file inputs
+- attempt to attach tailored resume as generated HTML/text
+- generate a cover letter/CV for the selected application
+- attach the generated cover letter/CV as text to compatible file inputs
+- download tailored resume text/HTML
 - open tailored resume in Runway
 - copy plain resume text
 - show upload guidance near file inputs
 
-Silent file upload is not a reliable MVP target. Most ATS file inputs require a user-selected local file and should remain user-controlled.
+Fully silent file upload is not a reliable target. Standard file inputs can be populated by the extension with a user action, but some ATS custom upload widgets reject generated files or require a picker-backed local file. In those cases Runway falls back to downloading the file and guiding the user.
 
 Current implementation:
 
 - The apply assistant fetches base resume and ready tailored resume candidates.
-- The user can choose `Download tailored resume` or `Download base resume`.
+- The user can choose `Attach base`, `Attach tailored`, `Generate CV`, `Attach CV`, `Download tailored resume`, or `Download base resume`.
+- Base resume attachment uses the stored default resume PDF.
+- Tailored resume attachment currently uses generated HTML/text because a tailored PDF artifact is not stored yet.
+- Cover letter/CV generation stores `coverLetterText` on the selected application.
 - Resume downloads include tailored text, tailored HTML, and base text from the extension panel.
 - Tailored HTML can be opened by the user and printed/saved as PDF from the browser.
-- The user manually uploads the resume to the ATS file input.
+- When direct attachment fails, the user manually uploads the downloaded file to the ATS file input.
 - File inputs get a small Runway note reminding the user to upload the downloaded resume manually.
 
 Remaining work:
 
 - Generate/download direct PDF or DOCX instead of browser-printable HTML.
+- Store a tailored PDF artifact so `Attach tailored` can upload PDF instead of HTML/text.
+- Store a cover letter PDF artifact so `Attach CV` can upload PDF instead of text.
 
 Application matching update:
 
