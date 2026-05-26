@@ -349,7 +349,10 @@ let runwayPanel = null
 
 function detectApplicationForm() {
   const fields = getAutofillFields()
-  return fields.length >= 3 || Boolean(document.querySelector('input[type="file"], select'))
+  const pageText = cleanText(document.body.innerText, 4000).toLowerCase()
+  const hasApplicationCopy = /resume|cover letter|first name|last name|email|phone|application|submit/i.test(pageText)
+  const hasFormContainer = Boolean(document.querySelector('form, [role="form"], input[type="file"]'))
+  return Boolean(document.querySelector('input[type="file"]')) || (fields.length >= 3 && hasFormContainer && hasApplicationCopy)
 }
 
 function getAutofillFields() {
