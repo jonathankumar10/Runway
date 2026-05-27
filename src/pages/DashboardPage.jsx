@@ -1,6 +1,6 @@
 import { Send, Users, Trophy, MailOpen } from 'lucide-react'
-import { useJobs } from '../context/JobsContext'
-import { useAuth } from '../context/AuthContext'
+import { useJobs } from '../context/useJobs'
+import { useAuth } from '../context/useAuth'
 import PipelineFunnel from '../components/dashboard/PipelineFunnel'
 import WeeklyChart from '../components/dashboard/WeeklyChart'
 import InterviewCountdown from '../components/dashboard/InterviewCountdown'

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   collection, onSnapshot, orderBy, query, addDoc, updateDoc, deleteDoc,
@@ -11,8 +11,8 @@ import {
   ClipboardCheck, Paperclip, LayoutList, LayoutGrid,
 } from 'lucide-react'
 import { db, auth } from '../lib/firebase'
-import { useAuth } from '../context/AuthContext'
-import { useJobs } from '../context/JobsContext'
+import { useAuth } from '../context/useAuth'
+import { useJobs } from '../context/useJobs'
 import { useAI } from '../hooks/useAI'
 import {
   buildEmailSubject, buildEmailBody, buildFollowUpSubject,
@@ -48,7 +48,7 @@ export default function OutreachPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [view, setView] = useState('cards') // 'cards' | 'table'
-  const [addOpen, setAddOpen] = useState(false)
+  const [addOpen, setAddOpen] = useState(() => Boolean(searchParams.get('domain')))
   const [defaultResume, setDefaultResume] = useState(null)
   const gmailTokenRef = useRef(null) // { accessToken, expiresAt }
   const [selectedIds, setSelectedIds] = useState(new Set())
@@ -81,12 +81,9 @@ export default function OutreachPage() {
 
   // Auto-open add modal when navigated from Target Companies page
   useEffect(() => {
-    if (prefillDomain) {
-      setAddOpen(true)
-      // Clear params so browser back doesn't re-open
-      setSearchParams({}, { replace: true })
-    }
-  }, [])
+    if (!prefillDomain) return
+    setSearchParams({}, { replace: true })
+  }, [prefillDomain, setSearchParams])
 
   async function getGmailToken() {
     const tok = gmailTokenRef.current
@@ -202,7 +199,7 @@ export default function OutreachPage() {
   const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(sorted, PAGE_SIZE)
 
   // Jump back to page 1 whenever the user switches filter or view
-  useEffect(() => { goToPage(1) }, [filter, view])
+  useEffect(() => { goToPage(1) }, [filter, goToPage, view])
 
   const counts = {
     all: records.length,
@@ -350,7 +347,6 @@ export default function OutreachPage() {
                   record={record}
                   userId={user.uid}
                   defaultResume={defaultResume}
-                  gmailTokenRef={gmailTokenRef}
                   onNeedGmailToken={getGmailToken}
                   isSelected={selectedIds.has(record.id)}
                   onToggleSelect={toggleSelectRecord}
@@ -569,7 +565,7 @@ function buildGmailRaw({ to, subject, body, pdfBase64 = null, pdfFilename = null
   return btoa(mime).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-function OutreachCard({ record, userId, defaultResume, gmailTokenRef, onNeedGmailToken, isSelected, onToggleSelect }) {
+function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelected, onToggleSelect }) {
   const [expanded, setExpanded] = useState(false)
   const [emailBody, setEmailBody] = useState(record.emailBody ?? '')
   const [copiedLinkedIn, setCopiedLinkedIn] = useState(false)
@@ -945,7 +941,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
   const [searchResults, setSearchResults] = useState(null)
   const [searchError, setSearchError] = useState(null)
   const [fromCache, setFromCache] = useState(false)
-  const [domainCached, setDomainCached] = useState(false)
+  const [domainCacheState, setDomainCacheState] = useState({ domain: '', cached: false })
   const [selected, setSelected] = useState(new Set())
   const [company, setCompany] = useState(initialCompany)
   const [role, setRole] = useState('')
@@ -963,32 +959,23 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
   const linkedJob = selectedJob
     ? { role: selectedJob.role, company: selectedJob.company, jobUrl: selectedJob.jobUrl ?? null }
     : fetchedJob
+  const normalizedDomain = domain.trim()
+    .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').toLowerCase()
+  const domainCached = domainCacheState.domain === normalizedDomain && domainCacheState.cached
 
-  useEffect(() => {
-    if (!selectedJob) return
-    setCompany(selectedJob.company || '')
-    setRole(selectedJob.role || '')
-    if (selectedJob.jobUrl) {
-      try {
-        const hostname = new URL(selectedJob.jobUrl).hostname.replace(/^www\./, '')
-        setDomain(hostname)
-        setSearchResults(null)
-        setSearchError(null)
-      } catch {}
-    }
-  }, [selectedJobId])
+  function applyLinkedJob(job) {
+    setCompany(job.company || '')
+    setRole(job.role || '')
 
-  useEffect(() => {
-    if (!fetchedJob) return
-    setCompany(fetchedJob.company || '')
-    setRole(fetchedJob.role || '')
     try {
-      const hostname = new URL(fetchedJob.jobUrl).hostname.replace(/^www\./, '')
+      const hostname = new URL(job.jobUrl).hostname.replace(/^www\./, '')
       setDomain(hostname)
       setSearchResults(null)
       setSearchError(null)
-    } catch {}
-  }, [fetchedJob])
+    } catch {
+      setDomain('')
+    }
+  }
 
   async function handleFetchJobUrl() {
     if (!jobPostingUrl.trim()) return
@@ -999,7 +986,9 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
       const result = await importFromUrl(jobPostingUrl.trim())
       if (result.error) throw new Error('Could not parse the job posting. Try pasting the URL again.')
       if (!result.role) throw new Error('No role title found on that page.')
-      setFetchedJob({ role: result.role, company: result.company, jobUrl: jobPostingUrl.trim() })
+      const importedJob = { role: result.role, company: result.company, jobUrl: jobPostingUrl.trim() }
+      setFetchedJob(importedJob)
+      applyLinkedJob(importedJob)
     } catch (err) {
       setFetchJobError(err.message)
     } finally {
@@ -1014,22 +1003,25 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
     if (mode === 'none') { setCompany(initialCompany); setRole(''); }
   }
 
+  function handleBoardJobChange(jobId) {
+    setSelectedJobId(jobId)
+    const nextJob = jobs.find(job => job.id === jobId)
+    if (nextJob) applyLinkedJob(nextJob)
+  }
+
   // Check Firestore cache whenever domain input changes (debounced)
   useEffect(() => {
-    setDomainCached(false)
     if (!domain.trim()) return
-    const normalized = domain.trim()
-      .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').toLowerCase()
-    if (!normalized) return
+    if (!normalizedDomain) return
     const t = setTimeout(async () => {
-      const snap = await getDoc(doc(db, 'users', userId, 'recruiterCache', normalized))
+      const snap = await getDoc(doc(db, 'users', userId, 'recruiterCache', normalizedDomain))
       if (snap.exists()) {
         const age = Date.now() - snap.data().cachedAt.toMillis()
-        setDomainCached(age < 30 * 24 * 60 * 60 * 1000)
+        setDomainCacheState({ domain: normalizedDomain, cached: age < 30 * 24 * 60 * 60 * 1000 })
       }
     }, 400)
     return () => clearTimeout(t)
-  }, [domain, userId])
+  }, [domain, normalizedDomain, userId])
 
   const [manual, setManual] = useState({ name: '', email: '', title: '', linkedin: '', company: '', role: '' })
 
@@ -1209,7 +1201,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
             {jobLinkMode === 'board' && (
               <select
                 value={selectedJobId}
-                onChange={e => setSelectedJobId(e.target.value)}
+                onChange={e => handleBoardJobChange(e.target.value)}
                 className="outreach-form-input"
               >
                 <option value="">— Pick a job —</option>

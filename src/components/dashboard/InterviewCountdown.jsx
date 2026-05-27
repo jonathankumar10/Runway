@@ -1,8 +1,9 @@
 import { Calendar } from 'lucide-react'
-import { useJobs } from '../../context/JobsContext'
+import { useJobs } from '../../context/useJobs'
+import { useNow } from '../../hooks/useNow'
 
-function formatCountdown(date) {
-  const diff = date - Date.now()
+function formatCountdown(date, now) {
+  const diff = date - now
   const hours = Math.floor(diff / 3600000)
   if (hours < 0) return null
   if (hours < 24) return `In ${hours}h`
@@ -12,7 +13,7 @@ function formatCountdown(date) {
 
 export default function InterviewCountdown() {
   const { jobs } = useJobs()
-  const now = Date.now()
+  const now = useNow()
 
   const upcoming = jobs
     .flatMap(j =>
@@ -43,7 +44,7 @@ export default function InterviewCountdown() {
       ) : (
         <ul className="space-y-3">
           {upcoming.map(({ job, date }, i) => {
-            const countdown = formatCountdown(date)
+            const countdown = formatCountdown(date, now)
             return (
               <li key={i} className="flex items-center justify-between gap-2">
                 <div className="min-w-0">

@@ -1,19 +1,26 @@
-import { useJobs } from '../../context/JobsContext'
+import { useJobs } from '../../context/useJobs'
+import { useNow } from '../../hooks/useNow'
 import './BoardStats.css'
+
+const ACTIVE_STAGES = new Set(['applied', 'phoneScreen', 'technicalInterview', 'finalRound', 'offer'])
+const INTERVIEW_STAGES = new Set(['phoneScreen', 'technicalInterview', 'finalRound'])
+const STALE_APPLICATION_MS = 7 * 86_400_000
 
 export default function BoardStats() {
   const { jobs } = useJobs()
+  const now = useNow()
 
-  const active = jobs.filter(j => !['saved', 'rejected', 'withdrawn', 'accepted'].includes(j.stage)).length
-  const interviews = jobs.filter(j => ['phoneScreen', 'technicalInterview', 'finalRound'].includes(j.stage)).length
-  const nextActions = jobs.filter(j => {
-    if (j.stage !== 'applied') return false
-    const ms = j.lastStatusChange?.toMillis?.() ?? j.createdAt?.toMillis?.() ?? 0
-    return Date.now() - ms > 7 * 86400000
+  const active = jobs.filter(job => ACTIVE_STAGES.has(job.stage)).length
+  const interviews = jobs.filter(job => INTERVIEW_STAGES.has(job.stage)).length
+  const nextActions = jobs.filter(job => {
+    if (job.stage !== 'applied') return false
+
+    const statusChangedAt = job.lastStatusChange?.toMillis?.() ?? job.createdAt?.toMillis?.() ?? 0
+    return now - statusChangedAt > STALE_APPLICATION_MS
   }).length
-  const scored = jobs.filter(j => j.matchScore != null)
+  const scored = jobs.filter(job => job.matchScore != null)
   const avgMatch = scored.length
-    ? Math.round(scored.reduce((s, j) => s + j.matchScore, 0) / scored.length)
+    ? Math.round(scored.reduce((sum, job) => sum + job.matchScore, 0) / scored.length)
     : null
 
   const stats = [

@@ -6,7 +6,7 @@ import {
   Palette, Trash2, AlertTriangle, BellOff,
 } from 'lucide-react'
 import { db, auth } from '../lib/firebase'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { useNotifications } from '../hooks/useNotifications'
 import './ProfilePage.css'
 

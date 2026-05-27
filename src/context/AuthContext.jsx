@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   onAuthStateChanged,
   signInWithPopup,
@@ -8,14 +8,7 @@ import {
   sendEmailVerification,
 } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
-
-export function isAuthedAndVerified(user) {
-  if (!user) return false
-  const isEmailUser = user.providerData?.some(p => p.providerId === 'password')
-  return !isEmailUser || user.emailVerified
-}
-
-const AuthContext = createContext(null)
+import { AuthContext } from './authContext'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined)
@@ -75,8 +68,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  return useContext(AuthContext)
 }

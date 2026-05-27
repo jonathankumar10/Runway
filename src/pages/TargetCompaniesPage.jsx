@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   collection, onSnapshot, orderBy, query, addDoc, updateDoc, deleteDoc,
@@ -7,10 +7,10 @@ import {
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import {
   Target, Plus, Trash2, ExternalLink, Search, Loader2, Sparkles,
-  X, CheckCircle2, ChevronDown, ChevronUp, RefreshCw,
+  X,
 } from 'lucide-react'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import app from '../lib/firebase'
 import { usePagination } from '../hooks/usePagination'
 import Pagination from '../components/ui/Pagination'
@@ -66,6 +66,7 @@ export default function TargetCompaniesPage() {
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [seeding, setSeeding] = useState(false)
+  const seedingRef = useRef(false)
   const [cachedDomains, setCachedDomains] = useState(new Set())
   const [outreachByCompany, setOutreachByCompany] = useState(new Map())
   const [prompt, setPrompt] = useState('')
@@ -86,7 +87,8 @@ export default function TargetCompaniesPage() {
       setLoading(false)
 
       // Auto-seed if collection is empty
-      if (docs.length === 0 && !seeding) {
+      if (docs.length === 0 && !seedingRef.current) {
+        seedingRef.current = true
         setSeeding(true)
         const batch = writeBatch(db)
         for (const c of SEED_COMPANIES) {
@@ -95,6 +97,7 @@ export default function TargetCompaniesPage() {
         }
         await batch.commit()
         setSeeding(false)
+        seedingRef.current = false
       }
     })
   }, [user?.uid])
@@ -157,7 +160,7 @@ export default function TargetCompaniesPage() {
   const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(sorted, PAGE_SIZE)
 
   // Jump back to page 1 whenever the user changes filter or search
-  useEffect(() => { goToPage(1) }, [filter, search])
+  useEffect(() => { goToPage(1) }, [filter, goToPage, search])
 
   async function handlePrompt() {
     if (!prompt.trim()) return

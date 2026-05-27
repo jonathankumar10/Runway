@@ -3,7 +3,7 @@ import {
   collection, doc, serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 export function useJobMutations() {
   const { user } = useAuth()

@@ -1,7 +1,7 @@
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { doc, getDoc, getDocs, collection, query, where, limit } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import app from '../lib/firebase'
 
 const functions = getFunctions(app)

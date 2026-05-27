@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { collection, onSnapshot } from 'firebase/firestore'
 import { Target } from 'lucide-react'
 import { db } from '../../lib/firebase'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 
 const STATUS_CONFIG = [
   { key: 'contacted', label: 'Contacted',    color: 'bg-green-500' },

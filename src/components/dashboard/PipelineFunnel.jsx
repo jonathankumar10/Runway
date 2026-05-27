@@ -1,5 +1,5 @@
 import { STAGES } from '../../constants/stages'
-import { useJobs } from '../../context/JobsContext'
+import { useJobs } from '../../context/useJobs'
 
 export default function PipelineFunnel() {
   const { jobs } = useJobs()

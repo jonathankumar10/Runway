@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { useAuth, isAuthedAndVerified } from './context/AuthContext'
+import { useAuth } from './context/useAuth'
+import { isAuthedAndVerified } from './context/authUtils'
 import Layout from './components/layout/Layout'
 import LoginPage from './pages/LoginPage'
 import LandingPage from './pages/LandingPage'

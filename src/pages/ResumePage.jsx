@@ -3,8 +3,8 @@ import { Upload, FileText, Star, Trash2, Download, Eye, Loader2, Check, Pencil, 
 import { collection, doc, getDocs, getDoc, addDoc, deleteDoc, updateDoc, writeBatch } from 'firebase/firestore'
 import * as pdfjs from 'pdfjs-dist'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/AuthContext'
-import { useJobs } from '../context/JobsContext'
+import { useAuth } from '../context/useAuth'
+import { useJobs } from '../context/useJobs'
 import { useAI } from '../hooks/useAI'
 import './ResumePage.css'
 
@@ -215,15 +215,13 @@ export default function ResumePage() {
   async function handleFile(file) {
     if (!file || file.type !== 'application/pdf') { alert('Please upload a PDF file.'); return }
     setUploading(true)
-    let savedId = null
-    let savedText = null
+    let uploadedResume
     try {
       const [resumeText, pdfBase64, styleMap] = await Promise.all([
         extractPDFText(file),
         fileToBase64(file),
         extractStyleMap(file),
       ])
-      savedText = resumeText
       const isFirst = resumes.length === 0
       const data = {
         filename: file.name,
@@ -236,8 +234,8 @@ export default function ResumePage() {
         ...(styleMap ? { styleMap } : {}),
       }
       const newRef = await addDoc(collection(db, 'users', user.uid, 'resumes'), data)
-      savedId = newRef.id
       const newResume = { id: newRef.id, ...data }
+      uploadedResume = { id: newRef.id, text: resumeText }
       setResumes(prev => [newResume, ...prev])
       setSelectedId(newResume.id)
     } catch (err) {
@@ -246,8 +244,8 @@ export default function ResumePage() {
     } finally {
       setUploading(false)
     }
-    if (savedId && savedText) {
-      await handleParseStructure(savedId, savedText)
+    if (uploadedResume) {
+      await handleParseStructure(uploadedResume.id, uploadedResume.text)
     }
   }
 

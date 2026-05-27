@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { collection, doc, onSnapshot, orderBy, query, setDoc, serverTimestamp, where } from 'firebase/firestore'
+import { collection, doc, onSnapshot, orderBy, query, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db, getMessagingInstance, getToken, onMessage } from '../lib/firebase'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 const VAPID_KEY = import.meta.env.VITE_VAPID_KEY
 

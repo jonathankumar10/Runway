@@ -1,44 +1,48 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import { useAuth } from './AuthContext'
+import { useAuth } from './useAuth'
 import { STAGES } from '../constants/stages'
+import { JobsContext } from './jobsContext'
 
-const VALID_STAGES = new Set(STAGES.map(s => s.id))
+const VALID_STAGES = new Set(STAGES.map(stage => stage.id))
+const EMPTY_JOBS_STATE = { userId: null, jobs: [], loading: false }
 
-const JobsContext = createContext(null)
+function normalizeJob(docSnapshot) {
+  return { id: docSnapshot.id, ...docSnapshot.data() }
+}
 
 export function JobsProvider({ children }) {
   const { user } = useAuth() ?? {}
-  const [jobs, setJobs] = useState([])
-  const [loading, setLoading] = useState(true)
+  const userId = user?.uid ?? null
+  const [jobsState, setJobsState] = useState(EMPTY_JOBS_STATE)
 
   useEffect(() => {
-    if (!user?.uid) {
-      setJobs([])
-      setLoading(false)
-      return
-    }
+    if (!userId) return
 
-    setLoading(true)
-    const q = query(
-      collection(db, 'users', user.uid, 'applications'),
+    const applicationsQuery = query(
+      collection(db, 'users', userId, 'applications'),
       orderBy('createdAt', 'desc')
     )
 
-    return onSnapshot(q, (snap) => {
-      setJobs(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(j => VALID_STAGES.has(j.stage)))
-      setLoading(false)
+    return onSnapshot(applicationsQuery, (snapshot) => {
+      const jobs = snapshot.docs
+        .map(normalizeJob)
+        .filter(job => VALID_STAGES.has(job.stage))
+
+      setJobsState({ userId, jobs, loading: false })
     })
-  }, [user?.uid])
+  }, [userId])
+
+  const value = useMemo(() => {
+    if (!userId) return EMPTY_JOBS_STATE
+    if (jobsState.userId !== userId) return { userId, jobs: [], loading: true }
+    return jobsState
+  }, [jobsState, userId])
 
   return (
-    <JobsContext.Provider value={{ jobs, loading }}>
+    <JobsContext.Provider value={value}>
       {children}
     </JobsContext.Provider>
   )
-}
-
-export function useJobs() {
-  return useContext(JobsContext)
 }

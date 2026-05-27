@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react'
-import { useJobs } from '../../context/JobsContext'
+import { useJobs } from '../../context/useJobs'
 import { STAGE_MAP } from '../../constants/stages'
 
 function getNextMove(job) {

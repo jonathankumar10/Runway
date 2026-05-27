@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { X, Upload, FileText, Check } from 'lucide-react'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import './ResumeModal.css'
 
 export default function ResumeModal({ onClose }) {

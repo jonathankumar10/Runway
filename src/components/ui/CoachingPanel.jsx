@@ -16,23 +16,33 @@ const STAGE_LABELS = {
 }
 
 export default function CoachingPanel({ job }) {
-  const [tips, setTips] = useState(null)
-  const [loadingTips, setLoadingTips] = useState(false)
+  const [tipsState, setTipsState] = useState({ key: null, tips: null })
   const [followUp, setFollowUp] = useState(null)
   const [loadingFollowUp, setLoadingFollowUp] = useState(false)
   const [showFollowUp, setShowFollowUp] = useState(false)
   const { getCoaching, draftFollowUp } = useAI()
 
   const label = STAGE_LABELS[job.stage]
+  const coachingKey = `${job.stage}:${job.company}:${job.role}`
+  const tips = tipsState.key === coachingKey ? tipsState.tips : null
+  const loadingTips = label && tips === null
 
   useEffect(() => {
-    if (!label || tips) return
-    setLoadingTips(true)
+    if (!label || tips !== null) return undefined
+
+    let ignore = false
     getCoaching(job.stage, job.company, job.role)
-      .then(data => setTips(data?.tips ?? []))
-      .catch(() => setTips([]))
-      .finally(() => setLoadingTips(false))
-  }, [job.stage, job.company, job.role])
+      .then(data => {
+        if (!ignore) setTipsState({ key: coachingKey, tips: data?.tips ?? [] })
+      })
+      .catch(() => {
+        if (!ignore) setTipsState({ key: coachingKey, tips: [] })
+      })
+
+    return () => {
+      ignore = true
+    }
+  }, [coachingKey, getCoaching, job.company, job.role, job.stage, label, tips])
 
   async function handleDraftFollowUp() {
     if (followUp) { setShowFollowUp(true); return }

@@ -6,7 +6,6 @@ const os   = require('os')
 const path = require('path')
 
 const PROJECT_ID = 'runway-jonathanpasupulety'
-const API_KEY    = 'AIzaSyAZu4Aqj6K16VuMrmNAcQ-rzFvOBIihXh4'
 const USER_EMAIL = 'jonathanpasupulety@gmail.com'
 
 // Read cached tokens from firebase-tools
@@ -102,15 +101,6 @@ const RECRUITERS = [
 // ── Firestore REST helpers ────────────────────────────────────────────────────
 
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`
-
-async function firestoreGet(path) {
-  const res = await fetch(`${BASE}/${path}`, {
-    headers: { Authorization: `Bearer ${tokens.access_token}` },
-  })
-  if (res.status === 404) return null
-  if (!res.ok) throw new Error(`GET ${path}: ${res.status} ${await res.text()}`)
-  return res.json()
-}
 
 async function firestoreList(path) {
   const docs = []

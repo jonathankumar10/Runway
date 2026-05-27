@@ -30,7 +30,7 @@ function toTitleCase(str) {
   return trimmed.replace(/\S+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
 }
 
-export function sectionsToHtml(sections) {
+function sectionsToHtml(sections) {
   if (!Array.isArray(sections) || !sections.length) return ''
   let html = ''
 
@@ -149,9 +149,9 @@ const isHeader = line =>
   !/^\d/.test(line) &&
   !/[|@]/.test(line)
 
-const isBullet = line => /^[\-•]\s/.test(line)
+const isBullet = line => /^[-•]\s/.test(line)
 
-export function parseResumeToHtml(text) {
+function parseResumeToHtml(text) {
   if (!text) return ''
   const lines = text.split('\n')
   let html = ''
@@ -177,7 +177,7 @@ export function parseResumeToHtml(text) {
 
     if (isBullet(line)) {
       if (!inList) { html += '<ul class="rp-list">'; inList = true }
-      html += `<li>${renderBold(line.replace(/^[\-•]\s/, ''))}</li>`
+      html += `<li>${renderBold(line.replace(/^[-•]\s/, ''))}</li>`
       continue
     }
 
@@ -582,18 +582,18 @@ export default function TailoredResumeModal({
     rewrittenSummary?.length
   )
 
-  const startHtml = (() => {
+  const startHtml = useMemo(() => {
     if (initialSections?.length) return sectionsToHtml(initialSections)
     if (initialHtml) return initialHtml
     return parseResumeToHtml(initialText || '')
-  })()
+  }, [initialHtml, initialSections, initialText])
 
   // Mount: populate paper with initial HTML
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.innerHTML = startHtml
     }
-  }, [])
+  }, [startHtml])
 
   // Reactive: rebuild paper when sections change (skip the initial fire on mount)
   useEffect(() => {
@@ -610,7 +610,11 @@ export default function TailoredResumeModal({
     const html = editorRef.current.innerHTML
     const text = editorRef.current.innerText
     // Strip runtime _id field before saving; keep _visible so hidden sections stay hidden on reopen
-    const cleanSections = sections.map(({ _id, ...rest }) => rest)
+    const cleanSections = sections.map(section => {
+      const cleanSection = { ...section }
+      delete cleanSection._id
+      return cleanSection
+    })
     setSaving(true)
     Promise.resolve(onSave(html, text, cleanSections, templateId, styleOverrides)).finally(() => {
       setSaving(false)
@@ -658,7 +662,7 @@ export default function TailoredResumeModal({
 <style>${buildPrintCss(activeVars)}</style>
 </head>
 <body>${html}</body>
-<script>${autoFitScript}<\/script>
+<script>${autoFitScript}</script>
 </html>`
 
     const win = window.open('', '_blank')

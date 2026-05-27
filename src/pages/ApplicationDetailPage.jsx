@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { doc, updateDoc, getDoc, getDocs, collection, query, where } from 'firebase/firestore'
 import {
@@ -8,10 +8,11 @@ import {
   Mail, Calendar, Wand2, Eye, Copy, ClipboardCheck, Check, TrendingUp,
 } from 'lucide-react'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/AuthContext'
-import { useJobs } from '../context/JobsContext'
+import { useAuth } from '../context/useAuth'
+import { useJobs } from '../context/useJobs'
 import { useAI } from '../hooks/useAI'
 import { useJobMutations } from '../hooks/useJobMutations'
+import { useNow } from '../hooks/useNow'
 import { STAGE_MAP } from '../constants/stages'
 import ApplicationModal from '../components/modals/ApplicationModal'
 import TailoredResumeModal from '../components/modals/TailoredResumeModal'
@@ -19,6 +20,16 @@ import './ApplicationDetailPage.css'
 
 const ROUND_TYPES = ['Phone Screen', 'Technical Interview', 'System Design', 'Behavioral', 'Final Round', 'Other']
 const ROUND_RESULTS = ['Pending', 'Passed', 'Failed']
+
+function getDomainFromUrl(url) {
+  if (!url) return ''
+
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+}
 
 function getTodos(job) {
   return [
@@ -68,6 +79,7 @@ export default function ApplicationDetailPage() {
   const { jobs, loading } = useJobs()
   const { matchResume, matchTailoredResume, tailorResume, findRecruiter, draftRecruiterOutreach } = useAI()
   const { deleteJob } = useJobMutations()
+  const job = jobs.find(j => j.id === jobId)
 
   const [editing, setEditing] = useState(false)
   const [matching, setMatching] = useState(false)
@@ -78,16 +90,15 @@ export default function ApplicationDetailPage() {
   const [addingRound, setAddingRound] = useState(false)
   const [newRound, setNewRound] = useState({ type: 'Phone Screen', date: '', result: 'Pending', notes: '' })
   const [copiedIdx, setCopiedIdx] = useState(null)
-  const [finderDomain, setFinderDomain] = useState('')
+  const [finderDomainInput, setFinderDomainInput] = useState('')
+  const [finderDomainEdited, setFinderDomainEdited] = useState(false)
   const [finding, setFinding] = useState(false)
   const [finderResults, setFinderResults] = useState(null)
   const [finderError, setFinderError] = useState(null)
   const [finderFromCache, setFinderFromCache] = useState(false)
   const [contactedEmails, setContactedEmails] = useState(new Set())
-  const domainPreFilled = useRef(false)
   const [tailoring, setTailoring] = useState(false)
   const [tailorDraft, setTailorDraft] = useState(null)   // { suggestions, sections, styleMap } — unsaved working copy
-  const [tailorSaving, setTailorSaving] = useState(false)
   const [resumeModalOpen, setResumeModalOpen] = useState(false)
   const [editingRecruiter, setEditingRecruiter] = useState(false)
   const [recruiterEdit, setRecruiterEdit] = useState({ name: '', email: '', title: '', linkedin: '' })
@@ -95,18 +106,8 @@ export default function ApplicationDetailPage() {
   const [outreachDrafts, setOutreachDrafts] = useState([])
   const [draftingOutreach, setDraftingOutreach] = useState(false)
 
-  useEffect(() => {
-    if (domainPreFilled.current) return
-    const url = jobs.find(j => j.id === jobId)?.jobUrl
-    if (!url) return
-    try {
-      const hostname = new URL(url).hostname.replace(/^www\./, '')
-      setFinderDomain(hostname)
-      domainPreFilled.current = true
-    } catch {}
-  }, [jobs, jobId])
-
-  const job = jobs.find(j => j.id === jobId)
+  const defaultFinderDomain = useMemo(() => getDomainFromUrl(job?.jobUrl), [job?.jobUrl])
+  const finderDomain = finderDomainEdited ? finderDomainInput : defaultFinderDomain
 
   if (!loading && !job) {
     navigate('/board', { replace: true })
@@ -345,7 +346,7 @@ export default function ApplicationDetailPage() {
         })
       )
       setOutreachDrafts(drafts.filter(d => !d.error))
-    } catch (err) {
+    } catch {
       alert('Failed to draft some messages. Try again.')
     } finally {
       setDraftingOutreach(false)
@@ -850,7 +851,12 @@ export default function ApplicationDetailPage() {
                 <input
                   type="text"
                   value={finderDomain}
-                  onChange={e => { setFinderDomain(e.target.value); setFinderResults(null); setFinderError(null) }}
+                  onChange={e => {
+                    setFinderDomainInput(e.target.value)
+                    setFinderDomainEdited(true)
+                    setFinderResults(null)
+                    setFinderError(null)
+                  }}
                   onKeyDown={e => e.key === 'Enter' && handleFindRecruiter()}
                   placeholder="e.g. stripe.com"
                   className="detail-form-select flex-1 text-xs"
@@ -1221,9 +1227,10 @@ function FollowUpCard({ job }) {
   const { draftFollowUp } = useAI()
   const [drafting, setDrafting] = useState(false)
   const [draft, setDraft] = useState(null)
+  const now = useNow()
 
   const ms = job.lastStatusChange?.toMillis?.() ?? job.createdAt?.toMillis?.() ?? 0
-  const daysSinceApplied = Math.floor((Date.now() - ms) / 86400000)
+  const daysSinceApplied = Math.floor((now - ms) / 86400000)
 
   async function handleDraft() {
     setDrafting(true)

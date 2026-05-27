@@ -1,5 +1,5 @@
 import { BarChart3, Zap, Target } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import RunwayLogoMark from '../components/brand/RunwayLogoMark'
 import './LoginPage.css'
 

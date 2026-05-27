@@ -9,7 +9,7 @@ import {
 } from '@dnd-kit/core'
 import { ListPlus, Zap } from 'lucide-react'
 import { STAGES } from '../../constants/stages'
-import { useJobs } from '../../context/JobsContext'
+import { useJobs } from '../../context/useJobs'
 import { useJobMutations } from '../../hooks/useJobMutations'
 import KanbanColumn from './KanbanColumn'
 import ApplicationCard from './ApplicationCard'
