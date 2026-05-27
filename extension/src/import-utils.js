@@ -25,6 +25,10 @@ export function detectPlatformFromUrl(url) {
     if (hostname.endsWith('.icims.com')) return 'icims'
     if (hostname.endsWith('.bamboohr.com')) return 'bamboohr'
     if (hostname === 'jobs.smartrecruiters.com') return 'smartrecruiters'
+    if (hostname === 'ats.rippling.com') return 'rippling'
+    if (hostname.endsWith('.breezy.hr')) return 'breezy'
+    if (hostname === 'jobs.jobvite.com') return 'jobvite'
+    if (hostname.endsWith('.recruitee.com')) return 'recruitee'
   } catch {
     return ''
   }

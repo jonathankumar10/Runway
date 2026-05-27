@@ -15,6 +15,10 @@
     "https://*.icims.com/*",
     "https://*.bamboohr.com/*",
     "https://jobs.smartrecruiters.com/*",
+    "https://ats.rippling.com/*",
+    "https://*.breezy.hr/*",
+    "https://jobs.jobvite.com/*",
+    "https://*.recruitee.com/*",
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",
     "https://firestore.googleapis.com/*",
@@ -47,7 +51,11 @@
         "https://*.taleo.net/*",
         "https://*.icims.com/*",
         "https://*.bamboohr.com/*",
-        "https://jobs.smartrecruiters.com/*"
+        "https://jobs.smartrecruiters.com/*",
+        "https://ats.rippling.com/*",
+        "https://*.breezy.hr/*",
+        "https://jobs.jobvite.com/*",
+        "https://*.recruitee.com/*"
       ],
       "js": ["dist/content-ats.js"],
       "css": ["dist/content.css"],

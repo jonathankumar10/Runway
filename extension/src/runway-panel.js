@@ -22,13 +22,25 @@ export function createRunwayPanel({ getContext, actions }) {
 
   root.append(launcher, panel)
 
+  function getPageLuminance() {
+    try {
+      const bg = window.getComputedStyle(document.body).backgroundColor
+      const [, r, g, b] = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/) || []
+      if (r === undefined) return 1
+      return (0.299 * +r + 0.587 * +g + 0.114 * +b) / 255
+    } catch { return 1 }
+  }
+
   function attach() {
     if (!document.body) return false
     for (const id of ['runway-job-discovery', 'runway-apply-assistant']) {
       const legacy = document.getElementById(id)
       if (legacy) legacy.remove()
     }
-    if (!document.body.contains(root)) document.body.appendChild(root)
+    if (!document.body.contains(root)) {
+      document.body.appendChild(root)
+      root.classList.toggle('runway-panel--on-light', getPageLuminance() > 0.6)
+    }
     return true
   }
 
@@ -154,10 +166,6 @@ export function createRunwayPanel({ getContext, actions }) {
       ['Autofill', actions.autofill, true],
       ['Attach base', actions.attachBaseResume, false],
       ['Attach tailored', actions.attachTailoredResume, false],
-      ['Tailored text', () => actions.downloadResume('tailored'), false],
-      ['Tailored HTML', () => actions.downloadResume('tailored', 'html'), false],
-      ['Print PDF', actions.printResume, false],
-      ['Base resume', () => actions.downloadResume('base'), false],
       ['Generate CV', actions.generateCoverLetter, false],
       ['Attach CV', actions.attachCoverLetter, false],
       ['Draft answer', actions.draftAnswer, false],

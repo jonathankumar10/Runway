@@ -23,6 +23,10 @@ function isJobPage() {
     case 'icims':      return segments.includes('jobs') && (segments.some(s => /^\d+$/.test(s)) || location.pathname.includes('/job'))
     case 'bamboohr':   return segments.includes('careers') && (segments.some(s => /^\d+$/.test(s)) || location.search.includes('id='))
     case 'smartrecruiters': return segments.length >= 2 && !segments[0].toLowerCase().includes('search')
+    case 'rippling':  return segments.length >= 3 && segments.includes('jobs')
+    case 'breezy':    return segments.length >= 2 && segments[0] === 'p'
+    case 'jobvite':   return segments.length >= 3 && segments.includes('job')
+    case 'recruitee': return segments.length >= 2 && segments[0] === 'o'
     default:           return false
   }
 }
@@ -212,6 +216,90 @@ function extractBamboohr() {
   return { role, company, location: location_, jobDescription, logoUrl }
 }
 
+function extractRippling() {
+  const role =
+    textFromSelectors(['h1', '[class*="job-title"]', '[data-testid*="title"]']) ||
+    metaTitleRole(' - ')
+
+  const company =
+    metaContent('og:site_name') ||
+    slugToName(location.pathname.split('/')[1] || '')
+
+  const location_ =
+    textFromSelectors(['[class*="location"]', '[data-testid*="location"]'])
+
+  const jobDescription =
+    textFromSelectors(['[class*="job-description"]', '[class*="description"]', 'main'])
+
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
+}
+
+function extractBreezy() {
+  const role =
+    textFromSelectors(['h1', '[class*="job-title"]']) ||
+    metaTitleRole(' - ')
+
+  const company =
+    metaContent('og:site_name') ||
+    slugToName(location.hostname.split('.')[0])
+
+  const location_ =
+    textFromSelectors(['[class*="location"]', '[class*="city"]'])
+
+  const jobDescription =
+    textFromSelectors(['[class*="description"]', '[class*="job-content"]', 'main'])
+
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
+}
+
+function extractJobvite() {
+  const role =
+    textFromSelectors(['.jv-job-detail-meta h1', 'h1']) ||
+    metaTitleRole(' - ')
+
+  const company =
+    metaContent('og:site_name') ||
+    slugToName(location.pathname.split('/')[1] || '')
+
+  const location_ =
+    textFromSelectors(['.jv-job-detail-meta li', '[class*="location"]'])
+
+  const jobDescription =
+    textFromSelectors(['#job-description', '.jv-job-detail-description', '[class*="description"]', 'main'])
+
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', '.jv-header img', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
+}
+
+function extractRecruitee() {
+  const role =
+    textFromSelectors(['h1', '[class*="job-title"]']) ||
+    metaTitleRole(' | ')
+
+  const company =
+    metaContent('og:site_name') ||
+    slugToName(location.hostname.split('.')[0])
+
+  const location_ =
+    textFromSelectors(['[class*="location"]', '[class*="city"]'])
+
+  const jobDescription =
+    textFromSelectors(['[class*="job-description"]', '[class*="description"]', 'main'])
+
+  const logoUrl =
+    imageFromSelectors(['meta[property="og:image"]', 'img[class*="logo"]'])
+
+  return { role, company, location: location_, jobDescription, logoUrl }
+}
+
 function extractSmartRecruiters() {
   const role =
     textFromSelectors(['[data-testid="job-title"]', '.job-title', 'h1']) ||
@@ -247,6 +335,10 @@ function extractJob() {
     case 'icims':      data = extractIcims();      break
     case 'bamboohr':   data = extractBamboohr();   break
     case 'smartrecruiters': data = extractSmartRecruiters(); break
+    case 'rippling':  data = extractRippling();  break
+    case 'breezy':    data = extractBreezy();    break
+    case 'jobvite':   data = extractJobvite();   break
+    case 'recruitee': data = extractRecruitee(); break
   }
 
   return {
@@ -275,6 +367,10 @@ function isLikelyJobUrl(url) {
     case 'icims': return segments.includes('jobs') && (segments.some(segment => /^\d+$/.test(segment)) || parsed.pathname.includes('/job'))
     case 'bamboohr': return segments.includes('careers') && (segments.some(segment => /^\d+$/.test(segment)) || parsed.search.includes('id='))
     case 'smartrecruiters': return segments.length >= 2 && !segments[0].toLowerCase().includes('search')
+    case 'rippling':  return parsed.pathname.includes('/jobs/') && segments.some(segment => /^\d+$/.test(segment))
+    case 'breezy':    return segments.length >= 2 && segments[0] === 'p'
+    case 'jobvite':   return segments.length >= 3 && segments.includes('job')
+    case 'recruitee': return segments.length >= 2 && segments[0] === 'o'
     default: return false
   }
 }
@@ -476,7 +572,7 @@ function safeUnderscoreFilePart(value) {
 }
 
 function tailoredResumePdfFilename(company) {
-  return `joanthan_pasupulety_${safeUnderscoreFilePart(company)}.pdf`
+  return `jonathan_pasupulety_${safeUnderscoreFilePart(company)}.pdf`
 }
 
 function downloadTextFile(filename, text) {

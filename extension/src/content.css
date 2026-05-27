@@ -549,6 +549,67 @@
   }
 }
 
+.runway-panel--on-light .runway-panel__body {
+  background: #0f172a;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  box-shadow: 0 18px 48px rgba(2, 6, 23, 0.5);
+}
+
+.runway-panel--on-light .runway-panel__header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.runway-panel--on-light .runway-panel__header strong {
+  color: #f1f5f9;
+}
+
+.runway-panel--on-light .runway-panel__header p,
+.runway-panel--on-light .runway-panel__status {
+  color: #94a3b8;
+}
+
+.runway-panel--on-light .runway-panel__close {
+  color: #94a3b8;
+}
+
+.runway-panel--on-light .runway-panel__row {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.runway-panel--on-light .runway-panel__title {
+  color: #f1f5f9;
+}
+
+.runway-panel--on-light .runway-panel__sub {
+  color: #94a3b8;
+}
+
+.runway-panel--on-light .runway-panel__select {
+  background: #1f2937;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f1f5f9;
+}
+
+.runway-panel--on-light .runway-panel__button {
+  background: #1f2937;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #e2e8f0;
+}
+
+.runway-panel--on-light .runway-panel__button--primary,
+.runway-panel--on-light .runway-panel__actions .runway-panel__button {
+  background: #312e81;
+  border-color: #312e81;
+  color: #ffffff;
+}
+
+.runway-panel--on-light .runway-upload-note {
+  background: #1e1b4b;
+  border-color: rgba(139, 92, 246, 0.3);
+  color: #a5b4fc;
+}
+
 @keyframes runway-btn-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.78; transform: scale(0.94); }
