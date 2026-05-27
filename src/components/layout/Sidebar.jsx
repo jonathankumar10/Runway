@@ -1,10 +1,13 @@
 import { NavLink, Link } from 'react-router-dom'
 import { LayoutDashboard, Kanban, LogOut, FileText, User, X, Send, Target } from 'lucide-react'
-import { useAuth } from '../../context/useAuth'
-import NotificationBell from '../ui/NotificationBell'
+import { useAuth } from '../../context/auth'
+import NotificationBell from '../common/NotificationBell'
 import RunwayLogoMark from '../brand/RunwayLogoMark'
 import './Sidebar.css'
 
+/**
+ * Primary navigation sidebar for protected app routes.
+ */
 export default function Sidebar({ isOpen, onClose }) {
   const { user, signOut } = useAuth()
 

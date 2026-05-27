@@ -30,6 +30,9 @@ function toTitleCase(str) {
   return trimmed.replace(/\S+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
 }
 
+/**
+ * Converts structured resume sections into printable/editor HTML.
+ */
 function sectionsToHtml(sections) {
   if (!Array.isArray(sections) || !sections.length) return ''
   let html = ''
@@ -119,6 +122,9 @@ function sectionsToHtml(sections) {
 
 // ── Print CSS builder ─────────────────────────────────────────────────────────
 
+/**
+ * Builds isolated print CSS from the selected resume template variables.
+ */
 function buildPrintCss(vars) {
   const v = (key, fallback) => vars?.[key] ?? fallback
   return `
@@ -151,6 +157,9 @@ const isHeader = line =>
 
 const isBullet = line => /^[-•]\s/.test(line)
 
+/**
+ * Fallback parser that turns plain resume text into editable resume HTML.
+ */
 function parseResumeToHtml(text) {
   if (!text) return ''
   const lines = text.split('\n')
@@ -520,6 +529,9 @@ function AnalysisPanel({ keywordAnalysis, rewrittenBullets, rewrittenSummary }) 
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
+/**
+ * Full-screen resume tailoring workspace with editor, analysis, template, and export tools.
+ */
 export default function TailoredResumeModal({
   job,
   initialSections,

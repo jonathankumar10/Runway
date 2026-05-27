@@ -4,6 +4,10 @@ import StageFilterTabs from '../components/board/StageFilterTabs'
 import KanbanBoard from '../components/board/KanbanBoard'
 import QuickViewPanel from '../components/board/QuickViewPanel'
 
+/**
+ * Main application pipeline view.
+ * Coordinates stage filtering and the selected-card quick view.
+ */
 export default function BoardPage() {
   const [activeStage, setActiveStage] = useState('all')
   const [selectedJob, setSelectedJob] = useState(null)

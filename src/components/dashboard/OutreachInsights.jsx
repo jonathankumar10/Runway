@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react'
 import { collection, onSnapshot } from 'firebase/firestore'
 import { Send, CheckCircle2, Clock, Users } from 'lucide-react'
 import { db } from '../../lib/firebase'
-import { useAuth } from '../../context/useAuth'
+import { useAuth } from '../../context/auth'
 
+/**
+ * Summarizes recruiter outreach status counts.
+ */
 export default function OutreachInsights() {
   const { user } = useAuth()
   const [records, setRecords] = useState([])

@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { Bell } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
-import { useAuth } from '../../context/useAuth'
+import { useAuth } from '../../context/auth'
 import { useNotifications } from '../../hooks/useNotifications'
 import './NotificationBell.css'
 
+/**
+ * Header notification menu with unread count and push-permission action.
+ */
 export default function NotificationBell() {
   const { user } = useAuth()
   const { unreadCount, notifications, requestPermission, permission } = useNotifications()

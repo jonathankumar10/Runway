@@ -1,4 +1,4 @@
-import { useJobs } from '../../context/useJobs'
+import { useJobs } from '../../context/jobs'
 import { useNow } from '../../hooks/useNow'
 import './BoardStats.css'
 
@@ -6,6 +6,9 @@ const ACTIVE_STAGES = new Set(['applied', 'phoneScreen', 'technicalInterview', '
 const INTERVIEW_STAGES = new Set(['phoneScreen', 'technicalInterview', 'finalRound'])
 const STALE_APPLICATION_MS = 7 * 86_400_000
 
+/**
+ * Summary metrics for the board pipeline.
+ */
 export default function BoardStats() {
   const { jobs } = useJobs()
   const now = useNow()

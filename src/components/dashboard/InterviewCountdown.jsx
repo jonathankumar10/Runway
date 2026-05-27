@@ -1,5 +1,5 @@
 import { Calendar } from 'lucide-react'
-import { useJobs } from '../../context/useJobs'
+import { useJobs } from '../../context/jobs'
 import { useNow } from '../../hooks/useNow'
 
 function formatCountdown(date, now) {
@@ -11,6 +11,9 @@ function formatCountdown(date, now) {
   return `In ${days}d`
 }
 
+/**
+ * Lists upcoming interview dates across all tracked applications.
+ */
 export default function InterviewCountdown() {
   const { jobs } = useJobs()
   const now = useNow()

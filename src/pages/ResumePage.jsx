@@ -3,8 +3,8 @@ import { Upload, FileText, Star, Trash2, Download, Eye, Loader2, Check, Pencil, 
 import { collection, doc, getDocs, getDoc, addDoc, deleteDoc, updateDoc, writeBatch } from 'firebase/firestore'
 import * as pdfjs from 'pdfjs-dist'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/useAuth'
-import { useJobs } from '../context/useJobs'
+import { useAuth } from '../context/auth'
+import { useJobs } from '../context/jobs'
 import { useAI } from '../hooks/useAI'
 import './ResumePage.css'
 
@@ -30,6 +30,9 @@ function extractSkills(text) {
   return TECH_SKILLS.filter(s => lower.includes(s.toLowerCase()))
 }
 
+/**
+ * Extracts readable text from a PDF resume upload.
+ */
 async function extractPDFText(file) {
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
@@ -42,6 +45,9 @@ async function extractPDFText(file) {
   return text.trim()
 }
 
+/**
+ * Extracts coarse typography/style data from the uploaded PDF for resume templates.
+ */
 async function extractStyleMap(file) {
   try {
     const arrayBuffer = await file.arrayBuffer()
@@ -106,6 +112,10 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+/**
+ * Resume library and editor page.
+ * Handles uploads, default resume selection, parsing, and structured editing.
+ */
 export default function ResumePage() {
   const { user } = useAuth()
   const { jobs } = useJobs()

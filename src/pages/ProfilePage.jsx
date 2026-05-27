@@ -6,7 +6,7 @@ import {
   Palette, Trash2, AlertTriangle, BellOff,
 } from 'lucide-react'
 import { db, auth } from '../lib/firebase'
-import { useAuth } from '../context/useAuth'
+import { useAuth } from '../context/auth'
 import { useNotifications } from '../hooks/useNotifications'
 import './ProfilePage.css'
 
@@ -21,6 +21,9 @@ function applyAccent(color) {
   document.documentElement.setAttribute('data-accent', color ?? 'violet')
 }
 
+/**
+ * User settings page for profile, notification, preference, and account management.
+ */
 export default function ProfilePage() {
   const { user } = useAuth()
   const { permission, requestPermission } = useNotifications()

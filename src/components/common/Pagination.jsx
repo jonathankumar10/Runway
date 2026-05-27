@@ -42,6 +42,9 @@ function getPageNumbers(currentPage, totalPages) {
 //
 // Returns null (renders nothing) when there is only one page.
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Reusable pagination control for card/table list pages.
+ */
 export default function Pagination({ currentPage, totalPages, onGoToPage, totalItems, pageSize }) {
   if (totalPages <= 1) return null
 

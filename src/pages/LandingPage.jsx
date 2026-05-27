@@ -147,6 +147,9 @@ function FeatureCard({ icon: Icon, color, title, desc, delay }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+/**
+ * Public landing page shown before authentication.
+ */
 export default function LandingPage() {
   const navigate = useNavigate()
   const [featRef, featInView] = useInView(0.05)

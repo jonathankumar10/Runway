@@ -6,6 +6,9 @@ import { parseImportUrls } from '../../lib/imports/importUtils'
 import { runBulkJobImport } from '../../lib/imports/bulkImportRunner'
 import './BulkImportModal.css'
 
+/**
+ * Modal for importing multiple job URLs and creating applications in sequence.
+ */
 export default function BulkImportModal({ onClose }) {
   const [urlText, setUrlText] = useState('')
   const [items, setItems] = useState([])

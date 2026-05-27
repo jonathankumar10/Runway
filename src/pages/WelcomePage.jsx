@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/useAuth'
+import { useAuth } from '../context/auth'
 import {
   Kanban, FileText,
   Target, Send, LayoutDashboard, User, ArrowRight,
@@ -98,6 +98,9 @@ function StepCard({ step }) {
 //   1. Write a flag to localStorage so we never show this page again.
 //   2. Navigate them to the main app (/board).
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * First-run onboarding screen shown once after a verified login.
+ */
 export default function WelcomePage() {
   const navigate = useNavigate()
   const { user } = useAuth()

@@ -9,13 +9,16 @@ import {
 } from '@dnd-kit/core'
 import { ListPlus, Zap } from 'lucide-react'
 import { STAGES } from '../../constants/stages'
-import { useJobs } from '../../context/useJobs'
+import { useJobs } from '../../context/jobs'
 import { useJobMutations } from '../../hooks/useJobMutations'
 import KanbanColumn from './KanbanColumn'
 import ApplicationCard from './ApplicationCard'
 import ApplicationModal from '../modals/ApplicationModal'
 import BulkImportModal from '../modals/BulkImportModal'
 
+/**
+ * Drag-and-drop board for moving applications between pipeline stages.
+ */
 export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCardClick }) {
   const { jobs } = useJobs()
   const { updateStage } = useJobMutations()

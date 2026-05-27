@@ -1,32 +1,40 @@
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { doc, getDoc, getDocs, collection, query, where, limit } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/useAuth'
+import { useAuth } from '../context/auth'
 import app from '../lib/firebase'
 
 const functions = getFunctions(app)
 
+/**
+ * Wraps Firebase callable functions behind domain-specific methods.
+ * Pages should call this hook instead of constructing callable functions directly.
+ */
 export function useAI() {
   const { user } = useAuth()
 
+  /** Parses raw job-description text into structured fields. */
   async function parseJD(text) {
     const fn = httpsCallable(functions, 'parseJD')
     const result = await fn({ text })
     return result.data
   }
 
+  /** Gets stage-specific coaching tips for an application. */
   async function getCoaching(stage, company, role) {
     const fn = httpsCallable(functions, 'getCoaching')
     const result = await fn({ stage, company, role })
     return result.data
   }
 
+  /** Drafts an application follow-up message from job/recruiter context. */
   async function draftFollowUp(payload) {
     const fn = httpsCallable(functions, 'draftFollowUp')
     const result = await fn(payload)
     return result.data
   }
 
+  /** Scores an already-tailored resume against the target job. */
   async function matchTailoredResume(resumeText, company, role, keySkills, notes) {
     if (!resumeText) throw new Error('No tailored resume text found for this application.')
     const fn = httpsCallable(functions, 'matchResume')
@@ -34,6 +42,7 @@ export function useAI() {
     return result.data
   }
 
+  /** Scores the user's default resume against a job and returns match analysis. */
   async function matchResume(jobId, company, role, keySkills, notes) {
     // Read default resume from new resumes subcollection
     const resumesSnap = await getDocs(
@@ -54,18 +63,21 @@ export function useAI() {
     return result.data
   }
 
+  /** Imports job-posting details from a supported public URL. */
   async function importFromUrl(url) {
     const fn = httpsCallable(functions, 'importFromUrl')
     const result = await fn({ url })
     return result.data
   }
 
+  /** Converts resume text into editable structured sections. */
   async function parseResumeStructure(resumeText) {
     const fn = httpsCallable(functions, 'parseResumeStructure', { timeout: 60000 })
     const result = await fn({ resumeText })
     return result.data
   }
 
+  /** Creates a tailored resume draft using the default resume and job context. */
   async function tailorResume(company, role, jobDescription, keySkills, gaps) {
     const resumesSnap = await getDocs(
       query(collection(db, 'users', user.uid, 'resumes'), where('isDefault', '==', true), limit(1))
@@ -92,12 +104,14 @@ export function useAI() {
     return { ...result.data, styleMap }
   }
 
+  /** Finds recruiter contacts for a company domain. */
   async function findRecruiter(domain) {
     const fn = httpsCallable(functions, 'findRecruiter')
     const result = await fn({ domain })
     return result.data
   }
 
+  /** Drafts recruiter outreach copy for a selected recruiter/job pair. */
   async function draftRecruiterOutreach(payload) {
     const fn = httpsCallable(functions, 'draftRecruiterOutreach')
     const result = await fn(payload)

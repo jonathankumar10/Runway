@@ -1,7 +1,10 @@
 import { STAGES } from '../../constants/stages'
-import { useJobs } from '../../context/useJobs'
+import { useJobs } from '../../context/jobs'
 import './StageFilterTabs.css'
 
+/**
+ * Filter tabs for showing all applications or a single pipeline stage.
+ */
 export default function StageFilterTabs({ activeStage, setActiveStage }) {
   const { jobs } = useJobs()
 

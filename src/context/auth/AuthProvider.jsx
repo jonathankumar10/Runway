@@ -7,9 +7,12 @@ import {
   signInWithEmailAndPassword,
   sendEmailVerification,
 } from 'firebase/auth'
-import { auth, googleProvider } from '../lib/firebase'
+import { auth, googleProvider } from '../../lib/firebase'
 import { AuthContext } from './authContext'
 
+/**
+ * Owns Firebase auth state and exposes sign-in/sign-out actions to the app.
+ */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined)
 

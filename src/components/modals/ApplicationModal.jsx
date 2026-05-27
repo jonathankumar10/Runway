@@ -42,6 +42,9 @@ const TABS = [
   { id: 'notes', label: 'Notes', icon: FileText },
 ]
 
+/**
+ * Modal for creating, editing, or importing a single application.
+ */
 export default function ApplicationModal({ job, onClose }) {
   const [form, setForm] = useState(toForm(job))
   const [tab, setTab] = useState('basics')

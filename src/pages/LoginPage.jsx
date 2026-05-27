@@ -1,5 +1,5 @@
 import { BarChart3, Zap, Target } from 'lucide-react'
-import { useAuth } from '../context/useAuth'
+import { useAuth } from '../context/auth'
 import RunwayLogoMark from '../components/brand/RunwayLogoMark'
 import './LoginPage.css'
 
@@ -20,6 +20,9 @@ const features = [
   { icon: Target, label: 'Interview prep' },
 ]
 
+/**
+ * Sign-in page that starts Google auth through AuthProvider.
+ */
 export default function LoginPage() {
   const { signInWithGoogle } = useAuth()
 

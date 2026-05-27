@@ -17,6 +17,9 @@ import { useState } from 'react'
 //   paginatedItems — the slice of items for the current page
 //   goToPage(n)    — call this to jump to a specific page number
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Tracks the current page and returns the visible slice for a paginated list.
+ */
 export function usePagination(items, pageSize) {
   const [currentPage, setCurrentPage] = useState(1)
 

@@ -11,15 +11,15 @@ import {
   ClipboardCheck, Paperclip, LayoutList, LayoutGrid,
 } from 'lucide-react'
 import { db, auth } from '../lib/firebase'
-import { useAuth } from '../context/useAuth'
-import { useJobs } from '../context/useJobs'
+import { useAuth } from '../context/auth'
+import { useJobs } from '../context/jobs'
 import { useAI } from '../hooks/useAI'
 import {
   buildEmailSubject, buildEmailBody, buildFollowUpSubject,
   buildFollowUpBody, buildLinkedInMessage,
 } from '../constants/outreachTemplates'
 import { usePagination } from '../hooks/usePagination'
-import Pagination from '../components/ui/Pagination'
+import Pagination from '../components/common/Pagination'
 import './OutreachPage.css'
 
 const FILTERS = [
@@ -41,6 +41,10 @@ function getOutreachPriority(record) {
   return OUTREACH_PRIORITY.pending
 }
 
+/**
+ * Recruiter outreach tracker.
+ * Coordinates manual entries, recruiter discovery, Gmail drafts, and LinkedIn queues.
+ */
 export default function OutreachPage() {
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -515,6 +519,9 @@ function plainToHtml(text) {
   return `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#222;">${blocks.join('')}</div>`
 }
 
+/**
+ * Builds the base64url Gmail API message payload, optionally with a PDF attachment.
+ */
 function buildGmailRaw({ to, subject, body, pdfBase64 = null, pdfFilename = null }) {
   const enc = new TextEncoder()
   const toB64 = str => {
@@ -931,6 +938,9 @@ function OutreachTable({ records, userId, selectedIds, onToggleSelect }) {
   )
 }
 
+/**
+ * Modal for finding recruiters by company domain or adding a recruiter manually.
+ */
 function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initialCompany = '', onClose }) {
   const { findRecruiter, importFromUrl } = useAI()
   const { jobs } = useJobs() ?? { jobs: [] }

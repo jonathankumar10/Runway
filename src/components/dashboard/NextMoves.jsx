@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react'
-import { useJobs } from '../../context/useJobs'
+import { useJobs } from '../../context/jobs'
 import { STAGE_MAP } from '../../constants/stages'
 
 function getNextMove(job) {
@@ -25,6 +25,9 @@ function getNextMove(job) {
   }
 }
 
+/**
+ * Prioritized list of applications that need the user's next action.
+ */
 export default function NextMoves() {
   const { jobs } = useJobs()
 

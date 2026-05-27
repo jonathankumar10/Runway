@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { X, ExternalLink, Pencil, Sparkles, Mail, ArrowRight, Loader2, Maximize2 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
-import { useAuth } from '../../context/useAuth'
+import { useAuth } from '../../context/auth'
 import { useAI } from '../../hooks/useAI'
 import { STAGE_MAP } from '../../constants/stages'
 import ApplicationModal from '../modals/ApplicationModal'
@@ -50,6 +50,9 @@ function MatchBadge({ score }) {
   )
 }
 
+/**
+ * Side panel for scanning and acting on a selected application without leaving the board.
+ */
 export default function QuickViewPanel({ job, onClose }) {
   const { user } = useAuth()
   const { matchResume } = useAI()

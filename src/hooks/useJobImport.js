@@ -5,9 +5,13 @@ import {
   normalizeUrl,
 } from '../lib/imports/importUtils'
 
+/**
+ * Validates a job URL, blocks login-only platforms, and normalizes import results.
+ */
 export function useJobImport() {
   const { importFromUrl } = useAI()
 
+  /** Imports a single job posting URL into normalized application fields. */
   async function importJobFromUrl(rawUrl) {
     const sourceUrl = normalizeUrl(rawUrl)
     if (!sourceUrl) {

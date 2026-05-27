@@ -3,6 +3,9 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import ApplicationCard from './ApplicationCard'
 import './KanbanColumn.css'
 
+/**
+ * Droppable stage column that renders sortable application cards.
+ */
 export default function KanbanColumn({ stage, jobs, selectedJobId, onCardClick, dimmed }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.id })
 

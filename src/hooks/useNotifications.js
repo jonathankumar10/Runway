@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { collection, doc, onSnapshot, orderBy, query, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db, getMessagingInstance, getToken, onMessage } from '../lib/firebase'
-import { useAuth } from '../context/useAuth'
+import { useAuth } from '../context/auth'
 
 const VAPID_KEY = import.meta.env.VITE_VAPID_KEY
 
+/**
+ * Synchronizes notification state and manages browser push-permission registration.
+ */
 export function useNotifications() {
   const { user } = useAuth()
   const [permission, setPermission] = useState(

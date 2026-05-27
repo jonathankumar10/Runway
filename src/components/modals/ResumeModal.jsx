@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { X, Upload, FileText, Check } from 'lucide-react'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
-import { useAuth } from '../../context/useAuth'
+import { useAuth } from '../../context/auth'
 import './ResumeModal.css'
 
+/**
+ * Lightweight resume text modal used where a simple resume editor is needed.
+ */
 export default function ResumeModal({ onClose }) {
   const { user } = useAuth()
   const [text, setText] = useState('')

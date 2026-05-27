@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { collection, onSnapshot } from 'firebase/firestore'
 import { Target } from 'lucide-react'
 import { db } from '../../lib/firebase'
-import { useAuth } from '../../context/useAuth'
+import { useAuth } from '../../context/auth'
 
 const STATUS_CONFIG = [
   { key: 'contacted', label: 'Contacted',    color: 'bg-green-500' },
@@ -22,6 +22,9 @@ function getStatus(company, cachedDomains, outreachByCompany) {
   return 'new'
 }
 
+/**
+ * Summarizes target-company progress and recruiter discovery status.
+ */
 export default function TargetCompaniesInsights() {
   const { user } = useAuth()
   const [companies, setCompanies] = useState([])

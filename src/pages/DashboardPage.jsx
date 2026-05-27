@@ -1,6 +1,6 @@
 import { Send, Users, Trophy, MailOpen } from 'lucide-react'
-import { useJobs } from '../context/useJobs'
-import { useAuth } from '../context/useAuth'
+import { useJobs } from '../context/jobs'
+import { useAuth } from '../context/auth'
 import PipelineFunnel from '../components/dashboard/PipelineFunnel'
 import WeeklyChart from '../components/dashboard/WeeklyChart'
 import InterviewCountdown from '../components/dashboard/InterviewCountdown'
@@ -25,6 +25,9 @@ function StatCard({ label, value, sub, icon: Icon, iconColor }) {
   )
 }
 
+/**
+ * Aggregates high-level job-search metrics and dashboard widgets.
+ */
 export default function DashboardPage() {
   const { jobs } = useJobs()
   const { user } = useAuth()

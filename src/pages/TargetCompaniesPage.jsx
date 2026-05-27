@@ -10,10 +10,10 @@ import {
   X,
 } from 'lucide-react'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/useAuth'
+import { useAuth } from '../context/auth'
 import app from '../lib/firebase'
 import { usePagination } from '../hooks/usePagination'
-import Pagination from '../components/ui/Pagination'
+import Pagination from '../components/common/Pagination'
 import './TargetCompaniesPage.css'
 
 const functions = getFunctions(app)
@@ -60,6 +60,9 @@ const SEED_COMPANIES = [
 // Fully contacted companies sink to the bottom.
 const TARGET_PRIORITY = { new: 0, retrieved: 1, tracked: 2, emailed: 3, contacted: 4 }
 
+/**
+ * Target-company tracker for storing companies, finding recruiters, and monitoring outreach status.
+ */
 export default function TargetCompaniesPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -460,6 +463,9 @@ export default function TargetCompaniesPage() {
   )
 }
 
+/**
+ * Creates a target-company record from manually entered company details.
+ */
 function AddCompanyModal({ userId, onClose }) {
   const [form, setForm] = useState({ name: '', domain: '', space: '', stage: '', notes: '', targetRoles: '', careersUrl: '', searchQuery: '' })
   const [saving, setSaving] = useState(false)

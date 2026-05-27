@@ -4,6 +4,9 @@ import { Menu } from 'lucide-react'
 import Sidebar from './Sidebar'
 import RunwayLogoMark from '../brand/RunwayLogoMark'
 
+/**
+ * Protected app shell with sidebar navigation and routed page content.
+ */
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 

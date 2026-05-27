@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
-import { db } from '../lib/firebase'
-import { useAuth } from './useAuth'
-import { STAGES } from '../constants/stages'
+import { db } from '../../lib/firebase'
+import { useAuth } from '../auth'
+import { STAGES } from '../../constants/stages'
 import { JobsContext } from './jobsContext'
 
 const VALID_STAGES = new Set(STAGES.map(stage => stage.id))
@@ -12,6 +12,9 @@ function normalizeJob(docSnapshot) {
   return { id: docSnapshot.id, ...docSnapshot.data() }
 }
 
+/**
+ * Subscribes to the signed-in user's applications and exposes live job data.
+ */
 export function JobsProvider({ children }) {
   const { user } = useAuth() ?? {}
   const userId = user?.uid ?? null

@@ -1,6 +1,9 @@
 import RunwayLogoMark from '../brand/RunwayLogoMark'
 import './LoadingScreen.css'
 
+/**
+ * Branded loading state used while auth or lazy routes are resolving.
+ */
 export default function LoadingScreen({ fullScreen = false }) {
   return (
     <div className={`ls-root ${fullScreen ? 'ls-fullscreen' : 'ls-inline'}`}>

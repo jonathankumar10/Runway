@@ -8,8 +8,8 @@ import {
   Mail, Calendar, Wand2, Eye, Copy, ClipboardCheck, Check, TrendingUp,
 } from 'lucide-react'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/useAuth'
-import { useJobs } from '../context/useJobs'
+import { useAuth } from '../context/auth'
+import { useJobs } from '../context/jobs'
 import { useAI } from '../hooks/useAI'
 import { useJobMutations } from '../hooks/useJobMutations'
 import { useNow } from '../hooks/useNow'
@@ -31,6 +31,9 @@ function getDomainFromUrl(url) {
   }
 }
 
+/**
+ * Builds the checklist shown for the current application.
+ */
 function getTodos(job) {
   return [
     {
@@ -72,6 +75,10 @@ function getTodos(job) {
   ]
 }
 
+/**
+ * Detailed application workspace for editing job data, AI matching, resume tailoring,
+ * recruiter discovery, interview rounds, and outreach drafts.
+ */
 export default function ApplicationDetailPage() {
   const { jobId } = useParams()
   const navigate = useNavigate()

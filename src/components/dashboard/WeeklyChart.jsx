@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
-import { useAuth } from '../../context/useAuth'
-import { useJobs } from '../../context/useJobs'
+import { useAuth } from '../../context/auth'
+import { useJobs } from '../../context/jobs'
 
 const NUM_WEEKS = 8
 
@@ -26,6 +26,9 @@ function getWeekRanges() {
   })
 }
 
+/**
+ * Shows weekly application/outreach activity for the dashboard.
+ */
 export default function WeeklyChart() {
   const { jobs } = useJobs()
   const { user } = useAuth()

@@ -1,15 +1,14 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { useAuth } from './context/useAuth'
-import { isAuthedAndVerified } from './context/authUtils'
-import Layout from './components/layout/Layout'
-import LoginPage from './pages/LoginPage'
-import LandingPage from './pages/LandingPage'
-import WelcomePage from './pages/WelcomePage'
-import ProfilePage from './pages/ProfilePage'
 import { lazy, Suspense } from 'react'
-import BoardPage from './pages/BoardPage'
-import DashboardPage from './pages/DashboardPage'
-import LoadingScreen from './components/ui/LoadingScreen'
+import { useAuth, isAuthedAndVerified } from '../context/auth'
+import Layout from '../components/layout/Layout'
+import LoginPage from '../pages/LoginPage'
+import LandingPage from '../pages/LandingPage'
+import WelcomePage from '../pages/WelcomePage'
+import ProfilePage from '../pages/ProfilePage'
+import BoardPage from '../pages/BoardPage'
+import DashboardPage from '../pages/DashboardPage'
+import LoadingScreen from '../components/common/LoadingScreen'
 
 // Returns true if this user has already seen and dismissed the welcome page.
 // We store a simple flag in localStorage keyed by user ID.
@@ -17,11 +16,14 @@ function hasSeenWelcome(uid) {
   return localStorage.getItem(`runway_onboarded_${uid}`) === 'true'
 }
 
-const ResumePage = lazy(() => import('./pages/ResumePage'))
-const ApplicationDetailPage = lazy(() => import('./pages/ApplicationDetailPage'))
-const OutreachPage = lazy(() => import('./pages/OutreachPage'))
-const TargetCompaniesPage = lazy(() => import('./pages/TargetCompaniesPage'))
+const ResumePage = lazy(() => import('../pages/ResumePage'))
+const ApplicationDetailPage = lazy(() => import('../pages/ApplicationDetailPage'))
+const OutreachPage = lazy(() => import('../pages/OutreachPage'))
+const TargetCompaniesPage = lazy(() => import('../pages/TargetCompaniesPage'))
 
+/**
+ * Blocks protected routes until Firebase auth resolves, then requires a verified user.
+ */
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
   if (user === undefined) return <LoadingScreen fullScreen />
@@ -29,7 +31,10 @@ function ProtectedRoute({ children }) {
   return children
 }
 
-export default function Router() {
+/**
+ * Defines public auth routes, first-run onboarding, and the protected app shell.
+ */
+export default function AppRouter() {
   const { user } = useAuth()
   const verified = isAuthedAndVerified(user)
 

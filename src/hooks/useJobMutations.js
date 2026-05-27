@@ -3,8 +3,11 @@ import {
   collection, doc, serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import { useAuth } from '../context/useAuth'
+import { useAuth } from '../context/auth'
 
+/**
+ * Provides Firestore write helpers for the signed-in user's applications.
+ */
 export function useJobMutations() {
   const { user } = useAuth()
 
@@ -16,6 +19,7 @@ export function useJobMutations() {
     return doc(db, 'users', user.uid, 'applications', id)
   }
 
+  /** Creates a new application with defaults plus supplied field overrides. */
   async function addJob(data) {
     const logoUrl = data.company
       ? `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(data.company.toLowerCase().replace(/\s+/g, '') + '.com')}`
@@ -43,10 +47,12 @@ export function useJobMutations() {
     })
   }
 
+  /** Updates application fields and refreshes the updated timestamp. */
   async function updateJob(id, data) {
     await updateDoc(docRef(id), { ...data, updatedAt: serverTimestamp() })
   }
 
+  /** Moves an application to another pipeline stage and records status-change time. */
   async function updateStage(id, stage) {
     await updateDoc(docRef(id), {
       stage,
@@ -55,6 +61,7 @@ export function useJobMutations() {
     })
   }
 
+  /** Permanently deletes an application. */
   async function deleteJob(id) {
     await deleteDoc(docRef(id))
   }

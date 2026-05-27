@@ -1,6 +1,9 @@
 import { STAGES } from '../../constants/stages'
-import { useJobs } from '../../context/useJobs'
+import { useJobs } from '../../context/jobs'
 
+/**
+ * Visualizes how many applications are in each pipeline stage.
+ */
 export default function PipelineFunnel() {
   const { jobs } = useJobs()
 

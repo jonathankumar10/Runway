@@ -36,6 +36,9 @@ function PrepPill({ status }) {
   return <span className={`app-card-prep app-card-prep--${status}`}>{label}</span>
 }
 
+/**
+ * Sortable application card used by the Kanban board and drag overlay.
+ */
 export default function ApplicationCard({ job, isDragging, isSelected, onCardClick }) {
   const { deleteJob } = useJobMutations()
   const navigate = useNavigate()
