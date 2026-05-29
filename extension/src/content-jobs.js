@@ -28,29 +28,25 @@ function isOnJobPage() {
 }
 
 function getDetailsPane() {
-  // Anchor on "About the job" then walk up until the container also includes
-  // the top card (which has the company link and job title heading).
-  const aboutHeading = [...document.querySelectorAll('h2, h3, span, div, p')]
-    .find(el => el.children.length === 0 && /^about the job$/i.test(el.textContent.trim()))
-
-  if (aboutHeading) {
-    let el = aboutHeading.parentElement
-    for (let i = 0; i < 16; i++) {
-      if (!el || el === document.body) break
-      if (el.querySelector('a[href*="/company/"]') && el.querySelectorAll('p, li').length > 1) return el
-      el = el.parentElement
-    }
+  // Try known LinkedIn class patterns for the job detail panel first.
+  for (const sel of [
+    '[class*="job-details-jobs-unified-top-card"]',
+    '[class*="jobs-unified-top-card"]',
+    '[class*="jobs-details__main"]',
+    '.jobs-details',
+    '[data-job-id]',
+  ]) {
+    const el = document.querySelector(sel)
+    if (el?.querySelector('h1')) return el
   }
 
-  // Fallback: walk up from Apply button until we find a container with both a
-  // company link and heading elements.
-  const applyBtn = [...document.querySelectorAll('button, a')]
-    .find(b => /^Apply$/.test(b.textContent.trim()))
-  if (applyBtn) {
-    let el = applyBtn.parentElement
+  // Walk up from h1 until we find a container that also has a company link.
+  const h1 = document.querySelector('main h1, [role="main"] h1, h1')
+  if (h1) {
+    let el = h1.parentElement
     for (let i = 0; i < 12; i++) {
       if (!el || el === document.body) break
-      if (el.querySelector('a[href*="/company/"]') && el.querySelectorAll('h1, h2').length >= 1) return el
+      if (el.querySelector('a[href*="/company/"]') && el.querySelectorAll('p, li').length > 1) return el
       el = el.parentElement
     }
   }
@@ -193,34 +189,52 @@ function scoreLinkedInJobCard(card, jobId, role = '', company = '') {
   return score
 }
 
+// Text patterns injected by third-party extensions (Jobright, etc.) that should
+// never be mistaken for a job title or location.
+const INJECTED_TEXT_RE = /\b(low|medium|high|poor|great)\s+match\b|match for this job|be an early applicant|jobright|easy apply/i
+
 function extractTopCardDetails(pane) {
   const topCard =
     pane.querySelector('[class*="job-details-jobs-unified-top-card"], [class*="jobs-unified-top-card"]') ||
     pane.querySelector('h1')?.closest('section, div') ||
     pane
 
-  const role = cleanLine(topCard.querySelector('h1')?.textContent)
-  const lines = (topCard.innerText || '')
-    .split('\n')
-    .map(cleanLine)
-    .filter(Boolean)
+  // Use the first h1 that isn't injected third-party text.
+  const roleH1 = [...topCard.querySelectorAll('h1')].find(el => {
+    const t = cleanLine(el.textContent)
+    return t.length > 1 && !INJECTED_TEXT_RE.test(t)
+  })
+  const role = cleanLine(roleH1?.textContent)
 
-  const companyLocationLine = lines.find(line =>
+  // Company: the /company/ link is the most authoritative source.
+  const companyLink = topCard.querySelector('a[href*="/company/"]')
+  const company = cleanLinkedInCompany(companyLink?.textContent || '')
+
+  // Location: find the subtitle dot-separated line, skipping injected/noisy lines.
+  const lines = (topCard.innerText || '').split('\n').map(cleanLine).filter(Boolean)
+  const dotLine = lines.find(line =>
     line.includes(' · ') &&
+    !INJECTED_TEXT_RE.test(line) &&
     !/^beta\b/i.test(line) &&
     !/easy apply|applicants|save/i.test(line)
   )
 
-  let company = ''
   let jobLocation = ''
-  if (companyLocationLine) {
-    const [companyPart, locationPart] = companyLocationLine.split(' · ')
-    company = cleanLinkedInCompany(companyPart)
-    jobLocation = cleanLine(locationPart)
+  if (dotLine) {
+    const parts = dotLine.split(' · ').map(s => cleanLine(s))
+    // The first part is typically the company name; look for the first location-like part.
+    const locationPart = parts.find(p =>
+      p &&
+      !INJECTED_TEXT_RE.test(p) &&
+      !/^\d/.test(p) &&
+      !/^(actively[\s+]hiring|promoted|following|connections?)$/i.test(p) &&
+      !/^(full[-\s]?time|part[-\s]?time|contract|internship|temporary)$/i.test(p) &&
+      p !== company
+    )
+    if (locationPart) jobLocation = locationPart
   }
 
   const logoUrl = findCompanyLogo(topCard, company)
-
   return { role, company, location: jobLocation, logoUrl }
 }
 
@@ -242,16 +256,21 @@ function extractJob() {
   const jobId = new URLSearchParams(location.search).get('currentJobId')
   const preliminaryJobCard = getCurrentJobCard(jobId, topCard.role, topCard.company)
   const cardCompany = extractCompanyFromJobCard(preliminaryJobCard)
+
+  // The anchor pointing to the specific job view URL is the most reliable title source.
   const jobTitleLink =
     (jobId && pane.querySelector(`a[href*="/jobs/view/${jobId}"]`)) ||
     (jobId && document.querySelector(`a[href*="/jobs/view/${jobId}"]`)) ||
     pane.querySelector('a[href*="/jobs/view/"]')
+
+  // Prioritise the URL-linked title (immune to third-party injections), then the
+  // top-card h1, then a filtered h1/h2 scan.
   const role =
+    cleanLine(jobTitleLink?.textContent).replace(INJECTED_TEXT_RE, '').trim() ||
     topCard.role ||
-    jobTitleLink?.textContent?.trim() ||
     [...pane.querySelectorAll('h1, h2')]
-      .map(h => h.textContent.trim())
-      .find(t => t.length > 2 && !/^\d+$/.test(t) && !/notification/i.test(t) && !/^about the job$/i.test(t))
+      .map(h => cleanLine(h.textContent))
+      .find(t => t.length > 2 && !/^\d+$/.test(t) && !INJECTED_TEXT_RE.test(t) && !/^about the job$/i.test(t))
 
   // Company: the /company/ link inside the detail pane
   const company =
@@ -260,39 +279,39 @@ function extractJob() {
     cleanLinkedInCompany(pane.querySelector('a[href*="/company/"]')?.textContent) ||
     cleanLinkedInCompany(document.querySelector('a[href*="/company/"]')?.textContent)
 
-  // Location: find "About the job" heading, then look at sibling/ancestor text
-  // for city/state patterns before the description block
-  const companyLink = pane.querySelector('a[href*="/company/"]')
-  let jobLocation = topCard.location || ''
-  if (companyLink) {
-    const parent = companyLink.closest('div, section, li') || companyLink.parentElement
-    const parentText = parent?.textContent || ''
-    // Location usually appears as "City, State" or "City, Country" in the top card
-    const locMatch = parentText.match(/([A-Z][a-zA-Z\s]+,\s*[A-Z]{2}(?:\s*\((?:Remote|Hybrid|On-site)\))?)/)?.[1] ||
-                     parentText.match(/(?:Remote|Hybrid|On-site)/i)?.[0]
-    jobLocation = locMatch?.trim() || ''
+  // Location: use the top card extraction; fall back to work-arrangement text.
+  let jobLocation = topCard.location
+  if (!jobLocation && pane !== document) {
+    jobLocation = (pane.innerText || '').match(/\b(Remote|Hybrid|On-site)\b/i)?.[0] || ''
   }
 
-  // Description: find "About the job" heading then grab the following content
-  const aboutHeading = [...pane.querySelectorAll('*')]
-    .find(el => el.children.length === 0 && /^about the job$/i.test(el.textContent.trim()))
+  // Description: prefer known LinkedIn description containers (less likely to include
+  // third-party injected nodes).
   let jobDescription = ''
-  if (aboutHeading) {
-    let el = aboutHeading.parentElement
-    for (let i = 0; i < 6; i++) {
-      if (!el || el === document.body) break
-      const text = el.innerText?.trim() || ''
-      if (text.length > 100) {
-        jobDescription = text.replace(/^about the job\s*/i, '').trim().slice(0, 5000)
-        break
-      }
-      el = el.parentElement
-    }
-  }
+  const descEl =
+    document.querySelector('[class*="jobs-description__content"]') ||
+    pane.querySelector('[class*="jobs-description"]') ||
+    document.querySelector('[class*="jobs-description"]') ||
+    pane.querySelector('[class*="description__text"]') ||
+    document.querySelector('[class*="description__text"]')
+  if (descEl) jobDescription = (descEl.innerText || '').trim().slice(0, 5000)
 
-  const snapshotLocation = jobDescription.match(/Location:\s*([^•\n]+?)(?:\s+About The Company|\s+Why you should|\s*$)/i)?.[1]
-  if (!jobLocation && snapshotLocation) {
-    jobLocation = snapshotLocation.replace(/\s*\|\s*/g, ' ').trim()
+  // Fallback: walk up from "About the job" heading.
+  if (!jobDescription) {
+    const aboutHeading = [...pane.querySelectorAll('*')]
+      .find(el => el.children.length === 0 && /^about the job$/i.test(el.textContent.trim()))
+    if (aboutHeading) {
+      let el = aboutHeading.parentElement
+      for (let i = 0; i < 6; i++) {
+        if (!el || el === document.body) break
+        const text = el.innerText?.trim() || ''
+        if (text.length > 100) {
+          jobDescription = text.replace(/^about the job\s*/i, '').trim().slice(0, 5000)
+          break
+        }
+        el = el.parentElement
+      }
+    }
   }
 
   const jobUrl = jobId ? `https://www.linkedin.com/jobs/view/${jobId}/` : location.href
@@ -302,9 +321,49 @@ function extractJob() {
     topCard.logoUrl ||
     findCompanyLogo(pane, company)
 
-  console.log('[Runway] pane found:', pane !== document)
-  console.log('[Runway] extracted:', { role, company, jobLocation, descLen: jobDescription.length })
-  return { role, company, location: jobLocation, jobDescription, jobUrl, logoUrl }
+  // Posted time — look for relative time text near the top card
+  const postedEl = [...(pane === document ? document : pane).querySelectorAll('span, li')]
+    .find(el => /\b\d+\s+(minute|hour|day|week|month)s?\s+ago\b/i.test(el.textContent) && el.children.length === 0)
+  const postedAt = cleanLine(postedEl?.textContent?.match(/\b\d+\s+(minute|hour|day|week|month)s?\s+ago\b/i)?.[0] || '')
+
+  // Applicant count
+  const applicantEl = [...(pane === document ? document : pane).querySelectorAll('span, li')]
+    .find(el => /\b(over\s+)?[\d,]+\s+(people|applicants?)\b/i.test(el.textContent) && el.children.length === 0)
+  const applicantCount = cleanLine(applicantEl?.textContent?.match(/\b(over\s+[\d,]+|[\d,]+)\s+(people|applicants?)\b/i)?.[0] || '')
+
+  // Job-type and work-arrangement tags — LinkedIn renders these as pill buttons or list items.
+  const tagScope = pane === document ? document : pane
+  const tagEls = tagScope.querySelectorAll(
+    '[class*="job-details-preferences"] li, [class*="job-type"] li, ' +
+    '[class*="workplace-type"] li, [class*="job-insight"] li, ' +
+    '[class*="jobs-unified-top-card__job-insight"] span, ' +
+    '[class*="ui-label"] li'
+  )
+  const tags = [...tagEls]
+    .map(el => cleanLine(el.textContent))
+    .filter(t => t && /remote|hybrid|on-?site|full[-\s]?time|part[-\s]?time|contract|internship/i.test(t) && t.length < 35)
+    .filter((t, i, arr) => arr.indexOf(t) === i)
+    .slice(0, 4)
+
+  // Salary — LinkedIn shows it as a prominent line in the detail pane header area
+  const salaryScope = pane === document ? document : pane
+  const salaryEl =
+    salaryScope.querySelector('[class*="salary"], [class*="compensation"]') ||
+    [...salaryScope.querySelectorAll('span, li, div')]
+      .find(el =>
+        /\$[\d,]+[kK]?/i.test(el.textContent) &&
+        el.children.length === 0 &&
+        el.textContent.length < 70
+      )
+  const salary = salaryEl?.textContent?.trim()
+    ?.match(/\$[\d,]+[kK]?(?:\s*[-–—]\s*\$[\d,]+[kK]?)?\s*(?:\/\s*(?:yr|year|hour|hr|annual))?/i)?.[0]?.trim() || ''
+
+  // Connections working at the company
+  const connectionEl = [...salaryScope.querySelectorAll('span, li, a')]
+    .find(el => /\b\d+\s+(school\s+alumni|company\s+alumni|connection|people)\b.*\bwork\b/i.test(el.textContent) && el.textContent.length < 80)
+  const connections = cleanLine(connectionEl?.textContent || '')
+
+  return { role, company, location: jobLocation, jobDescription, jobUrl, logoUrl, postedAt, applicantCount, salary, connections, tags }
 }
 
 function extractJobsFromListings() {
@@ -324,6 +383,28 @@ function extractJobsFromListings() {
         ''
       const logoUrl = findCompanyLogo(card, company)
 
+      // Posted time from the card footer
+      const timeEl = card?.querySelector('time, [class*="listed-date"], [class*="listdate"]') ||
+        [...(card?.querySelectorAll('span, li') || [])].find(el =>
+          /\b\d+\s+(minute|hour|day|week|month)s?\s+ago\b/i.test(el.textContent) && el.children.length === 0
+        )
+      const postedAt = cleanLine(timeEl?.textContent?.match(/\b\d+\s+(minute|hour|day|week|month)s?\s+ago\b/i)?.[0] || '')
+
+      // Work arrangement from the card metadata
+      const metaText = cleanLine(card?.querySelector('[class*="metadata"]')?.textContent || '')
+      const arrangement = /(remote|hybrid|on-?site)/i.exec(jobLocation + ' ' + metaText)?.[1] || ''
+
+      // Salary — LinkedIn renders it directly in card metadata (e.g. "$146K/yr–$213K/yr")
+      const salaryText = [...(card?.querySelectorAll('span, li, div') || [])]
+        .map(el => cleanLine(el.textContent))
+        .find(t => /\$[\d,]+[kK]?/i.test(t) && t.length < 60 && !/^\d+$/.test(t))
+      const salary = salaryText?.match(/\$[\d,]+[kK]?(?:\s*[-–—]\s*\$[\d,]+[kK]?)?\s*(?:\/\s*(?:yr|year|hour|hr|annual))?/i)?.[0]?.trim() || ''
+
+      // Employee count / connections
+      const connectionEl = [...(card?.querySelectorAll('span, li') || [])]
+        .find(el => /\b\d+\s+(school\s+alumni|company\s+alumni|connection|people)\b/i.test(el.textContent) && el.children.length === 0)
+      const connections = cleanLine(connectionEl?.textContent || '')
+
       return {
         role,
         company,
@@ -332,6 +413,10 @@ function extractJobsFromListings() {
         jobUrl: `https://www.linkedin.com/jobs/view/${jobId}/`,
         logoUrl,
         atsPlatform: 'linkedin',
+        postedAt,
+        salary,
+        connections,
+        tags: arrangement ? [arrangement.charAt(0).toUpperCase() + arrangement.slice(1).toLowerCase()] : [],
       }
     })
     .filter(job => job?.role || job?.jobUrl)

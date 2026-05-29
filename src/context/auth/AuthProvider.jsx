@@ -45,11 +45,13 @@ export function AuthProvider({ children }) {
     }
   }
 
+  /**
+   * Reloads the current Firebase user and updates React state with the latest verification flag.
+   */
   async function checkEmailVerification() {
     if (!auth.currentUser) return false
     await auth.currentUser.reload()
     const verified = auth.currentUser.emailVerified
-    // Spread into a new object so React detects the state change
     setUser({ ...auth.currentUser })
     return verified
   }

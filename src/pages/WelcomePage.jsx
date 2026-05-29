@@ -7,15 +7,8 @@ import {
 import './WelcomePage.css'
 import RunwayLogoMark from '../components/brand/RunwayLogoMark'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// STEPS
-// Each object describes one feature of the app.
-// 'number'  → shown as "01", "02", etc. on the card
-// 'icon'    → lucide-react icon component
-// 'color'   → matches a "wp-card-icon--{color}" class in WelcomePage.css
-// 'title'   → short feature name
-// 'desc'    → one or two sentences explaining what the user can do here
-// ─────────────────────────────────────────────────────────────────────────────
+const ONBOARDING_STORAGE_PREFIX = 'runway_onboarded_'
+
 const STEPS = [
   {
     number: 1,
@@ -61,17 +54,14 @@ const STEPS = [
   },
 ]
 
-// ─────────────────────────────────────────────────────────────────────────────
-// StepCard
-// Renders a single feature card. Receives one item from the STEPS array.
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Displays one onboarding feature summary card.
+ */
 function StepCard({ step }) {
   const Icon = step.icon
 
   return (
     <div className="wp-card">
-
-      {/* Top row: step number + coloured icon bubble */}
       <div className="wp-card-top">
         <span className="wp-card-number">
           {String(step.number).padStart(2, '0')}
@@ -81,61 +71,49 @@ function StepCard({ step }) {
         </div>
       </div>
 
-      {/* Title + description */}
       <div>
         <h3 className="wp-card-title">{step.title}</h3>
         <p className="wp-card-desc">{step.desc}</p>
       </div>
-
     </div>
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// WelcomePage
-// Shown once to new users right after they log in for the first time.
-// When they click "Let's get started" (or "Skip"), we:
-//   1. Write a flag to localStorage so we never show this page again.
-//   2. Navigate them to the main app (/board).
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Returns the user's first display name, falling back to a generic greeting.
+ */
+function getFirstName(user) {
+  return user?.displayName?.split(' ')[0] ?? 'there'
+}
+
 /**
  * First-run onboarding screen shown once after a verified login.
  */
 export default function WelcomePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
-
-  // Pull the first name out of the user's display name, e.g. "Jonathan Kumar" → "Jonathan".
-  // Falls back to "there" if the name isn't available.
-  const firstName = user?.displayName?.split(' ')[0] ?? 'there'
+  const firstName = getFirstName(user)
 
   function finishOnboarding() {
-    // Store a flag so the router knows not to redirect here again.
-    // We key it by user ID so it works correctly if multiple accounts use the same browser.
-    localStorage.setItem(`runway_onboarded_${user.uid}`, 'true')
+    localStorage.setItem(`${ONBOARDING_STORAGE_PREFIX}${user.uid}`, 'true')
     navigate('/board')
   }
 
   return (
     <div className="wp-root">
 
-      {/* ── Top bar ── */}
       <div className="wp-topbar">
         <div className="wp-logo">
           <RunwayLogoMark size="sm" className="wp-logo-icon" />
           <span className="wp-logo-wordmark">Runway</span>
         </div>
 
-        {/* Skip link — for users who just want to dive straight in */}
         <button className="wp-skip" onClick={finishOnboarding}>
           Skip intro →
         </button>
       </div>
 
-      {/* ── Main content ── */}
       <div className="wp-content">
-
-        {/* Header */}
         <div className="wp-header">
           <p className="wp-eyebrow">Welcome to Runway</p>
           <h1 className="wp-title">Hey {firstName}, let's get you set up</h1>
@@ -145,14 +123,12 @@ export default function WelcomePage() {
           </p>
         </div>
 
-        {/* Feature cards */}
         <div className="wp-grid">
           {STEPS.map(step => (
             <StepCard key={step.number} step={step} />
           ))}
         </div>
 
-        {/* Get started button */}
         <button className="wp-cta" onClick={finishOnboarding}>
           Let's get started
           <ArrowRight size={15} />

@@ -43,8 +43,9 @@ function metaContent(prop) {
 
 function textFromSelectors(selectors) {
   for (const selector of selectors) {
-    const text = document.querySelector(selector)?.innerText || document.querySelector(selector)?.textContent
-    const cleaned = cleanText(text)
+    const el = document.querySelector(selector)
+    if (!el) continue
+    const cleaned = cleanText(el.innerText || el.textContent)
     if (cleaned) return cleaned
   }
   return ''
@@ -342,10 +343,10 @@ function extractJob() {
   }
 
   return {
-    role: cleanText(data.role),
+    role: cleanText(data.role) || metaTitleRole(),
     company: cleanText(data.company),
     location: cleanText(data.location),
-    jobDescription: cleanText(data.jobDescription, 5000),
+    jobDescription: cleanText(data.jobDescription, 5000) || cleanText(metaContent('og:description'), 5000),
     jobUrl: location.href,
     logoUrl: cleanText(data.logoUrl),
     atsPlatform: platform,
@@ -492,6 +493,21 @@ function valueForField(field, profile) {
   if (/github/.test(sig)) return profile.githubUrl
   if (/portfolio|website|personal\s*site/.test(sig)) return profile.portfolioUrl
   if (/city|location|address/.test(sig)) return profile.location
+
+  if (/current\s*(employer|company|organization|firm)\b|\bemployer\b/.test(sig)) return profile.currentCompany
+  if (/current\s*(title|position|role|job\s*title)|most\s*recent\s*(title|position)/.test(sig)) return profile.currentTitle
+
+  if (/years?\s*(of\s*)?experience|how\s*many\s*years|experience.*years/.test(sig)) return profile.yearsOfExperience
+
+  if (/professional\s*summary|tell\s*us\s*about|about\s*(you|yourself)|\bbio\b|introduce\s*yourself|\bsummary\b/.test(sig))
+    return profile.professionalSummary || (profile.resumeText || '').slice(0, 500)
+
+  if (/\bskills?\b|technologies|technical\s*proficien|tools\s*(you\s*know|used)/.test(sig)) return profile.skills
+
+  if (/university|college|\bschool\b|institution/.test(sig)) return profile.educationSchool
+  if (/\bdegree\b|qualification|highest\s*(level|education)/.test(sig)) return profile.educationDegree
+  if (/graduation|grad.*year|expected.*graduation|year.*graduated|class\s*of/.test(sig)) return profile.educationGradYear
+  if (/\bmajor\b|field\s*of\s*study|concentration|area\s*of\s*study/.test(sig)) return profile.educationMajor
 
   return ''
 }
@@ -1116,6 +1132,7 @@ function getPanelContext() {
       mode: 'apply',
       applications,
       selectedApplicationId,
+      defaultResume: applyResources?.defaultResume || null,
       subtitle: applications.length
         ? 'Choose the matching Runway application, then use the actions below.'
         : 'Application form detected. Save and prepare the job in Runway for tailored resume actions.',
@@ -1126,11 +1143,13 @@ function getPanelContext() {
   }
 
   const jobs = getDiscoverableJobs()
+  const directPage = isJobPage()
   return {
     visible: jobs.length > 0,
     mode: 'job',
     jobs,
-    subtitle: isJobPage()
+    isDirectJobPage: directPage,
+    subtitle: directPage
       ? 'Save this job and prepare your resume.'
       : 'Save detected jobs to Runway.',
   }

@@ -4,24 +4,7 @@
   box-sizing: border-box;
 }
 
-/* ── Design tokens ───────────────────────────────────────────────────────────
-   :root defines CSS variables (aka "tokens") that are shared across every page.
-   Changing a value here updates it everywhere — one place, uniform result.
-
-   FONT SIZE
-   Tailwind's text-* classes (text-xs, text-sm, etc.) are all rem-based.
-   rem = "relative to the root element's font-size".
-   Setting font-size: 112.5% here means 1rem = 18px instead of 16px,
-   so every Tailwind text size scales up proportionally — no component edits needed.
-     text-xs   → 13.5px  (was 12px)
-     text-sm   → 15.75px (was 14px)
-     text-base → 18px    (was 16px)
-     text-lg   → 20.25px (was 18px)
-
-   COLORS
-   The palette is slate-based with violet as the brand accent.
-   Use these variables in .css files with var(--color-name).
-────────────────────────────────────────────────────────────────────────────── */
+/* Design tokens */
 :root {
   /* Base font size — scales all rem units site-wide */
   font-size: 112.5%; /* 18px */
@@ -60,7 +43,7 @@ body {
   margin: 0;
   background: #04091a;
   color: #f1f5f9;
-  font-family: system-ui, 'Segoe UI', sans-serif;
+  font-family: 'Inter', system-ui, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
@@ -102,10 +85,7 @@ body {
   width: var(--progress-w);
 }
 
-/* ── Accent colour system ────────────────────────────────────────────────────
-   Default is violet. Selecting a different accent in Profile writes
-   data-accent to <html> and overrides the key highlight selectors below.
-────────────────────────────────────────────────────────────────────────────── */
+/* Accent colour system */
 
 /* Blue */
 [data-accent="blue"] .sidebar-nav-link-active          { background: rgb(37 99 235 / 0.2); color: #93c5fd; }

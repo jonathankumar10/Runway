@@ -10,8 +10,9 @@ import BoardPage from '../pages/BoardPage'
 import DashboardPage from '../pages/DashboardPage'
 import LoadingScreen from '../components/common/LoadingScreen'
 
-// Returns true if this user has already seen and dismissed the welcome page.
-// We store a simple flag in localStorage keyed by user ID.
+/**
+ * Returns true when this browser has completed onboarding for the user.
+ */
 function hasSeenWelcome(uid) {
   return localStorage.getItem(`runway_onboarded_${uid}`) === 'true'
 }
@@ -41,33 +42,25 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Landing */}
         <Route
           path="/"
           element={
             user === undefined ? <LoadingScreen fullScreen /> :
-            // First-time users go to /welcome, returning users go straight to /board
             verified ? <Navigate to={hasSeenWelcome(user.uid) ? '/board' : '/welcome'} replace /> :
-            // Signed in but unverified email user → send to /login verify-pending view
             (user && !verified) ? <Navigate to="/login" replace /> :
             <LandingPage />
           }
         />
 
-        {/* Auth page */}
         <Route
           path="/login"
           element={
             user === undefined ? <LoadingScreen fullScreen /> :
-            // Same logic — after login, new users see welcome, returning users skip it
             verified ? <Navigate to={hasSeenWelcome(user.uid) ? '/board' : '/welcome'} replace /> :
             <LoginPage />
           }
         />
 
-        {/* Welcome / onboarding — shown once to new users after their first login.
-            It's protected (requires login) but lives outside the main Layout
-            so it has no sidebar or nav chrome. */}
         <Route
           path="/welcome"
           element={
@@ -77,7 +70,6 @@ export default function AppRouter() {
           }
         />
 
-        {/* App shell */}
         <Route
           path="/"
           element={

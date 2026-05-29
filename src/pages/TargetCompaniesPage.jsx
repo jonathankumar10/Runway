@@ -55,9 +55,6 @@ const SEED_COMPANIES = [
   { name: 'Lightning AI', domain: 'lightning.ai', space: 'AI developer platform', stage: 'Startup / growth', notes: 'Wellfound shows backend roles; maps to MCP tooling, platform reliability, and cloud systems.', targetRoles: 'Backend Engineer, Platform Engineer, AI Infrastructure', careersUrl: 'https://lightning.ai/careers', searchQuery: 'Search Lightning AI recruiter' },
 ]
 
-// Lower number = higher up in the list.
-// Not-yet-searched companies come first so they get attention.
-// Fully contacted companies sink to the bottom.
 const TARGET_PRIORITY = { new: 0, retrieved: 1, tracked: 2, emailed: 3, contacted: 4 }
 
 /**
@@ -80,7 +77,6 @@ export default function TargetCompaniesPage() {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
 
-  // Load companies from Firestore
   useEffect(() => {
     if (!user?.uid) return
     const q = query(collection(db, 'users', user.uid, 'targetCompanies'), orderBy('createdAt', 'asc'))
@@ -89,7 +85,6 @@ export default function TargetCompaniesPage() {
       setCompanies(docs)
       setLoading(false)
 
-      // Auto-seed if collection is empty
       if (docs.length === 0 && !seedingRef.current) {
         seedingRef.current = true
         setSeeding(true)
@@ -105,7 +100,6 @@ export default function TargetCompaniesPage() {
     })
   }, [user?.uid])
 
-  // Live-sync cache + outreach so status badges update without a page refresh
   useEffect(() => {
     if (!user?.uid) return
     const unsubCache = onSnapshot(collection(db, 'users', user.uid, 'recruiterCache'), snap => {
@@ -156,13 +150,11 @@ export default function TargetCompaniesPage() {
     return true
   })
 
-  // Sort: companies needing action first, fully contacted companies last
   const sorted = [...displayed].sort((a, b) => TARGET_PRIORITY[getStatus(a)] - TARGET_PRIORITY[getStatus(b)])
 
   const PAGE_SIZE = 10
   const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(sorted, PAGE_SIZE)
 
-  // Jump back to page 1 whenever the user changes filter or search
   useEffect(() => { goToPage(1) }, [filter, goToPage, search])
 
   async function handlePrompt() {
@@ -253,8 +245,6 @@ export default function TargetCompaniesPage() {
       </div>
 
       <div className="px-4 py-4 sm:px-6 max-w-7xl mx-auto">
-
-        {/* AI Prompt bar */}
         <div className="targets-prompt-bar">
           <p className="text-xs font-medium text-slate-300 mb-2 flex items-center gap-1.5">
             <Sparkles size={11} className="text-sky-400" /> Update list with AI
@@ -282,8 +272,6 @@ export default function TargetCompaniesPage() {
             </p>
           )}
         </div>
-
-        {/* Filters + search */}
         <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
           <div className="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
             {STATUS_FILTERS.map(f => (
@@ -336,7 +324,6 @@ export default function TargetCompaniesPage() {
                   const notesExpanded = expandedNotes.has(company.id)
                   return (
                     <tr key={company.id}>
-                      {/* Company */}
                       <td>
                         <button
                           onClick={() => handleFindRecruiters(company)}
@@ -360,15 +347,12 @@ export default function TargetCompaniesPage() {
                           )}
                         </div>
                       </td>
-                      {/* Space */}
                       <td>
                         <p className="text-slate-300">{company.space}</p>
                       </td>
-                      {/* Stage */}
                       <td>
                         <span className="targets-stage-badge">{company.stage}</span>
                       </td>
-                      {/* Notes */}
                       <td>
                         <p className={`text-slate-400 leading-relaxed ${!notesExpanded ? 'line-clamp-2' : ''}`}>
                           {company.notes}
@@ -382,7 +366,6 @@ export default function TargetCompaniesPage() {
                           </button>
                         )}
                       </td>
-                      {/* Roles */}
                       <td>
                         <div className="flex flex-wrap gap-1">
                           {(company.targetRoles || '').split(',').map((r, i) => (
@@ -392,7 +375,6 @@ export default function TargetCompaniesPage() {
                           ))}
                         </div>
                       </td>
-                      {/* Status */}
                       <td>
                         <span className={`targets-status-badge ${
                           status === 'contacted' ? 'targets-status-contacted' :
@@ -408,7 +390,6 @@ export default function TargetCompaniesPage() {
                            '○ Not searched'}
                         </span>
                       </td>
-                      {/* Actions */}
                       <td>
                         <div className="flex flex-col gap-1.5">
                           <button

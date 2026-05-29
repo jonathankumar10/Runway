@@ -64,7 +64,7 @@
   @apply flex flex-1 min-h-0;
 }
 
-/* ── Analysis column ── */
+/* Analysis column */
 .trm-analysis-col {
   @apply flex-col w-full lg:w-96 lg:shrink-0 border-r border-slate-700 bg-slate-950 overflow-y-auto;
 }
@@ -159,12 +159,12 @@
   @apply text-xs text-slate-400 leading-relaxed pt-0.5;
 }
 
-/* ── Resume paper area (shown inside content on builder/resume/analysis tabs) ── */
+/* Resume paper area (shown inside content on builder/resume/analysis tabs) */
 .trm-paper-area {
   @apply flex-col items-center py-6 px-4 gap-3 bg-slate-950 overflow-y-auto min-w-0;
 }
 
-/* ── Analysis right panel (analysis tab, right half on desktop) ── */
+/* Analysis right panel (analysis tab, right half on desktop) */
 .trm-analysis-right {
   @apply flex flex-col flex-1 overflow-y-auto bg-slate-950 border-l border-slate-700 min-w-0;
 }
@@ -201,7 +201,7 @@
   box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 2px #7c3aed;
 }
 
-/* ── Resume typography ── */
+/* Resume typography */
 
 .trm-paper h1.rp-name {
   font-size: calc(var(--rp-name-size, 18pt) * 0.88);
@@ -284,7 +284,7 @@
   height: 1px;
 }
 
-/* ── Template swatch picker ── */
+/* Template swatch picker */
 .trm-template-picker {
   @apply flex items-center gap-1;
 }
@@ -349,7 +349,7 @@
   @apply text-xs text-slate-500 shrink-0;
 }
 
-/* ── Builder panel ── */
+/* Builder panel */
 .trm-builder {
   @apply flex flex-col;
 }

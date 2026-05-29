@@ -14,7 +14,6 @@ export default function Sidebar({ isOpen, onClose }) {
   return (
     <aside className={`sidebar${isOpen ? ' sidebar--open' : ''}`}>
       <div className="sidebar-logo-bar">
-        {/* Clicking the logo takes the user back to the welcome / home page */}
         <Link to="/welcome" className="flex items-center gap-2">
           <RunwayLogoMark size="md" />
           <span className="font-semibold text-white text-sm">Runway</span>

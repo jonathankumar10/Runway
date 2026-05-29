@@ -67,13 +67,11 @@ async function extractStyleMap(file) {
 
     if (sizes.length === 0) return null
 
-    // Find mode (body = most common size)
     const freq = {}
     for (const s of sizes) freq[s] = (freq[s] ?? 0) + 1
     let bodyFontSizePt = parseFloat(Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0])
     bodyFontSizePt = Math.min(14, Math.max(8, bodyFontSizePt))
 
-    // Heading cluster = items noticeably larger than body
     const headingItems = sizes.filter(s => s >= bodyFontSizePt + 1.5)
     let headingFontSizePt, confident
 
@@ -87,7 +85,6 @@ async function extractStyleMap(file) {
       confident = false
     }
 
-    // If all sizes are nearly identical, extraction is unreliable
     const range = Math.max(...sizes) - Math.min(...sizes)
     if (range < 1.5) confident = false
 
@@ -329,8 +326,6 @@ export default function ResumePage() {
           valueClass={avgScore != null ? (avgScore >= 75 ? 'text-green-400' : avgScore >= 50 ? 'text-yellow-400' : 'text-red-400') : undefined}
         />
       </div>
-
-      {/* Library stack */}
       <div className="resume-library-section mb-5">
         <div className="resume-list-header">
           <p className="text-xs font-bold text-violet-400 uppercase tracking-widest">Library</p>
@@ -375,8 +370,6 @@ export default function ResumePage() {
         <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
           onChange={e => handleFile(e.target.files?.[0])} />
       </div>
-
-      {/* Detail panel — full width */}
       <div ref={detailRef}>
         {selectedResume ? (
           <ResumeDetail
@@ -591,8 +584,6 @@ function ResumeDetail({ resume, scoredJobs, avgScore, onOpen, onDownload, onSetD
     </div>
   )
 }
-
-// ── StructuredEditor ──────────────────────────────────────────────────────────
 
 function StructuredEditor({ resume, onUpdate }) {
   const s = resume.parsedStructure
@@ -994,8 +985,6 @@ function EducationEditor({ entries, onChange }) {
     </div>
   )
 }
-
-// ── Shared small components ───────────────────────────────────────────────────
 
 function StatCard({ value, label, valueClass, icon: Icon, iconColor }) {
   return (

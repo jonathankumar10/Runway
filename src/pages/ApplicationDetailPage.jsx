@@ -105,7 +105,7 @@ export default function ApplicationDetailPage() {
   const [finderFromCache, setFinderFromCache] = useState(false)
   const [contactedEmails, setContactedEmails] = useState(new Set())
   const [tailoring, setTailoring] = useState(false)
-  const [tailorDraft, setTailorDraft] = useState(null)   // { suggestions, sections, styleMap } — unsaved working copy
+  const [tailorDraft, setTailorDraft] = useState(null)
   const [resumeModalOpen, setResumeModalOpen] = useState(false)
   const [editingRecruiter, setEditingRecruiter] = useState(false)
   const [recruiterEdit, setRecruiterEdit] = useState({ name: '', email: '', title: '', linkedin: '' })
@@ -267,7 +267,6 @@ export default function ApplicationDetailPage() {
     if (styleOverrides && Object.keys(styleOverrides).length > 0) {
       payload.tailoredResumeStyleOverrides = styleOverrides
     }
-    // Persist analysis data so the Analysis tab survives a page reload / reopen
     if (tailorDraft?.keywordAnalysis) payload.tailoredKeywordAnalysis = tailorDraft.keywordAnalysis
     if (tailorDraft?.rewrittenBullets?.length) payload.tailoredRewrittenBullets = tailorDraft.rewrittenBullets
     if (tailorDraft?.rewrittenSummary?.length) payload.tailoredRewrittenSummary = tailorDraft.rewrittenSummary
@@ -291,7 +290,6 @@ export default function ApplicationDetailPage() {
       let recruiters = null
       let fromCache = false
 
-      // 1. Check our Firestore cache first — no Hunter API call if fresh data exists
       const cacheSnap = await getDoc(doc(db, 'users', user.uid, 'recruiterCache', normalized))
       if (cacheSnap.exists()) {
         const cached = cacheSnap.data()
@@ -301,7 +299,6 @@ export default function ApplicationDetailPage() {
         }
       }
 
-      // 2. Cache miss — call cloud function (it will cache the result for next time)
       if (!recruiters) {
         const result = await findRecruiter(finderDomain.trim())
         if (result.error) throw new Error(result.error)
@@ -312,7 +309,6 @@ export default function ApplicationDetailPage() {
       setFinderFromCache(fromCache)
       setFinderResults(recruiters)
 
-      // 3. Cross-check outreach collection so we can badge already-contacted recruiters
       const emails = (recruiters || []).map(r => r.email).filter(Boolean).slice(0, 10)
       if (emails.length > 0) {
         const snap = await getDocs(
@@ -461,8 +457,6 @@ export default function ApplicationDetailPage() {
             </div>
           </div>
         </div>
-
-        {/* Action cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div className="detail-action-card">
             <div className="flex items-center gap-2 mb-3">
@@ -489,7 +483,6 @@ export default function ApplicationDetailPage() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6 items-start">
-          {/* Left column — analysis & content */}
           <div className="min-w-0 space-y-5">
 
             <Section title="Job Description" icon={FileText}>
@@ -513,7 +506,6 @@ export default function ApplicationDetailPage() {
 
             {(job.matchHighlights?.length > 0 || job.matchGaps?.length > 0 || job.matchSuggestions?.length > 0) && (
               <Section title="Match Analysis" icon={Sparkles}>
-                {/* Strengths + Gaps */}
                 {(job.matchHighlights?.length > 0 || job.matchGaps?.length > 0) && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-5">
                     {job.matchHighlights?.length > 0 && (
@@ -542,8 +534,6 @@ export default function ApplicationDetailPage() {
                     )}
                   </div>
                 )}
-
-                {/* Resume suggestions */}
                 {job.matchSuggestions?.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold text-sky-400 uppercase tracking-wide mb-2">Suggested additions for your resume</p>
@@ -582,8 +572,6 @@ export default function ApplicationDetailPage() {
                 Generate a version of your resume optimised for this specific role. You can edit and download it as a PDF.
                 {job.matchScore == null && <span className="text-orange-400 ml-1">Run AI match analysis first for better results.</span>}
               </p>
-
-              {/* Saved banner */}
               {job.tailoredResumeText && (
                 <>
                   <div className="flex items-center justify-between gap-3 p-3 bg-green-500/5 border border-green-500/20 rounded-xl mb-2">
@@ -598,8 +586,6 @@ export default function ApplicationDetailPage() {
                       <Eye size={11} /> View / Edit
                     </button>
                   </div>
-
-                  {/* Tailored resume score */}
                   {job.tailoredMatchScore != null ? (
                     <div className="flex items-center justify-between gap-3 p-3 bg-slate-800/60 border border-slate-700 rounded-xl mb-4">
                       <div className="flex items-center gap-3">
@@ -642,8 +628,6 @@ export default function ApplicationDetailPage() {
                   )}
                 </>
               )}
-
-              {/* Suggestions from latest generation */}
               {tailorDraft?.suggestions.length > 0 && (
                 <div className="p-4 bg-violet-500/5 border border-violet-500/20 rounded-xl mb-4">
                   <p className="text-xs font-semibold text-violet-400 uppercase tracking-wide mb-2.5">What was improved</p>
@@ -681,8 +665,6 @@ export default function ApplicationDetailPage() {
               {notesSaving && <p className="text-xs text-slate-400 mt-1">Saving...</p>}
             </Section>
           </div>
-
-          {/* Right column */}
           <div className="min-w-0 space-y-5">
 
             <Section title="My To-Dos" icon={CheckCircle2} badge={`${completedTodos}/${todos.length}`}>
@@ -750,8 +732,6 @@ export default function ApplicationDetailPage() {
                 <p className="text-sm text-slate-400">No interview rounds tracked yet.</p>
               )}
             </Section>
-
-            {/* Meta info */}
             {(job.source || job.nextStep || addedDate || updatedDate) && (
               <aside className="detail-sidebar-card space-y-2.5">
                 {job.source && <MetaRow label="Source" value={job.source} />}
@@ -1171,7 +1151,6 @@ function OutreachCard({ job }) {
 
   return (
     <div className="space-y-3 pt-2">
-      {/* Email draft */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <p className="text-xs font-semibold text-slate-300">Email Draft</p>
@@ -1195,8 +1174,6 @@ function OutreachCard({ job }) {
           </a>
         )}
       </div>
-
-      {/* LinkedIn message */}
       {draft.linkedInMessage && (
         <div className="pt-3 border-t border-slate-800">
           <p className="text-xs font-semibold text-slate-300 mb-1.5">LinkedIn Message</p>

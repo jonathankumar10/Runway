@@ -30,10 +30,11 @@ const FILTERS = [
   { key: 'done', label: 'Done' },
 ]
 
-// Lower number = higher up in the list.
-// Pending (needs action) comes first, fully done comes last.
 const OUTREACH_PRIORITY = { pending: 0, email_sent: 1, linkedin_sent: 2, done: 3 }
 
+/**
+ * Orders outreach records from needs-action to fully completed.
+ */
 function getOutreachPriority(record) {
   if (record.emailSent && record.linkedInSent) return OUTREACH_PRIORITY.done
   if (record.emailSent)   return OUTREACH_PRIORITY.email_sent
@@ -51,17 +52,16 @@ export default function OutreachPage() {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
-  const [view, setView] = useState('cards') // 'cards' | 'table'
+  const [view, setView] = useState('cards')
   const [addOpen, setAddOpen] = useState(() => Boolean(searchParams.get('domain')))
   const [defaultResume, setDefaultResume] = useState(null)
-  const gmailTokenRef = useRef(null) // { accessToken, expiresAt }
+  const gmailTokenRef = useRef(null)
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkCreating, setBulkCreating] = useState(false)
-  const [bulkResult, setBulkResult] = useState(null) // { success, failed }
-  const [linkedInQueue, setLinkedInQueue] = useState(null) // array of records | null = closed
+  const [bulkResult, setBulkResult] = useState(null)
+  const [linkedInQueue, setLinkedInQueue] = useState(null)
   const [linkedInQueueIdx, setLinkedInQueueIdx] = useState(0)
   const [linkedInCopied, setLinkedInCopied] = useState(false)
-  // Pre-fill from Target Companies "Find Recruiters" button
   const prefillDomain = searchParams.get('domain') ?? ''
   const prefillCompany = searchParams.get('company') ?? ''
 
@@ -83,7 +83,6 @@ export default function OutreachPage() {
       .then(snap => setDefaultResume(snap.docs[0]?.data() ?? null))
   }, [user?.uid])
 
-  // Auto-open add modal when navigated from Target Companies page
   useEffect(() => {
     if (!prefillDomain) return
     setSearchParams({}, { replace: true })
@@ -195,14 +194,11 @@ export default function OutreachPage() {
     return true
   })
 
-  // Sort: pending first → email sent → linkedin sent → fully done (sinks to bottom)
   const sorted = [...filtered].sort((a, b) => getOutreachPriority(a) - getOutreachPriority(b))
 
-  // Cards are tall so 8 per page feels comfortable; table rows are compact so 15 fits well
   const PAGE_SIZE = view === 'table' ? 15 : 8
   const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(sorted, PAGE_SIZE)
 
-  // Jump back to page 1 whenever the user switches filter or view
   useEffect(() => { goToPage(1) }, [filter, goToPage, view])
 
   const counts = {
@@ -288,7 +284,6 @@ export default function OutreachPage() {
       </div>
 
       <div className="px-4 py-4 sm:px-6">
-        {/* Filter tabs */}
         <div className="flex items-center gap-1 mb-5 overflow-x-auto pb-1">
           {FILTERS.map(f => (
             <button
@@ -367,8 +362,6 @@ export default function OutreachPage() {
           </>
         )}
       </div>
-
-      {/* Bulk action bar */}
       {(selectedIds.size > 0 || bulkResult) && (
         <div className="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 flex flex-wrap items-center justify-center gap-3 px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl">
           {bulkResult ? (
@@ -431,7 +424,6 @@ export default function OutreachPage() {
         return (
           <div className="fixed inset-0 z-50 flex items-end justify-center pb-6 px-4" onClick={e => e.target === e.currentTarget && setLinkedInQueue(null)}>
             <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-5 space-y-4">
-              {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wide mb-0.5">
@@ -445,24 +437,18 @@ export default function OutreachPage() {
                   <X size={15} />
                 </button>
               </div>
-
-              {/* Progress bar */}
               <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-600 rounded-full transition-all"
                   style={{ width: `${((linkedInQueueIdx + 1) / linkedInQueue.length) * 100}%` }}
                 />
               </div>
-
-              {/* Message preview */}
               <div>
                 <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wide mb-1.5">Message (auto-copied)</p>
                 <div className="text-xs text-slate-300 leading-relaxed bg-slate-800/60 border border-slate-700 rounded-lg p-3">
                   {record.linkedInMessage}
                 </div>
               </div>
-
-              {/* Actions */}
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => {
@@ -509,7 +495,6 @@ function plainToHtml(text) {
   const paragraphs = text.split(/\n\n+/)
   const blocks = paragraphs.map(para => {
     const lines = para.split('\n')
-    // Bullet list block
     if (lines.every(l => l.trim().startsWith('- '))) {
       const items = lines.map(l => `<li>${l.replace(/^- /, '').trim()}</li>`).join('')
       return `<ul style="margin:0 0 14px;padding-left:20px;">${items}</ul>`
@@ -720,8 +705,6 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
           </div>
         </div>
       </div>
-
-      {/* Follow-up status */}
       {record.emailSent && (
         <div className="mt-2 pt-2 border-t border-slate-800">
           <button
@@ -733,11 +716,8 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
           </button>
         </div>
       )}
-
-      {/* Expanded drafts */}
       {expanded && (
         <div className="mt-4 pt-4 border-t border-slate-800 space-y-5">
-          {/* Email draft */}
           <div>
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Email</p>
             <p className="text-[10px] text-slate-500 mb-1.5">Subject: <span className="text-slate-400">{record.emailSubject}</span></p>
@@ -781,8 +761,6 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
             )}
             {draftError && <p className="text-[10px] text-red-400 mt-1.5 text-center">{draftError}</p>}
           </div>
-
-          {/* Follow-up draft */}
           {record.followUpBody && (
             <div>
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Follow-Up Email</p>
@@ -808,8 +786,6 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
               )}
             </div>
           )}
-
-          {/* LinkedIn message */}
           {record.linkedInMessage && (
             <div>
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-2">LinkedIn Message</p>
@@ -945,7 +921,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
   const { findRecruiter, importFromUrl } = useAI()
   const { jobs } = useJobs() ?? { jobs: [] }
 
-  const [step, setStep] = useState('search') // 'search' | 'manual'
+  const [step, setStep] = useState('search')
   const [domain, setDomain] = useState(initialDomain)
   const [searching, setSearching] = useState(false)
   const [searchResults, setSearchResults] = useState(null)
@@ -957,12 +933,11 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
   const [role, setRole] = useState('')
   const [saving, setSaving] = useState(false)
 
-  // Job linking — mutually exclusive: board picker vs URL paste
-  const [jobLinkMode, setJobLinkMode] = useState('none') // 'none' | 'board' | 'url'
+  const [jobLinkMode, setJobLinkMode] = useState('none')
   const [selectedJobId, setSelectedJobId] = useState('')
   const [jobPostingUrl, setJobPostingUrl] = useState('')
   const [fetchingJob, setFetchingJob] = useState(false)
-  const [fetchedJob, setFetchedJob] = useState(null) // { role, company, jobUrl }
+  const [fetchedJob, setFetchedJob] = useState(null)
   const [fetchJobError, setFetchJobError] = useState(null)
 
   const selectedJob = jobLinkMode === 'board' ? (jobs.find(j => j.id === selectedJobId) ?? null) : null
@@ -1019,7 +994,6 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
     if (nextJob) applyLinkedJob(nextJob)
   }
 
-  // Check Firestore cache whenever domain input changes (debounced)
   useEffect(() => {
     if (!domain.trim()) return
     if (!normalizedDomain) return
@@ -1051,7 +1025,6 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
       let recruiters = null
       let cached = false
 
-      // Check our Firestore cache before ever touching the Hunter API
       const cacheSnap = await getDoc(doc(db, 'users', userId, 'recruiterCache', normalized))
       if (cacheSnap.exists()) {
         const data = cacheSnap.data()
@@ -1061,7 +1034,6 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
         }
       }
 
-      // Cache miss — call Hunter (cloud function caches the result for next time)
       if (!recruiters) {
         const result = await findRecruiter(domain.trim())
         if (result.error) throw new Error(result.error)
@@ -1182,7 +1154,6 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
         </div>
 
         <div className="outreach-add-modal-body">
-          {/* Job link — shared across both modes */}
           <div>
             <label className="outreach-form-label">Link to a job posting</label>
             <div className="flex items-center gap-1.5 p-0.5 bg-slate-800 rounded-lg mb-2">
@@ -1258,7 +1229,6 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
 
           {step === 'search' ? (
             <>
-              {/* Company + Role — hidden when a job is linked */}
               {!linkedJob && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -1281,8 +1251,6 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
                   </div>
                 </div>
               )}
-
-              {/* Domain search */}
               <div>
                 <label className="outreach-form-label">Company domain</label>
                 <div className="flex flex-col sm:flex-row gap-2">

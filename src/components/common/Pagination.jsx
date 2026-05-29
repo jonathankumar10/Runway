@@ -1,15 +1,9 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import './Pagination.css'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// getPageNumbers
-//
-// Decides which page numbers (and '...' placeholders) to render.
-// When there are 7 or fewer pages we show them all.
-// When there are more we show: first, a window around the current page, last.
-//
-// Example for page 5 of 12:  [1, '...', 4, 5, 6, '...', 12]
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Builds the compact page-number list, including ellipses for large ranges.
+ */
 function getPageNumbers(currentPage, totalPages) {
   if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -19,7 +13,6 @@ function getPageNumbers(currentPage, totalPages) {
 
   if (currentPage > 3) pages.push('...')
 
-  // The window of pages immediately around the current one
   const rangeStart = Math.max(2, currentPage - 1)
   const rangeEnd   = Math.min(totalPages - 1, currentPage + 1)
   for (let i = rangeStart; i <= rangeEnd; i++) pages.push(i)
@@ -30,18 +23,6 @@ function getPageNumbers(currentPage, totalPages) {
   return pages
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Pagination
-//
-// Props:
-//   currentPage  — the current page (1-indexed)
-//   totalPages   — total number of pages
-//   onGoToPage   — function(pageNumber) called when the user clicks a page
-//   totalItems   — total count of items (used for the "Showing X–Y of Z" line)
-//   pageSize     — items per page (used for the same line)
-//
-// Returns null (renders nothing) when there is only one page.
-// ─────────────────────────────────────────────────────────────────────────────
 /**
  * Reusable pagination control for card/table list pages.
  */
@@ -53,16 +34,11 @@ export default function Pagination({ currentPage, totalPages, onGoToPage, totalI
 
   return (
     <div className="pagination-wrap">
-
-      {/* Count info */}
       <p className="pagination-info">
         Showing {from}–{to} of {totalItems}
       </p>
 
-      {/* Page buttons */}
       <div className="pagination-row">
-
-        {/* ← Previous */}
         <button
           className="pagination-btn"
           onClick={() => onGoToPage(currentPage - 1)}
@@ -72,7 +48,6 @@ export default function Pagination({ currentPage, totalPages, onGoToPage, totalI
           <ChevronLeft size={14} />
         </button>
 
-        {/* Page numbers */}
         {getPageNumbers(currentPage, totalPages).map((page, i) =>
           page === '...'
             ? <span key={`ellipsis-${i}`} className="pagination-ellipsis">…</span>
@@ -85,7 +60,6 @@ export default function Pagination({ currentPage, totalPages, onGoToPage, totalI
               </button>
         )}
 
-        {/* → Next */}
         <button
           className="pagination-btn"
           onClick={() => onGoToPage(currentPage + 1)}

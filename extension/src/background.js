@@ -103,6 +103,53 @@ async function signInWithGoogle() {
   return { email: data.email, displayName: data.displayName }
 }
 
+// ── Resume field derivation ───────────────────────────────────────────────────
+
+function deriveResumeFields(ps) {
+  const empty = {
+    currentCompany: '', currentTitle: '', yearsOfExperience: '',
+    professionalSummary: '', skills: '',
+    educationSchool: '', educationDegree: '', educationGradYear: '', educationMajor: '',
+  }
+  if (!ps) return empty
+
+  const exp = ps.experience || []
+  const edu = ps.education || []
+
+  const skills = (ps.skills || []).flatMap(g => g.items || []).join(', ')
+
+  const yearRe = /\b(19|20)\d{2}\b/g
+  const allYears = exp.flatMap(e => [...(e.dates || '').matchAll(yearRe)].map(m => Number(m[0])))
+  let yearsOfExperience = ''
+  if (allYears.length) {
+    const earliest = Math.min(...allYears)
+    const latest = exp[0]?.dates?.toLowerCase().includes('present')
+      ? new Date().getFullYear()
+      : Math.max(...allYears)
+    yearsOfExperience = String(latest - earliest)
+  }
+
+  const rawDegree = edu[0]?.degree || ''
+  const educationMajor = rawDegree
+    .replace(/^(bachelor(?:'s)?|master(?:'s)?|b\.?s\.?|b\.?a\.?|m\.?s\.?|m\.?a\.?|ph\.?d\.?)\s+(of|in)\s+/i, '')
+    .trim()
+
+  const eduYears = [...(edu[0]?.dates || '').matchAll(yearRe)].map(m => m[0])
+  const educationGradYear = eduYears[eduYears.length - 1] || ''
+
+  return {
+    currentCompany: exp[0]?.company || '',
+    currentTitle: exp[0]?.role || '',
+    yearsOfExperience,
+    professionalSummary: (ps.summary?.sentences || []).join(' '),
+    skills,
+    educationSchool: edu[0]?.school || '',
+    educationDegree: rawDegree,
+    educationGradYear,
+    educationMajor,
+  }
+}
+
 // ── Firestore REST ────────────────────────────────────────────────────────────
 
 function toFirestoreFields(obj) {
@@ -286,7 +333,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           return
         }
 
-        const prefs = await firestoreGet('settings/preferences')
+        const [prefs, resumes] = await Promise.all([
+          firestoreGet('settings/preferences'),
+          firestoreList('resumes', { pageSize: '25' }),
+        ])
+        const defaultResume = resumes.find(r => r.isDefault) || resumes[0] || null
+        const resumeFields = deriveResumeFields(defaultResume?.parsedStructure || null)
+
         const displayName = data.userDisplayName || prefs?.name || ''
         const [firstName = '', ...lastParts] = displayName.trim().split(/\s+/).filter(Boolean)
 
@@ -306,6 +359,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             sponsorship: prefs?.sponsorship || '',
             salaryExpectation: prefs?.salaryExpectation || '',
             remotePreference: prefs?.remotePreference || '',
+            ...resumeFields,
+            resumeText: defaultResume?.resumeText || '',
           },
         })
       } catch (err) {
@@ -349,6 +404,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             id: app.id,
             company: app.company || '',
             role: app.role || '',
+            logoUrl: app.logoUrl || '',
+            matchScore: app.tailoredMatchScore || app.matchScore || null,
             jobDescription: app.jobDescription || '',
             tailoredResumeText: app.tailoredResumeText || '',
             tailoredResumeSections: app.tailoredResumeSections || [],

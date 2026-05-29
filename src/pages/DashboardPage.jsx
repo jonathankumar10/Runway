@@ -54,16 +54,12 @@ export default function DashboardPage() {
             : 'Your job search at a glance'}
         </p>
       </div>
-
-      {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <StatCard label="Total Applied" value={totalApplied} icon={Send} iconColor="text-blue-400" />
         <StatCard label="Interviews" value={interviewed} sub={`${interviewRate}% interview rate`} icon={Users} iconColor="text-violet-400" />
         <StatCard label="Offers" value={offers} sub={`${offerRate}% offer rate`} icon={Trophy} iconColor="text-emerald-400" />
         <StatCard label="Response Rate" value={`${responseRate}%`} sub={`${responded} of ${totalApplied} replied`} icon={MailOpen} iconColor="text-amber-400" />
       </div>
-
-      {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <PipelineFunnel />
         <WeeklyChart />

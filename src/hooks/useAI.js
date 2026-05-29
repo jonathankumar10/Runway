@@ -44,13 +44,11 @@ export function useAI() {
 
   /** Scores the user's default resume against a job and returns match analysis. */
   async function matchResume(jobId, company, role, keySkills, notes) {
-    // Read default resume from new resumes subcollection
     const resumesSnap = await getDocs(
       query(collection(db, 'users', user.uid, 'resumes'), where('isDefault', '==', true), limit(1))
     )
     let resumeText = resumesSnap.docs[0]?.data()?.resumeText
 
-    // Fall back to legacy settings/resume and settings/preferences docs
     if (!resumeText) {
       resumeText = (await getDoc(doc(db, 'users', user.uid, 'settings', 'resume'))).data()?.resumeText
         ?? (await getDoc(doc(db, 'users', user.uid, 'settings', 'preferences'))).data()?.resumeText

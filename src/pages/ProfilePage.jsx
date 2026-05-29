@@ -49,7 +49,6 @@ export default function ProfilePage() {
   const [saving, setSaving]     = useState(false)
   const [saved, setSaved]       = useState(false)
 
-  // Delete account state
   const [showDelete, setShowDelete]     = useState(false)
   const [deleteInput, setDeleteInput]   = useState('')
   const [deleting, setDeleting]         = useState(false)
@@ -124,7 +123,6 @@ export default function ProfilePage() {
         deleteDoc(doc(db, 'users', user.uid, 'settings', 'resume')),
       ])
       await deleteUser(auth.currentUser)
-      // onAuthStateChanged fires → router redirects to landing automatically
     } catch (err) {
       setDeleteError(
         err.code === 'auth/requires-recent-login'
@@ -159,8 +157,6 @@ export default function ProfilePage() {
       </div>
 
       <div className="profile-layout">
-
-        {/* ── LEFT — identity card ── */}
         <div className="profile-identity-card">
           <div className="flex flex-col items-center text-center gap-3">
             {user?.photoURL
@@ -188,17 +184,11 @@ export default function ProfilePage() {
             />
           </div>
         </div>
-
-        {/* ── RIGHT — stacked cards ── */}
         <form onSubmit={handleSave} className="profile-right-col">
-
-          {/* Notifications card */}
           <div className="profile-card">
             <SectionHeader icon={Bell} title="Notifications" />
 
             <div className="space-y-5">
-
-              {/* Browser push */}
               <div>
                 <p className="profile-field-label">Browser push</p>
                 {permission === 'granted' ? (
@@ -222,8 +212,6 @@ export default function ProfilePage() {
               </div>
 
               <div className="profile-divider" />
-
-              {/* Follow-up delay */}
               <div>
                 <label className="profile-field-label">Follow-up reminder delay</label>
                 <p className="text-xs text-slate-500 mb-2">
@@ -243,8 +231,6 @@ export default function ProfilePage() {
               </div>
 
               <div className="profile-divider" />
-
-              {/* Email reminders */}
               <ToggleRow
                 label="Email reminders"
                 description="Send follow-up and interview alerts to my email."
@@ -267,8 +253,6 @@ export default function ProfilePage() {
 
             </div>
           </div>
-
-          {/* Autofill profile card */}
           <div className="profile-card">
             <SectionHeader icon={User} title="Autofill Profile" />
 
@@ -319,8 +303,6 @@ export default function ProfilePage() {
               />
             </div>
           </div>
-
-          {/* Appearance card */}
           <div className="profile-card">
             <SectionHeader icon={Palette} title="Appearance" />
 
@@ -350,8 +332,6 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-
-          {/* Save button — spans both cards above */}
           <div className="flex items-center gap-3">
             <button type="submit" disabled={saving} className="profile-save-btn">
               {saving
@@ -363,8 +343,6 @@ export default function ProfilePage() {
               {saving ? 'Saving...' : saved ? 'Saved!' : 'Save preferences'}
             </button>
           </div>
-
-          {/* Danger Zone card */}
           <div className="profile-card profile-card--danger">
             <SectionHeader icon={AlertTriangle} title="Danger Zone" iconClass="text-red-400" titleClass="text-red-400" />
 

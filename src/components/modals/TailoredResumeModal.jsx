@@ -10,18 +10,16 @@ import { CSS } from '@dnd-kit/utilities'
 import { ALL_TEMPLATE_META, getTemplateVars, FONT_OPTIONS, FONT_SIZE_OPTIONS, LINE_SPACING_OPTIONS, MARGIN_OPTIONS } from '../../constants/resumeTemplates'
 import './TailoredResumeModal.css'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function esc(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-// Converts **text** markdown bold to <strong> after HTML-escaping
+/**
+ * Escapes text and converts markdown bold markers to strong tags.
+ */
 function renderBold(s) {
   return esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
 }
-
-// ── Structured sections → HTML ────────────────────────────────────────────────
 
 function toTitleCase(str) {
   if (!str) return str
@@ -120,8 +118,6 @@ function sectionsToHtml(sections) {
   return html
 }
 
-// ── Print CSS builder ─────────────────────────────────────────────────────────
-
 /**
  * Builds isolated print CSS from the selected resume template variables.
  */
@@ -145,8 +141,6 @@ function buildPrintCss(vars) {
     @media print { @page { margin: ${v('--rp-print-padding', '0.48in')}; size: Letter; } }
   `
 }
-
-// ── Fallback text → HTML parser ───────────────────────────────────────────────
 
 const isHeader = line =>
   line.length > 2 &&
@@ -211,8 +205,6 @@ function parseResumeToHtml(text) {
   return html
 }
 
-// ── Section icon / label map ──────────────────────────────────────────────────
-
 const SECTION_ICONS = {
   header: User,
   summary: AlignLeft,
@@ -226,8 +218,6 @@ function getSectionDisplayTitle(section) {
   if (section.type === 'header') return 'Name & Contact'
   return section.title ?? section.type ?? 'Section'
 }
-
-// ── Small UI helpers ──────────────────────────────────────────────────────────
 
 function CopyButton({ text, className = '' }) {
   const [copied, setCopied] = useState(false)
@@ -245,8 +235,9 @@ function CopyButton({ text, className = '' }) {
   )
 }
 
-// Collapsible section used in both AnalysisPanel and BuilderPanel.
-// noPadding skips the trm-section-body wrapper (builder rows handle their own padding).
+/**
+ * Collapsible section shared by the analysis and builder panels.
+ */
 function Section({ title, children, defaultOpen = true, noPadding = false }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
@@ -263,8 +254,6 @@ function Section({ title, children, defaultOpen = true, noPadding = false }) {
     </div>
   )
 }
-
-// ── SortableSectionItem ───────────────────────────────────────────────────────
 
 function SortableSectionItem({ section, onToggleVisibility }) {
   const {
@@ -303,8 +292,6 @@ function SortableSectionItem({ section, onToggleVisibility }) {
   )
 }
 
-// ── SectionsSubPanel ──────────────────────────────────────────────────────────
-
 function SectionsSubPanel({ sections, onSectionsChange }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -341,8 +328,6 @@ function SectionsSubPanel({ sections, onSectionsChange }) {
     </DndContext>
   )
 }
-
-// ── StyleSubPanel ─────────────────────────────────────────────────────────────
 
 function StyleSubPanel({ activeVars, onStyleOverride, onAccentChange }) {
   const colorDebounce = useRef(null)
@@ -410,8 +395,6 @@ function StyleSubPanel({ activeVars, onStyleOverride, onAccentChange }) {
   )
 }
 
-// ── BuilderPanel ──────────────────────────────────────────────────────────────
-
 function BuilderPanel({ sections, onSectionsChange, activeVars, onStyleOverride, onAccentChange }) {
   return (
     <div className="trm-builder">
@@ -440,8 +423,6 @@ function BuilderPanel({ sections, onSectionsChange, activeVars, onStyleOverride,
     </div>
   )
 }
-
-// ── Analysis Panel ────────────────────────────────────────────────────────────
 
 function AnalysisPanel({ keywordAnalysis, rewrittenBullets, rewrittenSummary }) {
   const ka = keywordAnalysis ?? { extracted: [], mapped: [], unmappable: [] }
@@ -527,8 +508,6 @@ function AnalysisPanel({ keywordAnalysis, rewrittenBullets, rewrittenSummary }) 
   )
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
-
 /**
  * Full-screen resume tailoring workspace with editor, analysis, template, and export tools.
  */
@@ -600,14 +579,12 @@ export default function TailoredResumeModal({
     return parseResumeToHtml(initialText || '')
   }, [initialHtml, initialSections, initialText])
 
-  // Mount: populate paper with initial HTML
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.innerHTML = startHtml
     }
   }, [startHtml])
 
-  // Reactive: rebuild paper when sections change (skip the initial fire on mount)
   useEffect(() => {
     if (sectionsEffectSkip.current) {
       sectionsEffectSkip.current = false
@@ -621,7 +598,6 @@ export default function TailoredResumeModal({
     if (!editorRef.current) return
     const html = editorRef.current.innerHTML
     const text = editorRef.current.innerText
-    // Strip runtime _id field before saving; keep _visible so hidden sections stay hidden on reopen
     const cleanSections = sections.map(section => {
       const cleanSection = { ...section }
       delete cleanSection._id
@@ -697,11 +673,15 @@ export default function TailoredResumeModal({
     }
   }
 
+  const paperAreaClass = {
+    builder: 'hidden lg:flex flex-1',
+    resume: 'flex flex-1',
+    analysis: 'hidden lg:flex lg:w-1/2 lg:shrink-0',
+  }[activeTab]
+
   return (
     <div className="trm-overlay" onClick={onClose}>
       <div className="trm-modal" onClick={e => e.stopPropagation()}>
-
-        {/* Toolbar */}
         <div className="trm-toolbar">
           <div className="flex items-center gap-3 min-w-0">
             <div className="trm-toolbar-icon" />
@@ -728,8 +708,6 @@ export default function TailoredResumeModal({
                 <Eye size={11} /> Preview
               </button>
             </div>
-
-            {/* Template swatch picker — desktop */}
             <TemplatePicker
               templateId={templateId}
               onSelect={handleSelectTemplate}
@@ -757,8 +735,6 @@ export default function TailoredResumeModal({
             </button>
           </div>
         </div>
-
-        {/* Tab bar — always visible */}
         <div className="trm-tab-bar">
           <button
             onClick={() => setActiveTab('builder')}
@@ -779,8 +755,6 @@ export default function TailoredResumeModal({
             Resume
           </button>
         </div>
-
-        {/* Template strip — shown above paper on resume tab (small screens) */}
         {activeTab === 'resume' && (
           <div className="trm-template-strip sm:hidden">
             <span className="trm-template-strip-label">Style</span>
@@ -791,11 +765,7 @@ export default function TailoredResumeModal({
             />
           </div>
         )}
-
-        {/* Main content */}
         <div className="trm-content">
-
-          {/* Builder panel — visible only on builder tab */}
           <div className={`trm-analysis-col ${activeTab === 'builder' ? 'flex' : 'hidden'}`}>
             <BuilderPanel
               sections={sections}
@@ -805,16 +775,7 @@ export default function TailoredResumeModal({
               onAccentChange={handleAccentChange}
             />
           </div>
-
-          {/* Resume paper — always mounted to preserve editorRef.
-              Builder tab: hidden on mobile, right-side column on desktop.
-              Resume tab: full width on all sizes.
-              Analysis tab: hidden on mobile, left half on desktop. */}
-          <div className={`trm-paper-area ${
-            activeTab === 'builder'  ? 'hidden lg:flex flex-1' :
-            activeTab === 'resume'   ? 'flex flex-1' :
-            /* analysis */             'hidden lg:flex lg:w-1/2 lg:shrink-0'
-          }`}>
+          <div className={`trm-paper-area ${paperAreaClass}`}>
             {mode === 'edit' && activeTab !== 'analysis' && (
               <p className="trm-edit-hint">Click anywhere on the resume to edit</p>
             )}
@@ -829,8 +790,6 @@ export default function TailoredResumeModal({
               />
             </div>
           </div>
-
-          {/* Analysis panel — visible only on analysis tab, fills right half on desktop */}
           {activeTab === 'analysis' && (
             <div className="trm-analysis-right">
               {hasAnalysis ? (
@@ -854,8 +813,6 @@ export default function TailoredResumeModal({
     </div>
   )
 }
-
-// ── TemplatePicker ─────────────────────────────────────────────────────────────
 
 const SWATCH_FONT_CHAR = { serif: 'S', sans: 'A', mono: 'M' }
 

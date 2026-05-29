@@ -17,6 +17,15 @@ import ApplicationModal from '../modals/ApplicationModal'
 import BulkImportModal from '../modals/BulkImportModal'
 
 /**
+ * Resolves a drag target id to a pipeline stage id.
+ */
+function getDropTargetStage(overId, jobs) {
+  const stageById = STAGES.find(stage => stage.id === overId)?.id
+  const stageByCard = jobs.find(job => job.id === overId)?.stage
+  return stageById ?? stageByCard
+}
+
+/**
  * Drag-and-drop board for moving applications between pipeline stages.
  */
 export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCardClick }) {
@@ -46,10 +55,7 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
     setActiveJob(null)
     if (!over || active.id === over.id) return
 
-    // over.id is either a stage id (dropped on empty column area) or a card id (dropped on a card)
-    const stageById = STAGES.find(s => s.id === over.id)?.id
-    const stageByCard = jobs.find(j => j.id === over.id)?.stage
-    const newStage = stageById ?? stageByCard
+    const newStage = getDropTargetStage(over.id, jobs)
 
     if (newStage) {
       const job = jobs.find(j => j.id === active.id)
@@ -59,7 +65,6 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
 
   return (
     <div className="flex flex-col flex-1 min-w-0 h-full">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-6 py-3 border-b border-slate-700 shrink-0">
         <p className="text-xs text-slate-300 shrink-0">
           {filteredJobs.length} application{filteredJobs.length !== 1 ? 's' : ''}
@@ -84,8 +89,6 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
           </button>
         </div>
       </div>
-
-      {/* Board */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
         <DndContext
           sensors={sensors}

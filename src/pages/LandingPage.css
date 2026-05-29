@@ -1,49 +1,21 @@
 @reference "tailwindcss";
 
-/* ── Root ── */
+/* Root */
 .lp-root {
-  @apply relative min-h-screen bg-slate-950 overflow-x-hidden;
-}
-
-/* ── Background orbs ── */
-.lp-orbs {
-  @apply fixed inset-0 pointer-events-none overflow-hidden;
-}
-
-.lp-orb {
-  @apply absolute rounded-full blur-[120px];
-  animation: lp-drift 14s ease-in-out infinite alternate;
-}
-
-.lp-orb--violet {
-  width: 600px; height: 600px;
-  background: rgba(109, 40, 217, 0.25);
-  top: -15%; left: -8%;
-  animation-delay: 0s;
-}
-
-.lp-orb--indigo {
-  width: 500px; height: 500px;
-  background: rgba(79, 70, 229, 0.2);
-  bottom: 5%; right: -8%;
-  animation-delay: -5s;
-}
-
-.lp-orb--blue {
-  width: 360px; height: 360px;
-  background: rgba(37, 99, 235, 0.15);
-  top: 45%; left: 38%;
-  animation-delay: -10s;
+  @apply relative min-h-screen overflow-x-hidden;
+  background:
+    linear-gradient(180deg, rgba(10, 30, 70, 0.5) 0%, rgba(5, 12, 30, 0) 34%),
+    #060f1d;
 }
 
 .lp-dot-grid {
   @apply fixed inset-0 pointer-events-none;
-  opacity: 0.035;
+  opacity: 0.05;
   background-image: radial-gradient(circle, #94a3b8 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
-/* ── Scroll reveal ── */
+/* Scroll reveal */
 .lp-hidden {
   opacity: 0;
   transform: translateY(22px);
@@ -55,10 +27,10 @@
   transition: opacity 0.55s ease, transform 0.55s ease;
 }
 
-/* ── Navbar ── */
+/* Navbar */
 .lp-nav {
   @apply sticky top-0 z-50 border-b border-white/5 backdrop-blur-xl;
-  background: rgba(4, 9, 26, 0.8);
+  background: rgba(6, 12, 28, 0.9);
 }
 
 .lp-nav-inner {
@@ -72,11 +44,11 @@
 }
 
 .lp-nav-icon {
-  box-shadow: 0 0 16px rgba(79, 70, 229, 0.36);
+  box-shadow: 0 0 16px rgba(37, 99, 235, 0.36);
 }
 
 .lp-nav-wordmark {
-  @apply text-sm font-semibold text-white tracking-tight;
+  @apply text-xs font-semibold text-white tracking-tight;
 }
 
 .lp-nav-actions {
@@ -84,99 +56,122 @@
 }
 
 .lp-nav-signin {
-  @apply flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200 cursor-pointer;
+  @apply flex items-center gap-1 px-4 py-2 text-xs font-medium text-slate-300 hover:text-white transition-colors duration-200 cursor-pointer;
 }
 
 .lp-nav-signup {
-  @apply flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-violet-600 hover:bg-violet-500 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-violet-900/40 cursor-pointer;
+  @apply flex items-center gap-1 px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-blue-900/40 cursor-pointer;
 }
 
-/* ── Hero ── */
+/* Hero */
 .lp-hero {
-  @apply relative pt-20 pb-20;
+  @apply relative pt-20 sm:pt-28 pb-10 sm:pb-12;
   padding-left: clamp(1.5rem, 5vw, 5rem);
   padding-right: clamp(1.5rem, 5vw, 5rem);
 }
 
 .lp-hero-inner {
-  @apply grid gap-14 w-full;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-}
-
-/* Stack on narrow screens */
-@media (max-width: 900px) {
-  .lp-hero-inner {
-    grid-template-columns: 1fr;
-  }
+  @apply flex flex-col items-center w-full;
 }
 
 .lp-hero-copy {
-  @apply flex flex-col justify-center;
+  @apply flex flex-col items-center text-center max-w-3xl w-full mx-auto;
 }
 
 .lp-hero-badge {
-  @apply inline-flex items-center gap-2 self-start px-3 py-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-300 text-xs font-medium mb-6;
+  @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-300 text-xs font-medium mb-6;
   animation: lp-slideup 0.5s ease both;
 }
 
 .lp-hero-h1 {
-  @apply text-4xl sm:text-5xl font-bold text-white leading-tight mb-5;
+  @apply text-3xl sm:text-4xl font-bold text-white leading-[1.1] tracking-tight mb-5;
   animation: lp-slideup 0.55s ease both 0.08s;
 }
 
 .lp-hero-gradient {
   @apply text-transparent bg-clip-text;
-  background-image: linear-gradient(135deg, #a78bfa, #818cf8, #60a5fa);
+  background-image: linear-gradient(135deg, #93c5fd, #60a5fa, #38bdf8);
   background-size: 200% 200%;
   animation: lp-gradient-pan 6s ease infinite;
 }
 
 .lp-hero-sub {
-  @apply text-slate-400 text-lg leading-relaxed mb-8 max-w-md;
+  @apply text-slate-300 text-sm sm:text-base leading-relaxed mb-8 max-w-xl mx-auto;
   animation: lp-slideup 0.55s ease both 0.16s;
 }
 
 .lp-hero-actions {
-  @apply flex items-center gap-3 mb-4;
+  @apply flex items-center justify-center gap-3 mb-5;
   animation: lp-slideup 0.55s ease both 0.24s;
 }
 
-.lp-hero-fine {
-  @apply text-xs text-slate-500;
+.lp-hero-tags {
+  @apply flex items-center gap-2 text-xs text-slate-500 flex-wrap justify-center;
   animation: lp-fadein 0.6s ease both 0.4s;
 }
 
-.lp-hero-visual {
-  @apply w-full;
-  animation: lp-fadein 0.7s ease both 0.3s;
+.lp-hero-tag-dot {
+  @apply text-slate-700;
 }
 
-/* ── CTA button ── */
+.lp-hero-visual {
+  @apply w-full max-w-5xl mx-auto mt-12;
+  animation: lp-slideup 0.7s ease both 0.35s;
+}
+
+/* CTA button */
 .lp-cta-primary {
-  @apply inline-flex items-center gap-2.5 px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold text-sm rounded-xl transition-all duration-200 active:scale-[0.98];
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
+  @apply inline-flex items-center gap-2.5 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl transition-all duration-200 active:scale-[0.98];
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.35);
 }
 
 .lp-cta-primary:hover {
-  box-shadow: 0 6px 28px rgba(124, 58, 237, 0.5);
+  box-shadow: 0 6px 28px rgba(37, 99, 235, 0.5);
   transform: translateY(-1px);
 }
 
 .lp-cta-primary--large {
-  @apply text-base px-8 py-4 rounded-2xl;
+  @apply text-sm px-8 py-4 rounded-2xl;
 }
 
-/* ── Browser window mockup ── */
+.lp-cta-secondary {
+  @apply inline-flex items-center gap-2 px-6 py-3 border border-white/10 text-slate-300 hover:text-white hover:border-white/25 font-semibold text-xs rounded-xl transition-all duration-200 cursor-pointer;
+}
+
+/* Stats bar */
+.lp-stats-bar {
+  @apply relative py-8 border-y border-white/5;
+  background: rgba(37, 99, 235, 0.025);
+  padding-left: clamp(1.5rem, 5vw, 5rem);
+  padding-right: clamp(1.5rem, 5vw, 5rem);
+}
+
+.lp-stats-inner {
+  @apply flex flex-wrap justify-center gap-10 sm:gap-20;
+}
+
+.lp-stat-item {
+  @apply text-center;
+}
+
+.lp-stat-value {
+  @apply text-2xl font-bold text-blue-400 tracking-tight mb-0.5;
+}
+
+.lp-stat-label {
+  @apply text-xs text-slate-400;
+}
+
+/* Browser window mockup */
 .lp-browser {
-  @apply w-full rounded-2xl overflow-hidden border border-slate-700/50;
-  background: #0c1120;
+  @apply w-full rounded-2xl overflow-hidden border border-blue-900/30;
+  background: #081629;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.04);
 }
 
 .lp-browser-bar {
-  @apply flex items-center gap-3 px-4 py-3 border-b border-slate-700/50;
-  background: #111827;
+  @apply flex items-center gap-3 px-4 py-3 border-b border-blue-900/30;
+  background: #0d1e38;
 }
 
 .lp-browser-dots {
@@ -193,25 +188,29 @@
 
 .lp-browser-body {
   @apply flex;
-  min-height: 300px;
+  min-height: 420px;
 }
 
 .lp-browser-sidebar {
-  @apply flex flex-col gap-3 p-3 border-r border-slate-700/40;
-  background: #0f172a;
-  width: 40px;
+  @apply hidden sm:flex flex-col gap-2 p-3 border-r border-blue-900/30;
+  background: #0a1830;
+  width: 132px;
 }
 
-.lp-browser-sidebar-icon {
-  @apply w-5 h-5 rounded-md bg-slate-700/60;
+.lp-browser-brand {
+  @apply flex items-center gap-2 text-xs font-semibold text-white mb-2;
 }
 
-.lp-browser-sidebar-icon--active {
-  @apply bg-violet-600/60;
+.lp-browser-nav-item {
+  @apply text-[11px] text-slate-400 px-2 py-1.5 rounded-lg;
+}
+
+.lp-browser-nav-item--active {
+  @apply bg-blue-500/15 text-blue-200 border border-blue-500/20;
 }
 
 .lp-browser-content {
-  @apply flex-1 p-4 flex flex-col gap-3;
+  @apply flex-1 p-4 flex flex-col gap-3 min-w-0;
 }
 
 .lp-browser-toolbar {
@@ -223,59 +222,96 @@
 }
 
 .lp-browser-toolbar-badge {
-  @apply text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/25;
+  @apply text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25;
 }
 
-/* ── Mock job cards ── */
-.lp-mock-cards {
-  @apply flex flex-col gap-2;
+.lp-preview-stats {
+  @apply grid grid-cols-2 lg:grid-cols-4 gap-2;
 }
 
-.lp-mock-card {
-  @apply flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-700/40;
-  background: #1e293b;
-  animation: lp-fadein 0.5s ease both;
+.lp-preview-stat {
+  @apply rounded-xl border border-slate-700/45 bg-slate-800/55 px-3 py-2;
 }
 
-.lp-mock-card-left {
-  @apply flex items-center gap-2.5 min-w-0;
+.lp-preview-stat span {
+  @apply block text-[10px] text-slate-500 truncate;
 }
 
-.lp-mock-logo {
-  @apply w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0;
+.lp-preview-stat strong {
+  @apply block text-sm text-white mt-0.5;
 }
 
-.lp-mock-text {
-  @apply min-w-0;
+.lp-preview-workspace {
+  @apply grid grid-cols-1 lg:grid-cols-[1fr_180px] gap-3 min-h-0;
 }
 
-.lp-mock-company {
-  @apply text-xs font-semibold text-white truncate;
+.lp-preview-board {
+  @apply grid grid-cols-1 sm:grid-cols-3 gap-2 min-w-0;
 }
 
-.lp-mock-role {
-  @apply text-[10px] text-slate-400 truncate;
+.lp-preview-column {
+  @apply rounded-xl border border-slate-700/45 bg-slate-950/35 p-2 min-w-0;
 }
 
-.lp-mock-card-right {
-  @apply flex items-center gap-2 shrink-0;
+.lp-preview-column-header {
+  @apply flex items-center justify-between text-[10px] text-slate-400 mb-2;
 }
 
-.lp-mock-stage {
-  @apply text-[10px] font-medium px-2 py-0.5 rounded-full;
+.lp-preview-column-header strong {
+  @apply text-slate-500;
 }
 
-.lp-mock-stage--blue   { @apply bg-blue-500/15 text-blue-300 border border-blue-500/25; }
-.lp-mock-stage--violet { @apply bg-violet-500/15 text-violet-300 border border-violet-500/25; }
-.lp-mock-stage--slate  { @apply bg-slate-500/15 text-slate-300 border border-slate-600/30; }
-
-.lp-mock-score {
-  @apply text-[10px] font-bold;
+.lp-preview-card {
+  @apply flex items-center gap-2 rounded-lg bg-slate-800/80 border border-slate-700/35 p-2 mb-2 min-w-0;
 }
 
-.lp-mock-score--green  { @apply text-green-400; }
-.lp-mock-score--yellow { @apply text-yellow-400; }
-.lp-mock-score--red    { @apply text-red-400; }
+.lp-preview-logo {
+  @apply w-6 h-6 rounded-md bg-blue-500/20 text-blue-200 flex items-center justify-center text-[10px] font-bold shrink-0;
+}
+
+.lp-preview-card-copy {
+  @apply min-w-0 flex-1;
+}
+
+.lp-preview-card-copy strong {
+  @apply block text-[11px] text-white truncate;
+}
+
+.lp-preview-card-copy span {
+  @apply block text-[10px] text-slate-500 truncate;
+}
+
+.lp-preview-card em {
+  @apply not-italic text-[10px] text-emerald-300 shrink-0;
+}
+
+.lp-preview-panel {
+  @apply rounded-xl border border-blue-500/25 bg-blue-500/10 p-3;
+}
+
+.lp-preview-panel-head {
+  @apply flex items-center gap-2 mb-3;
+}
+
+.lp-preview-panel-head > span {
+  @apply w-7 h-7 rounded-lg bg-blue-500/25 text-blue-100 flex items-center justify-center text-xs font-bold;
+}
+
+.lp-preview-panel-head strong {
+  @apply block text-xs text-white;
+}
+
+.lp-preview-panel-head p {
+  @apply text-[10px] text-slate-400;
+}
+
+.lp-preview-panel-score {
+  @apply text-[11px] font-semibold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2 py-1 mb-2;
+}
+
+.lp-preview-panel-copy {
+  @apply text-[11px] text-slate-300 leading-relaxed;
+}
 
 /* Score strip at bottom of browser */
 .lp-browser-score-strip {
@@ -286,37 +322,23 @@
   @apply flex items-center gap-1.5 text-[10px] text-slate-400;
 }
 
-/* ── Stats strip ── */
-.lp-stats-strip {
-  @apply relative flex flex-wrap justify-center gap-10 py-8 px-6 border-y border-slate-800/60;
-  background: rgba(15, 23, 42, 0.4);
-}
-
-.lp-stat {
-  @apply flex flex-col items-center gap-1;
-}
-
-.lp-stat-value {
-  @apply text-2xl font-bold text-white;
-}
-
-.lp-stat-label {
-  @apply text-xs text-slate-400;
-}
-
-/* ── Sections ── */
+/* Sections */
 .lp-section {
   @apply relative py-16;
   padding-left: clamp(1.5rem, 5vw, 5rem);
   padding-right: clamp(1.5rem, 5vw, 5rem);
 }
 
-.lp-section--alt {
-  background: rgba(15, 23, 42, 0.4);
-}
-
 .lp-section-inner {
   @apply w-full;
+}
+
+.lp-flow-inner {
+  @apply grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-8 lg:gap-12 items-start;
+}
+
+.lp-flow-copy {
+  @apply lg:sticky lg:top-24;
 }
 
 .lp-section-header {
@@ -324,26 +346,29 @@
 }
 
 .lp-section-eyebrow {
-  @apply inline-block text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3;
+  @apply inline-block text-xs font-semibold uppercase tracking-widest text-blue-400 mb-3;
 }
 
 .lp-section-h2 {
-  @apply text-3xl sm:text-4xl font-bold text-white mb-4;
+  @apply text-2xl sm:text-3xl font-bold tracking-tight text-white mb-4;
 }
 
 .lp-section-sub {
-  @apply text-slate-400 text-lg max-w-xl mx-auto leading-relaxed;
+  @apply text-slate-400 text-sm sm:text-base max-w-xl mx-auto leading-relaxed;
 }
 
-/* ── Feature grid ── */
+.lp-section-sub-left {
+  @apply mx-0;
+}
+
+/* Feature grid */
 .lp-features-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5;
-  /* On very wide screens keep to 3 columns but let each card grow */
+  @apply grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4;
   max-width: 100%;
 }
 
 .lp-feature-card {
-  @apply p-6 rounded-2xl border bg-slate-900/60 backdrop-blur-sm;
+  @apply p-5 rounded-2xl border bg-slate-800/50 backdrop-blur-sm;
   transition: opacity 0.55s ease, transform 0.55s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
@@ -381,66 +406,226 @@
 .lp-feature-icon--rose    { @apply bg-rose-500/15 text-rose-400; }
 
 .lp-feature-title {
-  @apply text-base font-semibold text-white mb-2;
+  @apply text-sm font-semibold text-white mb-2;
 }
 
 .lp-feature-desc {
-  @apply text-sm text-slate-400 leading-relaxed;
+  @apply text-xs text-slate-400 leading-relaxed;
 }
 
-/* ── Steps ── */
-.lp-steps {
-  @apply flex flex-col gap-4 max-w-2xl mx-auto;
+.lp-feature-list {
+  @apply mt-4 space-y-2;
 }
 
-.lp-step {
-  @apply flex items-start gap-5 p-5 rounded-2xl border border-slate-800/80 bg-slate-900/40;
+.lp-feature-list li {
+  @apply flex items-center gap-2 text-xs text-slate-300;
+}
+
+.lp-feature-list svg {
+  @apply text-emerald-400 shrink-0;
+}
+
+/* Blueprint */
+.lp-blueprint {
+  @apply rounded-3xl border border-slate-700/50 bg-slate-800/50 overflow-hidden;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.32);
   transition: opacity 0.55s ease, transform 0.55s ease;
 }
 
-.lp-step-num {
-  @apply shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold;
+.lp-blueprint-tabs {
+  @apply grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 border-b border-slate-800;
 }
 
-.lp-step-num--violet  { @apply bg-violet-500/15 text-violet-400; }
-.lp-step-num--indigo  { @apply bg-indigo-500/15 text-indigo-400; }
-.lp-step-num--sky     { @apply bg-sky-500/15 text-sky-400; }
-.lp-step-num--emerald { @apply bg-emerald-500/15 text-emerald-400; }
-
-.lp-step-title {
-  @apply text-sm font-semibold text-white mb-1;
+.lp-blueprint-tab {
+  @apply relative p-4 border-b sm:border-r sm:border-b-0 border-slate-800 text-left cursor-pointer transition-all overflow-hidden;
 }
 
-.lp-step-desc {
-  @apply text-sm text-slate-400 leading-relaxed;
+.lp-blueprint-tab:hover {
+  @apply bg-slate-800/55;
+  transform: translateY(-1px);
 }
 
-/* ── CTA box ── */
+.lp-blueprint-tab:last-child {
+  @apply border-r-0;
+}
+
+.lp-blueprint-tab span {
+  @apply inline-flex w-8 h-8 items-center justify-center rounded-xl text-xs font-bold text-slate-400 mb-3 bg-slate-800 border border-slate-700;
+}
+
+.lp-blueprint-tab strong {
+  @apply block text-sm text-white mb-1;
+}
+
+.lp-blueprint-tab p {
+  @apply text-xs text-slate-400 leading-relaxed;
+}
+
+.lp-blueprint-tab--active {
+  @apply border-b-transparent sm:border-r-slate-800;
+}
+
+.lp-blueprint-tab--active::before {
+  content: '';
+  @apply absolute inset-x-3 top-0 h-1 rounded-b-full;
+}
+
+.lp-blueprint-tab--violet.lp-blueprint-tab--active { @apply bg-blue-500/15; }
+.lp-blueprint-tab--sky.lp-blueprint-tab--active { @apply bg-sky-500/15; }
+.lp-blueprint-tab--emerald.lp-blueprint-tab--active { @apply bg-emerald-500/15; }
+.lp-blueprint-tab--amber.lp-blueprint-tab--active { @apply bg-amber-500/15; }
+
+.lp-blueprint-tab--violet.lp-blueprint-tab--active::before { @apply bg-blue-400; }
+.lp-blueprint-tab--sky.lp-blueprint-tab--active::before { @apply bg-sky-400; }
+.lp-blueprint-tab--emerald.lp-blueprint-tab--active::before { @apply bg-emerald-400; }
+.lp-blueprint-tab--amber.lp-blueprint-tab--active::before { @apply bg-amber-400; }
+
+.lp-blueprint-tab--violet.lp-blueprint-tab--active span { @apply text-blue-200 bg-blue-500/20 border-blue-400/30; }
+.lp-blueprint-tab--sky.lp-blueprint-tab--active span { @apply text-sky-200 bg-sky-500/20 border-sky-400/30; }
+.lp-blueprint-tab--emerald.lp-blueprint-tab--active span { @apply text-emerald-200 bg-emerald-500/20 border-emerald-400/30; }
+.lp-blueprint-tab--amber.lp-blueprint-tab--active span { @apply text-amber-200 bg-amber-500/20 border-amber-400/30; }
+
+.lp-blueprint-tab--active strong {
+  @apply text-white;
+}
+
+.lp-blueprint-detail {
+  @apply p-5 sm:p-6;
+  background:
+    radial-gradient(circle at 0% 0%, var(--blueprint-glow), transparent 42%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.72));
+}
+
+.lp-blueprint-detail--violet { --blueprint-glow: rgba(37, 99, 235, 0.18); }
+.lp-blueprint-detail--sky { --blueprint-glow: rgba(56, 189, 248, 0.16); }
+.lp-blueprint-detail--emerald { --blueprint-glow: rgba(52, 211, 153, 0.15); }
+.lp-blueprint-detail--amber { --blueprint-glow: rgba(251, 191, 36, 0.15); }
+
+.lp-blueprint-detail--violet .lp-blueprint-step-label { @apply text-blue-300; }
+.lp-blueprint-detail--sky .lp-blueprint-step-label { @apply text-sky-300; }
+.lp-blueprint-detail--emerald .lp-blueprint-step-label { @apply text-emerald-300; }
+.lp-blueprint-detail--amber .lp-blueprint-step-label { @apply text-amber-300; }
+
+.lp-blueprint-detail--violet .lp-blueprint-panel-label { @apply text-blue-200; }
+.lp-blueprint-detail--sky .lp-blueprint-panel-label { @apply text-sky-200; }
+.lp-blueprint-detail--emerald .lp-blueprint-panel-label { @apply text-emerald-200; }
+.lp-blueprint-detail--amber .lp-blueprint-panel-label { @apply text-amber-200; }
+
+.lp-blueprint-step-label {
+  @apply text-xs uppercase tracking-widest text-blue-300 mb-2;
+}
+
+.lp-blueprint-detail h3 {
+  @apply text-xl font-bold tracking-tight text-white mb-2;
+}
+
+.lp-blueprint-detail > div > p:not(.lp-blueprint-step-label) {
+  @apply text-slate-400 mb-5;
+}
+
+.lp-blueprint-grid {
+  @apply grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-4;
+}
+
+.lp-blueprint-panel {
+  @apply rounded-2xl border border-slate-700/70 bg-slate-950/45 p-4;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.lp-blueprint-panel-label {
+  @apply block text-xs font-semibold text-slate-300 mb-3;
+}
+
+.lp-blueprint-panel ul {
+  @apply space-y-2;
+}
+
+.lp-blueprint-panel li {
+  @apply flex items-center gap-2 text-xs text-slate-300;
+}
+
+.lp-blueprint-panel li svg {
+  @apply text-emerald-400 shrink-0;
+}
+
+.lp-blueprint-tools {
+  @apply grid grid-cols-1 gap-3;
+}
+
+.lp-blueprint-tool {
+  @apply rounded-xl border border-slate-700/70 bg-slate-900/90 p-3 transition-transform;
+}
+
+.lp-blueprint-tool:hover {
+  transform: translateY(-2px);
+}
+
+.lp-blueprint-tool-title {
+  @apply flex items-center justify-between gap-2 mb-1;
+}
+
+.lp-blueprint-tool-title strong {
+  @apply text-xs text-white;
+}
+
+.lp-blueprint-tool-title span {
+  @apply text-[10px] font-bold uppercase tracking-wide text-amber-200 bg-amber-500/15 border border-amber-400/25 px-1.5 py-0.5 rounded-full;
+}
+
+.lp-blueprint-tool p {
+  @apply text-xs text-slate-400 leading-relaxed;
+}
+
+.lp-extension-section {
+  @apply pt-6;
+}
+
+.lp-extension-card {
+  @apply flex flex-col sm:flex-row gap-5 sm:items-center rounded-3xl border border-slate-700/50 bg-slate-800/50 p-6 sm:p-8;
+}
+
+.lp-extension-icon {
+  @apply w-12 h-12 rounded-2xl bg-sky-500/15 text-sky-300 border border-sky-500/25 flex items-center justify-center shrink-0;
+}
+
+.lp-extension-copy {
+  @apply max-w-3xl;
+}
+
+.lp-extension-title {
+  @apply text-xl sm:text-2xl font-bold tracking-tight text-white mb-3;
+}
+
+.lp-extension-desc {
+  @apply text-slate-400 leading-relaxed;
+}
+
+/* CTA box */
 .lp-cta-box {
-  @apply relative max-w-2xl mx-auto text-center p-6 sm:p-12 rounded-3xl border border-violet-500/20 overflow-hidden;
-  background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 70%),
-              rgba(15, 23, 42, 0.6);
+  @apply relative max-w-2xl mx-auto text-center p-6 sm:p-12 rounded-3xl border border-blue-500/20 overflow-hidden;
+  background: radial-gradient(ellipse at 50% 0%, rgba(37,99,235,0.14) 0%, transparent 70%),
+              rgba(8, 18, 42, 0.6);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 .lp-cta-orb {
   @apply absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full pointer-events-none blur-3xl;
-  background: rgba(124, 58, 237, 0.18);
+  background: rgba(37, 99, 235, 0.18);
 }
 
 .lp-cta-eyebrow {
-  @apply text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3;
+  @apply text-xs font-semibold uppercase tracking-widest text-blue-400 mb-3;
 }
 
 .lp-cta-h2 {
-  @apply text-3xl font-bold text-white mb-3;
+  @apply text-2xl font-bold tracking-tight text-white mb-3;
 }
 
 .lp-cta-sub {
   @apply text-slate-400 mb-8 leading-relaxed;
 }
 
-/* ── Footer ── */
+/* Footer */
 .lp-footer {
   @apply border-t border-slate-800/60 py-6;
   padding-left: clamp(1.5rem, 5vw, 5rem);
@@ -455,12 +640,7 @@
   @apply text-xs text-slate-500;
 }
 
-/* ── Keyframes ── */
-@keyframes lp-drift {
-  from { transform: translate(0, 0) scale(1); }
-  to   { transform: translate(25px, 18px) scale(1.06); }
-}
-
+/* Keyframes */
 @keyframes lp-fadein {
   from { opacity: 0; }
   to   { opacity: 1; }

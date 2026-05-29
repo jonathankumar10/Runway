@@ -34,7 +34,6 @@ export function useNotifications() {
     const messaging = getMessagingInstance()
     if (!messaging) return
     return onMessage(messaging, (payload) => {
-      // Foreground message — browser toast is handled by the UI
       console.log('FCM foreground message:', payload)
     })
   }, [])

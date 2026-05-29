@@ -12,7 +12,7 @@ import './BulkImportModal.css'
 export default function BulkImportModal({ onClose }) {
   const [urlText, setUrlText] = useState('')
   const [items, setItems] = useState([])
-  const [phase, setPhase] = useState('input') // 'input' | 'running' | 'done'
+  const [phase, setPhase] = useState('input')
   const { importJobFromUrl } = useJobImport()
   const { addJob } = useJobMutations()
 

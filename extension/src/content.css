@@ -269,41 +269,75 @@
   cursor: default;
 }
 
+/* ── Panel root: full-height sidebar, slides in/out ─────────────────────── */
+
 .runway-panel {
   position: fixed;
-  top: 92px;
-  right: 24px;
+  top: 0;
+  right: 0;
+  bottom: 0;
   z-index: 99999;
-  width: min(360px, calc(100vw - 32px));
+  width: min(360px, 100vw);
+  pointer-events: none;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   color: #0f172a;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+
+.runway-panel--open {
+  transform: translateX(0);
+}
+
+/* ── Floating circular launcher (separate from panel root) ───────────────── */
 
 .runway-panel__launcher {
+  position: fixed !important;
+  top: 100px;
+  right: 0;
+  z-index: 100000;
+  width: 44px;
+  height: 56px;
   display: flex;
-  width: max-content;
-  min-height: 42px;
-  margin: 0 0 10px auto;
-  padding: 9px 16px 9px 10px;
-  font-size: 14px;
-  box-shadow: 0 12px 32px rgba(2, 6, 23, 0.42);
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #111827 0%, #312e81 100%);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  box-shadow: -3px 2px 16px rgba(15, 23, 42, 0.4);
+  cursor: pointer;
+  pointer-events: all;
+  padding: 0;
+  margin: 0;
+  min-height: unset;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
+
+.runway-panel__launcher:hover {
+  box-shadow: -4px 2px 20px rgba(49, 46, 129, 0.55);
+  transform: translateX(-2px);
+}
+
+.runway-panel__launcher .runway-btn__mark {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* ── Panel body: fills full height ──────────────────────────────────────── */
 
 .runway-panel__body {
+  pointer-events: all;
   width: 100%;
-  max-height: min(520px, calc(100vh - 164px));
-  overflow: hidden;
+  height: 100%;
+  overflow-y: auto;
   background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.14);
-  border-radius: 8px;
-  box-shadow: 0 18px 48px rgba(2, 6, 23, 0.28);
-}
-
-.runway-panel__body[hidden] {
-  display: none;
+  border-left: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: -4px 0 32px rgba(2, 6, 23, 0.2);
 }
 
 .runway-panel__header {
+  /* legacy — kept for any remaining usages; new panels use .rp-header */
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -327,7 +361,6 @@
   line-height: 1.35;
 }
 
-.runway-panel__close,
 .runway-panel__link,
 .runway-panel__button,
 .runway-panel__select {
@@ -336,10 +369,13 @@
 }
 
 .runway-panel__close {
+  /* legacy close button — new panels use .rp-close */
   padding: 0;
   color: #475569;
   background: transparent;
   border: 0;
+  font-size: 18px;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -525,9 +561,8 @@
 }
 
 @media (max-width: 520px) {
-  .runway-panel {
-    top: 76px;
-    right: 16px;
+  .runway-panel__launcher {
+    top: 72px;
   }
 
   .runway-panel__grid {
@@ -551,7 +586,8 @@
 
 .runway-panel--on-light .runway-panel__body {
   background: #0f172a;
-  border-color: rgba(255, 255, 255, 0.1);
+  border-left-color: rgba(255, 255, 255, 0.1);
+  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.5);
   color: #f1f5f9;
   box-shadow: 0 18px 48px rgba(2, 6, 23, 0.5);
 }
@@ -609,6 +645,625 @@
   border-color: rgba(139, 92, 246, 0.3);
   color: #a5b4fc;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   rp-* — Jobright-inspired panel components
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shared panel font override ───────────────────────────────────────────── */
+
+.runway-panel__body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #101828;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+
+.rp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 14px;
+  border-bottom: 1px solid #F2F4F7;
+}
+
+/* Add-job variant: × on left, title follows */
+.rp-header--job {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.rp-header__brand {
+  font-size: 14px;
+  font-weight: 700;
+  color: #101828;
+  letter-spacing: -0.01em;
+}
+
+.rp-header__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #101828;
+  line-height: 1.3;
+}
+
+.rp-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #667085;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.rp-close:hover {
+  background: #F2F4F7;
+  color: #344054;
+}
+
+/* ── Add-job review form ──────────────────────────────────────────────────── */
+
+.rp-banner {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  background: #ECFDF3;
+  border-bottom: 1px solid #ABEFC6;
+  font-size: 12px;
+  font-weight: 600;
+  color: #067647;
+}
+
+.rp-banner__dot {
+  font-size: 8px;
+  color: #17B26A;
+  flex-shrink: 0;
+}
+
+.rp-form {
+  padding: 4px 0 0;
+}
+
+.rp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 14px 0;
+}
+
+.rp-field__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #344054;
+}
+
+.rp-field__input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  color: #101828;
+  background: #ffffff;
+  border: 1px solid #D0D5DD;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.rp-field__input:focus {
+  outline: none;
+  border-color: #17B26A;
+  box-shadow: 0 0 0 3px rgba(23, 178, 106, 0.18);
+}
+
+.rp-field__textarea {
+  width: 100%;
+  min-height: 128px;
+  padding: 8px 10px;
+  color: #101828;
+  background: #ffffff;
+  border: 1px solid #D0D5DD;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.rp-field__textarea:focus {
+  outline: none;
+  border-color: #17B26A;
+  box-shadow: 0 0 0 3px rgba(23, 178, 106, 0.18);
+}
+
+.rp-form__error {
+  margin: 6px 14px 0;
+  color: #B42318;
+  font-size: 12px;
+  min-height: 18px;
+}
+
+.rp-save-btn {
+  display: block;
+  width: calc(100% - 28px);
+  margin: 14px 14px 16px;
+  height: 44px;
+  color: #ffffff;
+  background: #17B26A;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: background 0.15s;
+}
+
+.rp-save-btn:hover:not(:disabled) { background: #15A460; }
+.rp-save-btn:disabled { opacity: 0.65; cursor: default; }
+
+/* ── Apply panel: job card ────────────────────────────────────────────────── */
+
+.rp-job-card {
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid #F2F4F7;
+}
+
+.rp-job-card__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.rp-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid rgba(0,0,0,0.07);
+}
+
+.rp-job-card__company {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: #101828;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rp-match-badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  background: #ECFDF3;
+  color: #067647;
+  border: 1px solid #ABEFC6;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rp-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.rp-job-card--browse {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.rp-job-card__role--primary {
+  font-size: 15px;
+  font-weight: 600;
+  color: #101828;
+  margin-top: 4px;
+}
+
+.rp-job-card__meta {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #667085;
+}
+
+/* ── Focused job card (browse mode) ────────────────────────────────────── */
+
+.rp-focus-card {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid #F2F4F7;
+}
+
+.rp-focus-card__company-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.rp-avatar--lg {
+  width: 42px;
+  height: 42px;
+  font-size: 16px;
+}
+
+.rp-focus-card__company-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.rp-focus-card__company-name {
+  font-size: 13px;
+  font-weight: 650;
+  color: #101828;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rp-focus-card__role {
+  font-size: 16px;
+  font-weight: 700;
+  color: #101828;
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+
+.rp-focus-card__meta {
+  font-size: 12px;
+  color: #667085;
+  margin-bottom: 3px;
+}
+
+.rp-focus-card__applicants {
+  font-size: 11px;
+  color: #98A2B3;
+  margin-top: 2px;
+}
+
+/* Info grid — labeled key/value rows */
+.rp-info-grid {
+  margin: 12px 0 6px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #F2F4F7;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rp-info-row {
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  align-items: baseline;
+  gap: 6px;
+  padding: 7px 10px;
+  border-bottom: 1px solid #F2F4F7;
+}
+
+.rp-info-row:last-child { border-bottom: none; }
+
+.rp-info-row__label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #98A2B3;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.rp-info-row__value {
+  font-size: 12px;
+  font-weight: 500;
+  color: #344054;
+  line-height: 1.35;
+}
+
+.rp-info-row__value--green     { color: #067647; font-weight: 600; }
+.rp-info-row__value--highlight  { color: #175CD3; font-weight: 700; }
+.rp-info-row__value--warn       { color: #B42318; }
+
+/* Description preview */
+.rp-focus-card__desc {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #667085;
+  line-height: 1.55;
+}
+
+.rp-browse-divider {
+  padding: 8px 14px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #98A2B3;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-top: 1px solid #F2F4F7;
+}
+
+.rp-browse-list {
+  overflow-y: auto;
+}
+
+.rp-job-card__role {
+  font-size: 13px;
+  font-weight: 400;
+  color: #344054;
+  line-height: 1.4;
+}
+
+/* ── Apply panel: application selector ───────────────────────────────────── */
+
+.rp-select-wrap {
+  padding: 10px 14px 0;
+}
+
+/* ── Apply panel: autofill button ────────────────────────────────────────── */
+
+.rp-autofill-section {
+  padding: 14px 14px 10px;
+}
+
+.rp-autofill-btn {
+  display: block;
+  width: 100%;
+  height: 48px;
+  color: #ffffff;
+  background: #17B26A;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.rp-autofill-btn:hover:not(:disabled) {
+  background: #15A460;
+  box-shadow: 0 4px 6px rgba(16, 24, 40, 0.07), 0 2px 4px rgba(16, 24, 40, 0.06);
+}
+
+.rp-autofill-btn:disabled { opacity: 0.7; cursor: default; }
+
+/* ── Apply panel: sections ────────────────────────────────────────────────── */
+
+.rp-section {
+  border-top: 1px solid #F2F4F7;
+}
+
+.rp-section__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  min-height: 46px;
+}
+
+.rp-section__icon {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.rp-section__title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: #101828;
+}
+
+.rp-section__arrow {
+  color: #98A2B3;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.rp-section__body {
+  padding: 0 14px 12px 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rp-file-name {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: #667085;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Ghost buttons (outlined, Jobright-style) ─────────────────────────────── */
+
+.rp-ghost-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  color: #344054;
+  background: #ffffff;
+  border: 1px solid #D0D5DD;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: background 0.1s, box-shadow 0.1s;
+}
+
+.rp-ghost-btn:hover:not(:disabled) {
+  background: #F9FAFB;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
+}
+
+.rp-ghost-btn:disabled { opacity: 0.65; cursor: default; }
+
+/* ── Status + empty state ─────────────────────────────────────────────────── */
+
+.rp-status {
+  min-height: 18px;
+  margin: 0;
+  padding: 6px 14px 4px;
+  font-size: 12px;
+  color: #667085;
+  line-height: 1.4;
+}
+
+.rp-empty {
+  margin: 0;
+  padding: 14px;
+  font-size: 12px;
+  color: #667085;
+  line-height: 1.5;
+}
+
+/* ── Bottom row ───────────────────────────────────────────────────────────── */
+
+.rp-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px 14px;
+  border-top: 1px solid #F2F4F7;
+}
+
+.rp-bottom__link {
+  padding: 0;
+  color: #667085;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.1s;
+}
+
+.rp-bottom__link:hover { color: #344054; }
+
+/* ── Dark mode for rp-* ───────────────────────────────────────────────────── */
+
+.runway-panel--on-light .rp-header,
+.runway-panel--on-light .rp-job-card,
+.runway-panel--on-light .rp-section,
+.runway-panel--on-light .rp-bottom {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.runway-panel--on-light .rp-header__brand,
+.runway-panel--on-light .rp-header__title {
+  color: #f1f5f9;
+}
+
+.runway-panel--on-light .rp-close {
+  color: #94a3b8;
+}
+
+.runway-panel--on-light .rp-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+}
+
+.runway-panel--on-light .rp-banner {
+  background: #14532d;
+  border-bottom-color: #166534;
+  color: #bbf7d0;
+}
+
+.runway-panel--on-light .rp-banner__dot { color: #4ade80; }
+
+.runway-panel--on-light .rp-field__label { color: #94a3b8; }
+
+.runway-panel--on-light .rp-field__input,
+.runway-panel--on-light .rp-field__textarea {
+  color: #f1f5f9;
+  background: #1e2938;
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+}
+
+.runway-panel--on-light .rp-field__input:focus,
+.runway-panel--on-light .rp-field__textarea:focus {
+  border-color: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+}
+
+.runway-panel--on-light .rp-job-card__company { color: #f1f5f9; }
+.runway-panel--on-light .rp-job-card__role { color: #94a3b8; }
+.runway-panel--on-light .rp-job-card__role--primary { color: #f1f5f9; }
+.runway-panel--on-light .rp-job-card__meta { color: #64748b; }
+.runway-panel--on-light .rp-browse-divider { color: #4b5563; border-top-color: rgba(255,255,255,0.08); }
+
+.runway-panel--on-light .rp-focus-card { border-bottom-color: rgba(255,255,255,0.08); }
+.runway-panel--on-light .rp-focus-card__company-name,
+.runway-panel--on-light .rp-focus-card__role { color: #f1f5f9; }
+.runway-panel--on-light .rp-focus-card__meta { color: #94a3b8; }
+.runway-panel--on-light .rp-focus-card__applicants { color: #64748b; }
+.runway-panel--on-light .rp-focus-card__desc { color: #94a3b8; }
+
+.runway-panel--on-light .rp-info-grid { border-color: rgba(255,255,255,0.09); }
+.runway-panel--on-light .rp-info-row { border-bottom-color: rgba(255,255,255,0.07); }
+.runway-panel--on-light .rp-info-row__label { color: #4b5563; }
+.runway-panel--on-light .rp-info-row__value { color: #e2e8f0; }
+.runway-panel--on-light .rp-info-row__value--green { color: #4ade80; }
+.runway-panel--on-light .rp-info-row__value--highlight { color: #93c5fd; }
+.runway-panel--on-light .rp-info-row__value--warn { color: #fca5a5; }
+
+.runway-panel--on-light .rp-section__title { color: #e2e8f0; }
+.runway-panel--on-light .rp-section__arrow { color: #4b5563; }
+
+.runway-panel--on-light .rp-file-name { color: #94a3b8; }
+
+.runway-panel--on-light .rp-ghost-btn {
+  color: #e2e8f0;
+  background: #1f2937;
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+}
+
+.runway-panel--on-light .rp-ghost-btn:hover:not(:disabled) {
+  background: #263344;
+}
+
+.runway-panel--on-light .rp-status,
+.runway-panel--on-light .rp-empty,
+.runway-panel--on-light .rp-bottom__link {
+  color: #94a3b8;
+}
+
+.runway-panel--on-light .rp-bottom__link:hover { color: #e2e8f0; }
 
 @keyframes runway-btn-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }

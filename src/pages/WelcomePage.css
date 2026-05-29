@@ -1,109 +1,74 @@
 @reference "tailwindcss";
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   WelcomePage.css
-   All styles are prefixed with "wp-" (short for WelcomePage) so they don't
-   clash with class names from other pages.
-   ───────────────────────────────────────────────────────────────────────────── */
-
-
-/* ── Page shell ── */
-
-/* The outermost container — flex-1 makes it fill the full width inside #root's flex row,
-   min-h-screen ensures it covers the full height too */
+/* Page shell */
 .wp-root {
   @apply flex-1 min-h-screen bg-slate-950 flex flex-col;
 }
 
-
-/* ── Top bar ── */
-
-/* The narrow strip at the very top with the logo on the left and "Skip" on the right */
+/* Top bar */
 .wp-topbar {
   @apply flex items-center justify-between px-6 py-4 border-b border-slate-800;
 }
 
-/* Logo area — icon bubble + wordmark sitting side by side */
 .wp-logo {
   @apply flex items-center gap-2;
 }
 
-/* App logo mark */
 .wp-logo-icon {
   box-shadow: 0 0 14px rgba(79, 70, 229, 0.28);
 }
 
-/* "Runway" text next to the icon */
 .wp-logo-wordmark {
   @apply text-sm font-semibold text-white;
 }
 
-/* The "Skip intro →" link in the top-right corner */
 .wp-skip {
   @apply text-sm text-slate-400 hover:text-slate-200 transition-colors cursor-pointer;
 }
 
-
-/* ── Main content area ── */
-
-/* Everything below the top bar — centred both horizontally and vertically */
+/* Main content area */
 .wp-content {
   @apply flex-1 flex flex-col items-center justify-center px-4 py-12;
 }
 
-
-/* ── Header text block ── */
-
-/* Wrapper that constrains the heading + subtitle to a readable width */
+/* Header text block */
 .wp-header {
   @apply text-center mb-10 max-w-lg;
 }
 
-/* Small uppercase label above the heading — e.g. "Welcome to Runway" */
 .wp-eyebrow {
   @apply text-sm text-violet-300 font-semibold tracking-wide uppercase mb-3;
 }
 
-/* Main heading — greets the user by first name */
 .wp-title {
   @apply text-3xl font-bold text-white mb-4;
 }
 
-/* One or two lines of supporting copy below the heading */
 .wp-subtitle {
   @apply text-base text-slate-200 leading-relaxed;
 }
 
-
-/* ── Feature cards grid ── */
-
-/* Responsive grid: 1 column on mobile → 2 on tablet → 3 on desktop */
+/* Feature cards grid */
 .wp-grid {
   @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl mb-10;
 }
 
-/* Individual feature card */
 .wp-card {
   @apply bg-slate-800/60 border border-slate-700 rounded-xl p-5 flex flex-col gap-3;
 }
 
-/* Top row of a card: the "01" number + icon bubble */
 .wp-card-top {
   @apply flex items-center gap-3;
 }
 
-/* The dimmed step number shown in the top-left of each card */
 .wp-card-number {
   @apply text-sm font-bold text-slate-400;
 }
 
-/* The coloured square that holds the lucide icon */
 .wp-card-icon {
   @apply w-10 h-10 rounded-lg flex items-center justify-center border;
 }
 
-/* One modifier class per colour — controls background, border, and icon tint.
-   /30 backgrounds and -200 text makes the colours vivid against the dark card. */
 .wp-card-icon--sky     { @apply bg-sky-500/30     border-sky-400/40     text-sky-200;     }
 .wp-card-icon--violet  { @apply bg-violet-500/30  border-violet-400/40  text-violet-200;  }
 .wp-card-icon--rose    { @apply bg-rose-500/30    border-rose-400/40    text-rose-200;    }
@@ -111,19 +76,15 @@
 .wp-card-icon--amber   { @apply bg-amber-500/30   border-amber-400/40   text-amber-200;   }
 .wp-card-icon--slate   { @apply bg-slate-500/30   border-slate-400/40   text-slate-200;   }
 
-/* Feature title */
 .wp-card-title {
   @apply text-base font-semibold text-white mb-1;
 }
 
-/* Feature description */
 .wp-card-desc {
   @apply text-sm text-slate-200 leading-relaxed;
 }
 
-
-/* ── Get started button ── */
-
+/* Get started button */
 .wp-cta {
   @apply flex items-center gap-2 bg-violet-600 hover:bg-violet-500
          text-white text-base font-semibold px-7 py-3 rounded-xl transition-colors cursor-pointer;
