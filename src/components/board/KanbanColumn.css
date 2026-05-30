@@ -10,13 +10,25 @@
 }
 
 .kanban-col-count {
-  @apply ml-auto text-xs text-slate-300 bg-slate-700 rounded-full px-1.5 py-0.5;
+  @apply ml-auto text-xs text-zinc-300 bg-zinc-700 rounded-full px-1.5 py-0.5;
 }
 
 .kanban-col-drop {
-  @apply flex-1 min-h-24 rounded-xl border border-slate-700 transition-colors;
+  @apply flex flex-col gap-2 transition-colors rounded-xl;
+}
+
+.kanban-col-drop--over {
+  @apply bg-white/[0.03] rounded-xl;
 }
 
 .kanban-col-cards {
-  @apply flex flex-col gap-2 p-1;
+  @apply flex flex-col gap-2;
+}
+
+.kanban-col-add {
+  @apply flex flex-col items-center justify-center gap-1 w-full
+    rounded-xl border border-dashed border-zinc-700/50
+    text-zinc-600 hover:text-zinc-400 hover:border-zinc-500/60
+    transition-colors text-xs cursor-pointer;
+  min-height: 112px;
 }

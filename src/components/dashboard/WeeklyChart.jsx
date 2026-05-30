@@ -63,34 +63,34 @@ export default function WeeklyChart() {
   const totalOutreach = weeks.reduce((s, w) => s + w.outreachCount, 0)
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5">
+    <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 sm:p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-white">Weekly Activity</h3>
-          <p className="text-xs text-slate-500 mt-0.5">Last 8 weeks</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Last 8 weeks</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-sm bg-violet-500 shrink-0" />
-            <span className="text-xs text-slate-400">Applied</span>
+            <div className="w-2 h-2 rounded-sm bg-blue-500 shrink-0" />
+            <span className="text-xs text-zinc-400">Applied</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-sm bg-emerald-500 shrink-0" />
-            <span className="text-xs text-slate-400">Outreach</span>
+            <span className="text-xs text-zinc-400">Outreach</span>
           </div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="bg-slate-800/60 rounded-lg px-3 py-2.5">
-          <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-0.5">Applied this week</p>
-          <p className="text-xl font-bold text-violet-400">{thisWeek.appsCount}</p>
+        <div className="bg-zinc-800/60 rounded-lg px-3 py-2.5">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-wide mb-0.5">Applied this week</p>
+          <p className="text-xl font-bold text-blue-400">{thisWeek.appsCount}</p>
         </div>
-        <div className="bg-slate-800/60 rounded-lg px-3 py-2.5">
-          <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-0.5">Outreach this week</p>
+        <div className="bg-zinc-800/60 rounded-lg px-3 py-2.5">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-wide mb-0.5">Outreach this week</p>
           <p className="text-xl font-bold text-emerald-400">{thisWeek.outreachCount}</p>
         </div>
       </div>
-      <div className="flex items-end gap-1 h-20 border-b border-slate-800">
+      <div className="flex items-end gap-1 h-20 border-b border-zinc-800">
         {weeks.map((week, i) => (
           <div
             key={i}
@@ -98,7 +98,7 @@ export default function WeeklyChart() {
             title={`${week.label}: ${week.appsCount} applied, ${week.outreachCount} outreach`}
           >
             <div
-              className={`flex-1 rounded-t-sm transition-all duration-300 ${week.isCurrent ? 'bg-violet-500' : 'bg-violet-600/55 hover:bg-violet-500/70'}`}
+              className={`flex-1 rounded-t-sm transition-all duration-300 ${week.isCurrent ? 'bg-blue-500' : 'bg-blue-600/55 hover:bg-blue-500/70'}`}
               style={{ height: week.appsCount > 0 ? `${Math.max((week.appsCount / chartMax) * 100, 5)}%` : '0%' }}
             />
             <div
@@ -112,15 +112,15 @@ export default function WeeklyChart() {
         {weeks.map((week, i) => (
           <span
             key={i}
-            className={`flex-1 text-center text-[10px] leading-tight truncate ${week.isCurrent ? 'text-slate-400' : 'text-slate-600'}`}
+            className={`flex-1 text-center text-[10px] leading-tight truncate ${week.isCurrent ? 'text-zinc-400' : 'text-zinc-600'}`}
           >
             {week.label.split(' ')[1]}
           </span>
         ))}
       </div>
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-800">
-        <span className="text-xs text-slate-500">{totalApps} applications in 8 weeks</span>
-        <span className="text-xs text-slate-500">{totalOutreach} outreach in 8 weeks</span>
+      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-800">
+        <span className="text-xs text-zinc-500">{totalApps} applications in 8 weeks</span>
+        <span className="text-xs text-zinc-500">{totalOutreach} outreach in 8 weeks</span>
       </div>
 
     </div>

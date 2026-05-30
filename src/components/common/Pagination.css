@@ -7,7 +7,7 @@
 
 /* "Showing 1–10 of 35" line */
 .pagination-info {
-  @apply text-xs text-slate-500;
+  @apply text-xs text-zinc-500;
 }
 
 /* The row of buttons */
@@ -18,16 +18,16 @@
 /* Every page button (numbers, prev arrow, next arrow) shares this base */
 .pagination-btn {
   @apply w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium
-         text-slate-400 hover:text-white hover:bg-slate-800 transition-colors
-         disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400;
+         text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors
+         disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-zinc-400;
 }
 
 /* Highlighted state for the currently active page */
 .pagination-btn--active {
-  @apply bg-violet-600/20 text-violet-300 border border-violet-500/30;
+  @apply bg-blue-600/20 text-blue-300 border border-blue-500/30;
 }
 
 /* The "…" spacer between page number groups */
 .pagination-ellipsis {
-  @apply w-8 h-8 flex items-center justify-center text-sm text-slate-600;
+  @apply w-8 h-8 flex items-center justify-center text-sm text-zinc-600;
 }

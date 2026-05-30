@@ -22,6 +22,15 @@ import { usePagination } from '../hooks/usePagination'
 import Pagination from '../components/common/Pagination'
 import './OutreachPage.css'
 
+function onGlowMove(e) {
+  const el = e.currentTarget
+  const { left, top, width, height } = el.getBoundingClientRect()
+  const angle = Math.atan2(e.clientY - (top + height / 2), e.clientX - (left + width / 2)) * (180 / Math.PI)
+  el.style.setProperty('--start', String(angle + 90))
+  el.style.setProperty('--active', '1')
+}
+function onGlowLeave(e) { e.currentTarget.style.setProperty('--active', '0') }
+
 const FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'pending', label: 'Pending' },
@@ -217,28 +226,28 @@ export default function OutreachPage() {
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="outreach-header-icon">
-              <Send size={15} className="text-violet-400" />
+              <Send size={15} className="text-blue-400" />
             </div>
             <div>
               <h1 className="text-lg font-bold text-white">Recruiter Outreach</h1>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 {records.length} recruiter{records.length !== 1 ? 's' : ''} tracked
                 {counts.done > 0 && ` · ${counts.done} done`}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-1 xl:pb-0">
-            <div className="flex items-center gap-0.5 p-0.5 bg-slate-800 rounded-lg border border-slate-700">
+            <div className="flex items-center gap-0.5 p-0.5 bg-zinc-800 rounded-lg border border-zinc-700">
               <button
                 onClick={() => setView('cards')}
-                className={`p-1.5 rounded-md transition-colors ${view === 'cards' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`p-1.5 rounded-md transition-colors ${view === 'cards' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                 title="Card view"
               >
                 <LayoutGrid size={13} />
               </button>
               <button
                 onClick={() => setView('table')}
-                className={`p-1.5 rounded-md transition-colors ${view === 'table' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`p-1.5 rounded-md transition-colors ${view === 'table' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                 title="Table view"
               >
                 <LayoutList size={13} />
@@ -248,7 +257,7 @@ export default function OutreachPage() {
               <button
                 onClick={() => selectedIds.size > 0 ? handleBulkDraft() : handleBulkDraft(eligibleForBulk)}
                 disabled={bulkCreating}
-                className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
               >
                 {bulkCreating ? <Loader2 size={13} className="animate-spin" /> : <Mail size={13} />}
                 {bulkCreating
@@ -257,7 +266,7 @@ export default function OutreachPage() {
                     ? `Create ${selectedIds.size} Gmail draft${selectedIds.size !== 1 ? 's' : ''}`
                     : `Draft unsent`}
                 {!bulkCreating && (
-                  <span className="bg-violet-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                     {selectedIds.size > 0 ? selectedIds.size : eligibleForBulk.length}
                   </span>
                 )}
@@ -266,7 +275,7 @@ export default function OutreachPage() {
             {eligibleForLinkedIn.length > 0 && (
               <button
                 onClick={startLinkedInQueue}
-                className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
               >
                 <ExternalLink size={13} />
                 LinkedIn unsent
@@ -275,7 +284,7 @@ export default function OutreachPage() {
             )}
             <button
               onClick={() => setAddOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
             >
               <Plus size={13} /> Add Recruiter
             </button>
@@ -292,7 +301,7 @@ export default function OutreachPage() {
               className={`outreach-filter-tab ${filter === f.key ? 'outreach-filter-tab--active' : ''}`}
             >
               {f.label}
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${filter === f.key ? 'bg-violet-600/30 text-violet-300' : 'bg-slate-800 text-slate-500'}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${filter === f.key ? 'bg-blue-600/30 text-blue-300' : 'bg-zinc-800 text-zinc-500'}`}>
                 {counts[f.key]}
               </span>
             </button>
@@ -301,21 +310,21 @@ export default function OutreachPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 size={20} className="animate-spin text-slate-500" />
+            <Loader2 size={20} className="animate-spin text-zinc-500" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
-            <Users size={36} className="text-slate-700 mx-auto mb-3" />
-            <p className="text-slate-400 text-sm font-medium">
+            <Users size={36} className="text-zinc-700 mx-auto mb-3" />
+            <p className="text-zinc-400 text-sm font-medium">
               {filter === 'all' ? 'No outreach tracked yet' : `No ${FILTERS.find(f => f.key === filter)?.label.toLowerCase()} outreach`}
             </p>
-            <p className="text-slate-500 text-xs mt-1 mb-4">
+            <p className="text-zinc-500 text-xs mt-1 mb-4">
               Add a recruiter to start tracking your cold outreach.
             </p>
             {filter === 'all' && (
               <button
                 onClick={() => setAddOpen(true)}
-                className="flex items-center gap-1.5 mx-auto px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
+                className="flex items-center gap-1.5 mx-auto px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors"
               >
                 <Plus size={13} /> Add Recruiter
               </button>
@@ -363,32 +372,32 @@ export default function OutreachPage() {
         )}
       </div>
       {(selectedIds.size > 0 || bulkResult) && (
-        <div className="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 flex flex-wrap items-center justify-center gap-3 px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl">
+        <div className="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 flex flex-wrap items-center justify-center gap-3 px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl shadow-2xl">
           {bulkResult ? (
             <>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-zinc-300">
                 {bulkResult.success > 0 && <span className="text-green-400">{bulkResult.success} draft{bulkResult.success !== 1 ? 's' : ''} created</span>}
                 {bulkResult.failed > 0 && <span className="text-red-400 ml-1">{bulkResult.failed} failed</span>}
                 {bulkResult.error && <span className="text-red-400 ml-1">— {bulkResult.error}</span>}
               </p>
-              <button onClick={() => setBulkResult(null)} className="text-slate-500 hover:text-slate-300 transition-colors">
+              <button onClick={() => setBulkResult(null)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
                 <X size={13} />
               </button>
             </>
           ) : (
             <>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 <span className="font-semibold text-white">{selectedIds.size}</span> selected
               </p>
               {selectedIds.size < eligibleForBulk.length && (
-                <button onClick={selectAll} className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                <button onClick={selectAll} className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
                   Select all {eligibleForBulk.length}
                 </button>
               )}
               <button
                 onClick={handleBulkDraft}
                 disabled={bulkCreating}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
               >
                 {bulkCreating ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />}
                 {bulkCreating ? 'Creating drafts…' : `Create ${selectedIds.size} Gmail draft${selectedIds.size !== 1 ? 's' : ''}`}
@@ -396,7 +405,7 @@ export default function OutreachPage() {
               </button>
               <button
                 onClick={() => setSelectedIds(new Set())}
-                className="text-slate-500 hover:text-slate-300 transition-colors"
+                className="text-zinc-500 hover:text-zinc-300 transition-colors"
                 title="Clear selection"
               >
                 <X size={13} />
@@ -423,29 +432,29 @@ export default function OutreachPage() {
           : `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`${record.recruiterName} ${record.company}`)}`
         return (
           <div className="fixed inset-0 z-50 flex items-end justify-center pb-6 px-4" onClick={e => e.target === e.currentTarget && setLinkedInQueue(null)}>
-            <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-5 space-y-4">
+            <div className="w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl p-5 space-y-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wide mb-0.5">
+                  <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide mb-0.5">
                     {linkedInQueueIdx + 1} of {linkedInQueue.length}
                   </p>
                   <h3 className="text-sm font-semibold text-white">{record.recruiterName}</h3>
-                  {record.recruiterTitle && <p className="text-xs text-slate-400">{record.recruiterTitle}</p>}
-                  <p className="text-xs text-slate-500">{record.company}{record.role ? ` · ${record.role}` : ''}</p>
+                  {record.recruiterTitle && <p className="text-xs text-zinc-400">{record.recruiterTitle}</p>}
+                  <p className="text-xs text-zinc-500">{record.company}{record.role ? ` · ${record.role}` : ''}</p>
                 </div>
-                <button onClick={() => setLinkedInQueue(null)} className="text-slate-500 hover:text-slate-300 transition-colors mt-0.5">
+                <button onClick={() => setLinkedInQueue(null)} className="text-zinc-500 hover:text-zinc-300 transition-colors mt-0.5">
                   <X size={15} />
                 </button>
               </div>
-              <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+              <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-600 rounded-full transition-all"
                   style={{ width: `${((linkedInQueueIdx + 1) / linkedInQueue.length) * 100}%` }}
                 />
               </div>
               <div>
-                <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wide mb-1.5">Message (auto-copied)</p>
-                <div className="text-xs text-slate-300 leading-relaxed bg-slate-800/60 border border-slate-700 rounded-lg p-3">
+                <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide mb-1.5">Message (auto-copied)</p>
+                <div className="text-xs text-zinc-300 leading-relaxed bg-zinc-800/60 border border-zinc-700 rounded-lg p-3">
                   {record.linkedInMessage}
                 </div>
               </div>
@@ -456,7 +465,7 @@ export default function OutreachPage() {
                     setLinkedInCopied(true)
                     setTimeout(() => setLinkedInCopied(false), 2000)
                   }}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
                 >
                   {linkedInCopied ? <ClipboardCheck size={12} className="text-green-400" /> : <Copy size={12} />}
                   {linkedInCopied ? 'Copied!' : 'Copy'}
@@ -471,7 +480,7 @@ export default function OutreachPage() {
                 </a>
                 <button
                   onClick={advanceLinkedInQueue}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs font-medium rounded-lg transition-colors"
                 >
                   Skip
                 </button>
@@ -633,14 +642,17 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
 
   return (
     <div
-      className={`outreach-card ${isDone ? 'outreach-card--done' : ''} ${isSelected ? 'ring-1 ring-violet-500' : ''} ${isSelectable ? 'cursor-pointer' : ''}`}
+      className={`outreach-card ${isDone ? 'outreach-card--done' : ''} ${isSelected ? 'ring-1 ring-blue-500' : ''} ${isSelectable ? 'cursor-pointer' : ''}`}
       onClick={isSelectable ? (e => { if (!e.target.closest('button, a, input, textarea')) onToggleSelect(record.id) }) : undefined}
+      onMouseMove={onGlowMove}
+      onMouseLeave={onGlowLeave}
     >
+      <div className="glows" />
       <div className="flex items-start justify-between gap-3">
         {isSelectable && (
           <button
             onClick={e => { e.stopPropagation(); onToggleSelect(record.id) }}
-            className={`mt-0.5 w-5 h-5 rounded border shrink-0 flex items-center justify-center transition-colors ${isSelected ? 'bg-violet-600 border-violet-500' : 'border-slate-600 hover:border-slate-400'}`}
+            className={`mt-0.5 w-5 h-5 rounded border shrink-0 flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border-blue-500' : 'border-zinc-600 hover:border-zinc-400'}`}
             title={isSelected ? 'Deselect' : 'Select for bulk draft'}
           >
             {isSelected && <CheckCircle2 size={11} className="text-white" />}
@@ -655,18 +667,18 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
               </span>
             )}
           </div>
-          {record.recruiterTitle && <p className="text-xs text-slate-400">{record.recruiterTitle}</p>}
-          <p className="text-xs text-slate-500 mt-0.5">
+          {record.recruiterTitle && <p className="text-xs text-zinc-400">{record.recruiterTitle}</p>}
+          <p className="text-xs text-zinc-500 mt-0.5">
             {record.company}{record.role ? ` · ${record.role}` : ''}
           </p>
           <div className="flex items-center gap-3 mt-1.5 flex-wrap">
             {record.recruiterEmail && (
-              <a href={`mailto:${record.recruiterEmail}`} className="flex items-center gap-1 text-[11px] text-violet-400 hover:underline">
+              <a href={`mailto:${record.recruiterEmail}`} className="flex items-center gap-1 text-[11px] text-blue-400 hover:underline">
                 <Mail size={9} /> {record.recruiterEmail}
               </a>
             )}
             {record.recruiterLinkedIn && (
-              <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[11px] text-violet-400 hover:underline">
+              <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[11px] text-blue-400 hover:underline">
                 <ExternalLink size={9} /> LinkedIn
               </a>
             )}
@@ -674,7 +686,7 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
         </div>
 
         <div className="flex flex-col items-end gap-2 shrink-0">
-          {createdStr && <p className="text-[10px] text-slate-500">{createdStr}</p>}
+          {createdStr && <p className="text-[10px] text-zinc-500">{createdStr}</p>}
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => record.emailSent ? unmark('emailSent') : mark('emailSent')}
@@ -694,22 +706,22 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
           <div className="flex items-center gap-2">
             <button
               onClick={() => setExpanded(x => !x)}
-              className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-300 transition-colors"
+              className="flex items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
             >
               {expanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
               {expanded ? 'Hide' : 'View draft'}
             </button>
-            <button onClick={handleDelete} className="text-slate-600 hover:text-red-400 transition-colors">
+            <button onClick={handleDelete} className="text-zinc-600 hover:text-red-400 transition-colors">
               <Trash2 size={12} />
             </button>
           </div>
         </div>
       </div>
       {record.emailSent && (
-        <div className="mt-2 pt-2 border-t border-slate-800">
+        <div className="mt-2 pt-2 border-t border-zinc-800">
           <button
             onClick={() => record.followUpSent ? unmark('followUpSent') : mark('followUpSent')}
-            className={`flex items-center gap-1 text-[11px] transition-colors ${record.followUpSent ? 'text-amber-400' : 'text-slate-500 hover:text-amber-400'}`}
+            className={`flex items-center gap-1 text-[11px] transition-colors ${record.followUpSent ? 'text-amber-400' : 'text-zinc-500 hover:text-amber-400'}`}
           >
             <Clock size={10} />
             {record.followUpSent ? '✓ Follow-up sent' : 'Mark follow-up sent'}
@@ -717,10 +729,10 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
         </div>
       )}
       {expanded && (
-        <div className="mt-4 pt-4 border-t border-slate-800 space-y-5">
+        <div className="mt-4 pt-4 border-t border-zinc-800 space-y-5">
           <div>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Email</p>
-            <p className="text-[10px] text-slate-500 mb-1.5">Subject: <span className="text-slate-400">{record.emailSubject}</span></p>
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide mb-2">Email</p>
+            <p className="text-[10px] text-zinc-500 mb-1.5">Subject: <span className="text-zinc-400">{record.emailSubject}</span></p>
             <textarea
               value={emailBody}
               onChange={e => setEmailBody(e.target.value)}
@@ -736,7 +748,7 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
                 <button
                   onClick={() => openGmailDraft(record.emailSubject, emailBody, false)}
                   disabled={draftCreating}
-                  className="mt-2 flex items-center justify-center gap-1.5 w-full py-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+                  className="mt-2 flex items-center justify-center gap-1.5 w-full py-1.5 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
                 >
                   {draftCreating ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />}
                   {draftCreating
@@ -748,7 +760,7 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
               )
             )}
             {defaultResume && (
-              <p className="text-[10px] text-slate-500 mt-1.5 text-center">
+              <p className="text-[10px] text-zinc-500 mt-1.5 text-center">
                 {defaultResume.label || defaultResume.filename} will be attached
               </p>
             )}
@@ -763,9 +775,9 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
           </div>
           {record.followUpBody && (
             <div>
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Follow-Up Email</p>
-              <p className="text-[10px] text-slate-500 mb-1.5">Subject: <span className="text-slate-400">{record.followUpSubject}</span></p>
-              <pre className="text-xs text-slate-300 leading-relaxed bg-slate-800/50 border border-slate-700 rounded-lg p-2.5 whitespace-pre-wrap font-sans">
+              <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide mb-2">Follow-Up Email</p>
+              <p className="text-[10px] text-zinc-500 mb-1.5">Subject: <span className="text-zinc-400">{record.followUpSubject}</span></p>
+              <pre className="text-xs text-zinc-300 leading-relaxed bg-zinc-800/50 border border-zinc-700 rounded-lg p-2.5 whitespace-pre-wrap font-sans">
                 {record.followUpBody}
               </pre>
               {record.recruiterEmail && (
@@ -777,7 +789,7 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
                   <button
                     onClick={() => openGmailDraft(record.followUpSubject, record.followUpBody, true)}
                     disabled={draftCreating}
-                    className="mt-2 flex items-center justify-center gap-1.5 w-full py-1.5 bg-slate-700/60 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+                    className="mt-2 flex items-center justify-center gap-1.5 w-full py-1.5 bg-zinc-700/60 hover:bg-zinc-700 disabled:opacity-50 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
                   >
                     {draftCreating ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />}
                     {defaultResume ? <><Paperclip size={10} className="mr-0.5" />Create follow-up draft with resume</> : 'Create follow-up draft'}
@@ -788,8 +800,8 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
           )}
           {record.linkedInMessage && (
             <div>
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-2">LinkedIn Message</p>
-              <p className="text-xs text-slate-300 leading-relaxed bg-slate-800/50 border border-slate-700 rounded-lg p-2.5">
+              <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide mb-2">LinkedIn Message</p>
+              <p className="text-xs text-zinc-300 leading-relaxed bg-zinc-800/50 border border-zinc-700 rounded-lg p-2.5">
                 {record.linkedInMessage}
               </p>
               <div className="flex flex-col sm:flex-row gap-2 mt-2">
@@ -800,7 +812,7 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
                     setTimeout(() => setCopiedLinkedIn(false), 2000)
                     if (!record.linkedInSent) updateDoc(ref, { linkedInSent: true, linkedInSentAt: new Date() })
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
                 >
                   {copiedLinkedIn
                     ? <><ClipboardCheck size={11} className="text-green-400" /> Copied &amp; marked sent</>
@@ -810,7 +822,7 @@ function OutreachCard({ record, userId, defaultResume, onNeedGmailToken, isSelec
                   href={linkedInUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
                 >
                   <ExternalLink size={11} /> {record.recruiterLinkedIn ? 'Profile' : 'Search'}
                 </a>
@@ -835,16 +847,16 @@ function OutreachTable({ records, userId, selectedIds, onToggleSelect }) {
   }
 
   if (records.length === 0) {
-    return <p className="text-center py-12 text-slate-500 text-sm">No outreach records.</p>
+    return <p className="text-center py-12 text-zinc-500 text-sm">No outreach records.</p>
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-700">
-      <table className="w-full text-xs border-collapse bg-slate-900" style={{ minWidth: '700px' }}>
+    <div className="overflow-x-auto rounded-xl border border-zinc-700">
+      <table className="w-full text-xs border-collapse bg-zinc-900" style={{ minWidth: '700px' }}>
         <thead>
           <tr>
             {['', 'Recruiter', 'Company / Role', 'Email', 'Email Sent', 'LinkedIn', 'Follow-up', 'Added', ''].map(h => (
-              <th key={h} className="text-left px-3 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wide bg-slate-900 border-b border-slate-700 whitespace-nowrap">
+              <th key={h} className="text-left px-3 py-2.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wide bg-zinc-900 border-b border-zinc-700 whitespace-nowrap">
                 {h}
               </th>
             ))}
@@ -854,54 +866,54 @@ function OutreachTable({ records, userId, selectedIds, onToggleSelect }) {
           {records.map(r => {
             const added = r.createdAt?.toDate?.()?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) ?? '—'
             return (
-              <tr key={r.id} className="hover:[&>td]:bg-slate-800/30">
-                <td className="px-3 py-2.5 border-b border-slate-800/60 w-6">
+              <tr key={r.id} className="hover:[&>td]:bg-zinc-800/30">
+                <td className="px-3 py-2.5 border-b border-zinc-800/60 w-6">
                   {!r.emailSent && r.recruiterEmail && (
                     <button
                       onClick={() => onToggleSelect(r.id)}
-                      className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedIds.has(r.id) ? 'bg-violet-600 border-violet-500' : 'border-slate-600 hover:border-slate-400'}`}
+                      className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedIds.has(r.id) ? 'bg-blue-600 border-blue-500' : 'border-zinc-600 hover:border-zinc-400'}`}
                     >
                       {selectedIds.has(r.id) && <CheckCircle2 size={9} className="text-white" />}
                     </button>
                   )}
                 </td>
-                <td className="px-3 py-2.5 border-b border-slate-800/60">
+                <td className="px-3 py-2.5 border-b border-zinc-800/60">
                   <p className="font-medium text-white">{r.recruiterName}</p>
-                  {r.recruiterTitle && <p className="text-[10px] text-slate-500">{r.recruiterTitle}</p>}
+                  {r.recruiterTitle && <p className="text-[10px] text-zinc-500">{r.recruiterTitle}</p>}
                 </td>
-                <td className="px-3 py-2.5 border-b border-slate-800/60">
-                  <p className="text-slate-300">{r.company}</p>
-                  {r.role && <p className="text-[10px] text-slate-500">{r.role}</p>}
+                <td className="px-3 py-2.5 border-b border-zinc-800/60">
+                  <p className="text-zinc-300">{r.company}</p>
+                  {r.role && <p className="text-[10px] text-zinc-500">{r.role}</p>}
                 </td>
-                <td className="px-3 py-2.5 border-b border-slate-800/60">
+                <td className="px-3 py-2.5 border-b border-zinc-800/60">
                   {r.recruiterEmail
-                    ? <a href={`mailto:${r.recruiterEmail}`} className="text-violet-400 hover:underline">{r.recruiterEmail}</a>
-                    : <span className="text-slate-600">—</span>}
+                    ? <a href={`mailto:${r.recruiterEmail}`} className="text-blue-400 hover:underline">{r.recruiterEmail}</a>
+                    : <span className="text-zinc-600">—</span>}
                 </td>
-                <td className="px-3 py-2.5 border-b border-slate-800/60 text-center">
+                <td className="px-3 py-2.5 border-b border-zinc-800/60 text-center">
                   <button onClick={() => toggle(r, 'emailSent')} title="Toggle">
                     {r.emailSent
                       ? <CheckCircle2 size={13} className="text-green-400 mx-auto" />
-                      : <span className="text-slate-600 text-base leading-none">○</span>}
+                      : <span className="text-zinc-600 text-base leading-none">○</span>}
                   </button>
                 </td>
-                <td className="px-3 py-2.5 border-b border-slate-800/60 text-center">
+                <td className="px-3 py-2.5 border-b border-zinc-800/60 text-center">
                   <button onClick={() => toggle(r, 'linkedInSent')} title="Toggle">
                     {r.linkedInSent
                       ? <CheckCircle2 size={13} className="text-green-400 mx-auto" />
-                      : <span className="text-slate-600 text-base leading-none">○</span>}
+                      : <span className="text-zinc-600 text-base leading-none">○</span>}
                   </button>
                 </td>
-                <td className="px-3 py-2.5 border-b border-slate-800/60 text-center">
+                <td className="px-3 py-2.5 border-b border-zinc-800/60 text-center">
                   <button onClick={() => toggle(r, 'followUpSent')} title="Toggle">
                     {r.followUpSent
                       ? <CheckCircle2 size={13} className="text-amber-400 mx-auto" />
-                      : <span className="text-slate-600 text-base leading-none">○</span>}
+                      : <span className="text-zinc-600 text-base leading-none">○</span>}
                   </button>
                 </td>
-                <td className="px-3 py-2.5 border-b border-slate-800/60 text-slate-500 whitespace-nowrap">{added}</td>
-                <td className="px-3 py-2.5 border-b border-slate-800/60">
-                  <button onClick={() => remove(r)} className="text-slate-700 hover:text-red-400 transition-colors">
+                <td className="px-3 py-2.5 border-b border-zinc-800/60 text-zinc-500 whitespace-nowrap">{added}</td>
+                <td className="px-3 py-2.5 border-b border-zinc-800/60">
+                  <button onClick={() => remove(r)} className="text-zinc-700 hover:text-red-400 transition-colors">
                     <Trash2 size={11} />
                   </button>
                 </td>
@@ -1133,21 +1145,21 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
         <div className="outreach-add-modal-header">
           <h2 className="text-sm font-semibold text-white">Add Recruiter</h2>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 p-0.5 bg-slate-800 rounded-lg">
+            <div className="flex items-center gap-1 p-0.5 bg-zinc-800 rounded-lg">
               <button
                 onClick={() => setStep('search')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${step === 'search' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${step === 'search' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
               >
                 Find via Hunter
               </button>
               <button
                 onClick={() => setStep('manual')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${step === 'manual' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${step === 'manual' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
               >
                 Add manually
               </button>
             </div>
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-300 transition-colors">
+            <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors">
               <X size={16} />
             </button>
           </div>
@@ -1156,24 +1168,24 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
         <div className="outreach-add-modal-body">
           <div>
             <label className="outreach-form-label">Link to a job posting</label>
-            <div className="flex items-center gap-1.5 p-0.5 bg-slate-800 rounded-lg mb-2">
+            <div className="flex items-center gap-1.5 p-0.5 bg-zinc-800 rounded-lg mb-2">
               <button
                 onClick={() => handleJobLinkModeChange('none')}
-                className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-colors ${jobLinkMode === 'none' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-colors ${jobLinkMode === 'none' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
               >
                 None
               </button>
               {jobs.length > 0 && (
                 <button
                   onClick={() => handleJobLinkModeChange('board')}
-                  className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-colors ${jobLinkMode === 'board' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                  className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-colors ${jobLinkMode === 'board' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
                 >
                   From board
                 </button>
               )}
               <button
                 onClick={() => handleJobLinkModeChange('url')}
-                className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-colors ${jobLinkMode === 'url' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-colors ${jobLinkMode === 'url' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
               >
                 Paste URL
               </button>
@@ -1207,7 +1219,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
                   <button
                     onClick={handleFetchJobUrl}
                     disabled={fetchingJob || !jobPostingUrl.trim()}
-                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors shrink-0"
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors shrink-0"
                   >
                     {fetchingJob ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
                     {fetchingJob ? 'Fetching…' : 'Fetch'}
@@ -1219,7 +1231,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
                     <CheckCircle2 size={13} className="text-green-400 shrink-0" />
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-white truncate">{fetchedJob.role}</p>
-                      {fetchedJob.company && <p className="text-[11px] text-slate-400">{fetchedJob.company}</p>}
+                      {fetchedJob.company && <p className="text-[11px] text-zinc-400">{fetchedJob.company}</p>}
                     </div>
                   </div>
                 )}
@@ -1264,7 +1276,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
                   <button
                     onClick={handleSearch}
                     disabled={searching || !domain.trim()}
-                    className={`flex items-center justify-center gap-1.5 px-3 py-2 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors shrink-0 ${domainCached ? 'bg-green-700 hover:bg-green-600' : 'bg-violet-600 hover:bg-violet-500'}`}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors shrink-0 ${domainCached ? 'bg-green-700 hover:bg-green-600' : 'bg-blue-600 hover:bg-blue-500'}`}
                   >
                     {searching ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
                     {searching ? 'Loading…' : domainCached ? 'Use saved results' : 'Search Hunter'}
@@ -1275,9 +1287,9 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
               {searchError && <p className="text-xs text-red-400">{searchError}</p>}
 
               {searchResults !== null && searchResults.length === 0 && (
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-zinc-400">
                   No recruiters found. Try{' '}
-                  <button onClick={() => setStep('manual')} className="text-violet-400 hover:underline">
+                  <button onClick={() => setStep('manual')} className="text-blue-400 hover:underline">
                     adding manually
                   </button>
                   .
@@ -1287,11 +1299,11 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
               {searchResults?.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-zinc-400">
                       {searchResults.length} recruiter{searchResults.length !== 1 ? 's' : ''} found
-                      {fromCache && <span className="ml-2 text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded-full">cached</span>}
+                      {fromCache && <span className="ml-2 text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded-full">cached</span>}
                     </p>
-                    {selected.size > 0 && <p className="text-xs text-violet-400">{selected.size} selected</p>}
+                    {selected.size > 0 && <p className="text-xs text-blue-400">{selected.size} selected</p>}
                   </div>
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {searchResults.map((r, i) => {
@@ -1309,7 +1321,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
                         >
                           <div className="flex items-start gap-2">
                             {!alreadyContacted && (
-                              <div className={`w-3.5 h-3.5 rounded border shrink-0 mt-0.5 flex items-center justify-center transition-colors ${isSelected ? 'bg-violet-600 border-violet-500' : 'border-slate-600'}`}>
+                              <div className={`w-3.5 h-3.5 rounded border shrink-0 mt-0.5 flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border-blue-500' : 'border-zinc-600'}`}>
                                 {isSelected && <CheckCircle2 size={9} className="text-white" />}
                               </div>
                             )}
@@ -1320,9 +1332,9 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
                                   <span className="text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 px-1 py-0.5 rounded-full">Already tracked</span>
                                 )}
                               </div>
-                              {r.title && <p className="text-[11px] text-slate-400">{r.title}</p>}
-                              <p className="text-[11px] text-violet-400">{r.email}</p>
-                              <p className="text-[10px] text-slate-500">{r.confidence}% confidence</p>
+                              {r.title && <p className="text-[11px] text-zinc-400">{r.title}</p>}
+                              <p className="text-[11px] text-blue-400">{r.email}</p>
+                              <p className="text-[10px] text-zinc-500">{r.confidence}% confidence</p>
                             </div>
                           </div>
                         </div>
@@ -1333,7 +1345,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
                     <button
                       onClick={handleSaveSelected}
                       disabled={saving}
-                      className="w-full flex items-center justify-center gap-1.5 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+                      className="w-full flex items-center justify-center gap-1.5 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
                     >
                       {saving ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
                       {saving ? 'Saving…' : `Add ${selected.size} recruiter${selected.size > 1 ? 's' : ''} to tracker`}
@@ -1375,7 +1387,7 @@ function AddRecruiterModal({ userId, contactedEmails, initialDomain = '', initia
               <button
                 onClick={handleSaveManual}
                 disabled={saving || !manual.name.trim() || (!linkedJob && !manual.company.trim())}
-                className="w-full flex items-center justify-center gap-1.5 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
                 {saving ? 'Saving…' : 'Add to tracker'}

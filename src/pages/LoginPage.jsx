@@ -47,17 +47,17 @@ export default function LoginPage() {
           <div className="text-center space-y-2.5">
             <h1 className="text-3xl font-bold text-white leading-tight">
               Land your next<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
                 dream role
               </span>
             </h1>
-            <p className="text-slate-400 text-sm leading-relaxed">
+            <p className="text-zinc-400 text-sm leading-relaxed">
               Track applications, prep for interviews,<br />
               and never miss an opportunity.
             </p>
           </div>
 
-          <div className="w-full h-px bg-slate-800" />
+          <div className="w-full h-px bg-zinc-800" />
 
           <button onClick={signInWithGoogle} className="login-google-btn">
             <GoogleIcon />

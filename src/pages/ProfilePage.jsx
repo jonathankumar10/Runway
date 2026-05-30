@@ -11,14 +11,14 @@ import { useNotifications } from '../hooks/useNotifications'
 import './ProfilePage.css'
 
 const ACCENT_COLORS = [
-  { id: 'violet', label: 'Violet', swatch: '#7c3aed' },
+  { id: 'blue', label: 'Violet', swatch: '#7c3aed' },
   { id: 'blue',   label: 'Blue',   swatch: '#2563eb' },
   { id: 'emerald',label: 'Emerald',swatch: '#059669' },
   { id: 'rose',   label: 'Rose',   swatch: '#e11d48' },
 ]
 
 function applyAccent(color) {
-  document.documentElement.setAttribute('data-accent', color ?? 'violet')
+  document.documentElement.setAttribute('data-accent', color ?? 'blue')
 }
 
 /**
@@ -32,7 +32,7 @@ export default function ProfilePage() {
     followUpDays: 7,
     emailReminders: false,
     email: '',
-    accentColor: 'violet',
+    accentColor: 'blue',
     firstName: '',
     lastName: '',
     phone: '',
@@ -63,7 +63,7 @@ export default function ProfilePage() {
           followUpDays:   d.followUpDays   ?? 7,
           emailReminders: d.emailReminders ?? false,
           email:          d.email          ?? '',
-          accentColor:    d.accentColor    ?? 'violet',
+          accentColor:    d.accentColor    ?? 'blue',
           firstName:      d.firstName      ?? '',
           lastName:       d.lastName       ?? '',
           phone:          d.phone          ?? '',
@@ -143,7 +143,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <Loader2 size={20} className="text-slate-400 animate-spin" />
+        <Loader2 size={20} className="text-zinc-400 animate-spin" />
       </div>
     )
   }
@@ -151,23 +151,23 @@ export default function ProfilePage() {
   return (
     <div className="profile-page">
       <div className="mb-6">
-        <p className="text-xs text-slate-400 mb-1">WORKSPACE &rsaquo; PROFILE</p>
+        <p className="text-xs text-zinc-400 mb-1">WORKSPACE &rsaquo; PROFILE</p>
         <h1 className="text-2xl font-bold text-white">Profile</h1>
-        <p className="text-sm text-slate-400 mt-1">Manage your account, notifications, and appearance.</p>
+        <p className="text-sm text-zinc-400 mt-1">Manage your account, notifications, and appearance.</p>
       </div>
 
       <div className="profile-layout">
         <div className="profile-identity-card">
           <div className="flex flex-col items-center text-center gap-3">
             {user?.photoURL
-              ? <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full ring-2 ring-violet-500/30" />
-              : <div className="w-20 h-20 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center">
-                  <User size={32} className="text-slate-400" />
+              ? <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full ring-2 ring-blue-500/30" />
+              : <div className="w-20 h-20 rounded-full bg-zinc-700 border border-zinc-600 flex items-center justify-center">
+                  <User size={32} className="text-zinc-400" />
                 </div>
             }
             <div>
               <p className="text-lg font-bold text-white">{user?.displayName || 'No name'}</p>
-              <p className="text-sm text-slate-400 mt-0.5">{user?.email}</p>
+              <p className="text-sm text-zinc-400 mt-0.5">{user?.email}</p>
             </div>
           </div>
 
@@ -196,12 +196,12 @@ export default function ProfilePage() {
                     <CheckCircle2 size={13} /> Push notifications enabled
                   </div>
                 ) : permission === 'denied' ? (
-                  <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                  <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1">
                     <BellOff size={13} /> Blocked by browser — allow in site settings to enable
                   </div>
                 ) : (
                   <div className="mt-1 space-y-2">
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-zinc-500">
                       Get browser alerts for follow-up reminders and upcoming interviews.
                     </p>
                     <button type="button" onClick={requestPermission} className="profile-secondary-btn">
@@ -214,7 +214,7 @@ export default function ProfilePage() {
               <div className="profile-divider" />
               <div>
                 <label className="profile-field-label">Follow-up reminder delay</label>
-                <p className="text-xs text-slate-500 mb-2">
+                <p className="text-xs text-zinc-500 mb-2">
                   Remind me to follow up on stale "Applied" applications after this many days.
                 </p>
                 <div className="flex items-center gap-2">
@@ -226,7 +226,7 @@ export default function ProfilePage() {
                     onChange={e => set('followUpDays', Number(e.target.value))}
                     className="profile-input w-20"
                   />
-                  <span className="text-xs text-slate-500">days</span>
+                  <span className="text-xs text-zinc-500">days</span>
                 </div>
               </div>
 
@@ -256,7 +256,7 @@ export default function ProfilePage() {
           <div className="profile-card">
             <SectionHeader icon={User} title="Autofill Profile" />
 
-            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+            <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
               Used by the browser extension to fill application forms. You still review before submitting.
             </p>
 
@@ -308,7 +308,7 @@ export default function ProfilePage() {
 
             <div>
               <p className="profile-field-label">Accent colour</p>
-              <p className="text-xs text-slate-500 mb-3">
+              <p className="text-xs text-zinc-500 mb-3">
                 Changes the highlight colour used across the sidebar and buttons.
               </p>
               <div className="flex gap-3 flex-wrap">
@@ -323,7 +323,7 @@ export default function ProfilePage() {
                       className="profile-swatch"
                       style={{ background: c.swatch }}
                     />
-                    <span className="text-xs text-slate-300">{c.label}</span>
+                    <span className="text-xs text-zinc-300">{c.label}</span>
                     {prefs.accentColor === c.id && (
                       <CheckCircle2 size={11} className="text-white ml-auto" />
                     )}
@@ -346,7 +346,7 @@ export default function ProfilePage() {
           <div className="profile-card profile-card--danger">
             <SectionHeader icon={AlertTriangle} title="Danger Zone" iconClass="text-red-400" titleClass="text-red-400" />
 
-            <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
               Permanently delete your account and all data — applications, resumes, and notifications.
               This cannot be undone.
             </p>
@@ -361,7 +361,7 @@ export default function ProfilePage() {
               </button>
             ) : (
               <div className="profile-delete-confirm">
-                <p className="text-xs text-slate-300 mb-3">
+                <p className="text-xs text-zinc-300 mb-3">
                   Type your email address <span className="text-white font-semibold">{user?.email}</span> to confirm.
                 </p>
                 <input
@@ -406,7 +406,7 @@ export default function ProfilePage() {
 function SectionHeader({ icon: Icon, title, iconClass, titleClass }) {
   return (
     <div className="flex items-center gap-2 mb-5">
-      <Icon size={14} className={iconClass ?? 'text-slate-400'} />
+      <Icon size={14} className={iconClass ?? 'text-zinc-400'} />
       <h2 className={`text-sm font-semibold ${titleClass ?? 'text-white'}`}>{title}</h2>
     </div>
   )
@@ -425,7 +425,7 @@ function ToggleRow({ label, description, checked, onChange }) {
           <span className={`profile-toggle-thumb ${checked ? 'translate-x-5' : 'translate-x-1'}`} />
         </button>
       </div>
-      <p className="text-xs text-slate-500">{description}</p>
+      <p className="text-xs text-zinc-500">{description}</p>
     </div>
   )
 }
@@ -466,10 +466,10 @@ function MetaRow({ icon: Icon, label, value, valueClass }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-2">
-        <Icon size={13} className="text-slate-500 shrink-0" />
-        <span className="text-xs text-slate-400">{label}</span>
+        <Icon size={13} className="text-zinc-500 shrink-0" />
+        <span className="text-xs text-zinc-400">{label}</span>
       </div>
-      <span className={`text-xs font-medium ${valueClass ?? 'text-slate-300'}`}>{value}</span>
+      <span className={`text-xs font-medium ${valueClass ?? 'text-zinc-300'}`}>{value}</span>
     </div>
   )
 }

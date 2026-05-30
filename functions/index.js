@@ -13,6 +13,7 @@ const ANTHROPIC_API_KEY = defineSecret('ANTHROPIC_API_KEY')
 const GMAIL_USER = defineSecret('GMAIL_USER')
 const GMAIL_PASS = defineSecret('GMAIL_PASS')
 const HUNTER_API_KEY = defineSecret('HUNTER_API_KEY')
+const JSEARCH_API_KEY = defineSecret('JSEARCH_API_KEY')
 
 function parseJsonObject(raw) {
   const text = raw.trim()
@@ -997,3 +998,87 @@ async function sendEmail(to, subject, text) {
     console.error('Email error:', err)
   }
 }
+
+// ── searchJobs (powered by JSearch / RapidAPI) ────────────────────────────────
+// Get your free key at: https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch
+// Set it with: firebase functions:secrets:set JSEARCH_API_KEY
+exports.searchJobs = onCall({ secrets: [JSEARCH_API_KEY], cors: true, timeoutSeconds: 30 }, async (request) => {
+  const { keyword, location, workplaceTypes, willingToSponsor, employmentTypes, page } = request.data
+
+  if (!keyword || typeof keyword !== 'string' || !keyword.trim()) {
+    return { error: 'KEYWORD_REQUIRED' }
+  }
+
+  try {
+    // JSearch combines keyword + location into a single query string
+    const query = [keyword.trim(), location?.trim()].filter(Boolean).join(' in ')
+
+    // Map frontend date codes → JSearch values
+    const dateMap = { ONE: 'today', THREE: '3days', SEVEN: 'week', MONTH: 'month' }
+    const params = new URLSearchParams({
+      query,
+      page: String(page || 1),
+      num_pages: '1',
+      date_posted: dateMap[postedDate] || 'week',
+    })
+
+    // Map our filter values to JSearch params
+    if (workplaceTypes?.includes('Remote')) params.set('remote_jobs_only', 'true')
+    if (employmentTypes?.length) {
+      const typeMap = { 'Full-time': 'FULLTIME', 'Part-time': 'PARTTIME', 'Contract': 'CONTRACTOR' }
+      const mapped = employmentTypes.map(t => typeMap[t]).filter(Boolean)
+      if (mapped.length) params.set('employment_types', mapped.join(','))
+    }
+
+    const res = await fetch(
+      `https://jsearch.p.rapidapi.com/search?${params}`,
+      {
+        headers: {
+          'x-rapidapi-key': JSEARCH_API_KEY.value(),
+          'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+        },
+        signal: AbortSignal.timeout(12000),
+      }
+    )
+
+    const json = await res.json()
+    if (!res.ok) return { error: json.message || `API error ${res.status}` }
+
+    const jobs = (json.data || []).map(j => ({
+      id: j.job_id || '',
+      title: j.job_title || '',
+      company: j.employer_name || '',
+      companyLogoUrl: j.employer_logo || '',
+      location: [j.job_city, j.job_state, j.job_country].filter(Boolean).join(', '),
+      salary: j.job_min_salary && j.job_max_salary
+        ? `$${Math.round(j.job_min_salary / 1000)}k–$${Math.round(j.job_max_salary / 1000)}k${j.job_salary_period === 'HOUR' ? '/hr' : '/yr'}`
+        : '',
+      employmentType: ({
+        FULLTIME: 'Full-time', FULL_TIME: 'Full-time', 'FULL-TIME': 'Full-time',
+        PARTTIME: 'Part-time', PART_TIME: 'Part-time', 'PART-TIME': 'Part-time',
+        CONTRACTOR: 'Contract', CONTRACT: 'Contract',
+        INTERN: 'Internship', INTERNSHIP: 'Internship',
+        TEMPORARY: 'Temporary',
+      }[j.job_employment_type?.toUpperCase?.()] || j.job_employment_type || ''),
+      workplaceTypes: j.job_is_remote ? ['Remote'] : [],
+      isRemote: j.job_is_remote || false,
+      postedDate: j.job_posted_at_datetime_utc || '',
+      jobUrl: j.job_apply_link || j.job_url || '',
+      willingToSponsor: false,
+      easyApply: j.job_apply_is_direct || false,
+      summary: (j.job_description || '').replace(/\s+/g, ' ').trim().slice(0, 220),
+    }))
+    // Optionally filter remote-only after the fact if requested
+    const filtered = workplaceTypes?.includes('Remote') ? jobs.filter(j => j.isRemote) : jobs
+
+    return {
+      jobs: filtered,
+      total: json.data?.length ? filtered.length * 10 : 0,  // JSearch doesn't return total count
+      page: page || 1,
+      pageCount: 10,  // JSearch supports up to page 10
+    }
+  } catch (err) {
+    console.error('searchJobs error:', err)
+    return { error: 'SEARCH_FAILED' }
+  }
+})

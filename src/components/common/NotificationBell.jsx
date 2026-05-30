@@ -33,24 +33,24 @@ export default function NotificationBell() {
       {open && (
         <div className="notif-dropdown">
           <div className="notif-dropdown-header">
-            <span className="text-xs font-semibold text-slate-300">Notifications</span>
+            <span className="text-xs font-semibold text-zinc-300">Notifications</span>
             {permission !== 'granted' && (
-              <button onClick={requestPermission} className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
+              <button onClick={requestPermission} className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
                 Enable push
               </button>
             )}
           </div>
           <div className="max-h-72 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="text-xs text-slate-500 px-3 py-4 text-center">No notifications yet</p>
+              <p className="text-xs text-zinc-500 px-3 py-4 text-center">No notifications yet</p>
             ) : (
               notifications.slice(0, 20).map(n => (
                 <div
                   key={n.id}
                   onClick={() => markRead(n.id)}
-                  className={`notif-item ${!n.read ? 'bg-violet-500/5' : ''}`}
+                  className={`notif-item ${!n.read ? 'bg-blue-500/5' : ''}`}
                 >
-                  <p className={`text-xs leading-relaxed ${!n.read ? 'text-slate-200' : 'text-slate-400'}`}>
+                  <p className={`text-xs leading-relaxed ${!n.read ? 'text-zinc-200' : 'text-zinc-400'}`}>
                     {n.message}
                   </p>
                 </div>

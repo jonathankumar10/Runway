@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .ls-root {
-  @apply flex flex-col items-center justify-center gap-4 bg-slate-950;
+  @apply flex flex-col items-center justify-center gap-4 bg-zinc-950;
 }
 
 .ls-fullscreen {
@@ -48,7 +48,7 @@
 }
 
 .ls-dot {
-  @apply w-1.5 h-1.5 rounded-full bg-violet-500 block;
+  @apply w-1.5 h-1.5 rounded-full bg-blue-500 block;
   animation: ls-bounce 1.2s ease-in-out infinite;
 }
 

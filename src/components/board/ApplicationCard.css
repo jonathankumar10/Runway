@@ -1,7 +1,93 @@
 @reference "tailwindcss";
 
 .app-card {
-  @apply bg-slate-900 border border-slate-700 rounded-xl overflow-hidden cursor-pointer transition-all;
+  @apply relative bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden cursor-pointer transition-all;
+  --active: 0;
+  --start: 0;
+  --spread: 60;
+  --blur: 20;
+}
+
+.app-card .glows {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  filter: blur(calc(var(--blur) * 1px));
+  z-index: 0;
+}
+
+.app-card .glows::before,
+.app-card .glows::after {
+  content: "";
+  position: absolute;
+  opacity: var(--active);
+  transition: opacity 0.8s ease;
+  background: conic-gradient(from 180deg at 50% 70%, #1d4ed8, #1e40af, #60a5fa, #1e3a8a, #60a5fa, #fff 1turn);
+  background-attachment: fixed;
+  inset: -5px;
+  border: 8px solid transparent;
+  border-radius: inherit;
+  mask: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)),
+    conic-gradient(
+      from calc((var(--start) - var(--spread) * 0.5) * 1deg),
+      #000 0deg,
+      #fff,
+      rgba(0, 0, 0, 0) calc(var(--spread) * 1deg)
+    );
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  mask-clip: padding-box, border-box;
+}
+
+.app-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--active);
+  transition: opacity 0.8s ease;
+  background: #60a5fa26;
+  background-attachment: fixed;
+  mask: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)),
+    conic-gradient(
+      from calc((var(--start) + var(--spread) * 0.25 - var(--spread) * 1.5) * 1deg),
+      rgba(255, 255, 255, 0.15) 0deg,
+      #fff,
+      rgba(255, 255, 255, 0.15) calc(var(--spread) * 2.5deg)
+    );
+  mask-clip: padding-box, border-box;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  z-index: 3;
+}
+
+.app-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--active);
+  transition: opacity 0.8s ease;
+  background: conic-gradient(from 180deg at 50% 70%, #1d4ed8, #1e40af, #60a5fa, #1e3a8a, #60a5fa, #fff 1turn);
+  background-attachment: fixed;
+  mask: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)),
+    conic-gradient(
+      from calc((var(--start) + var(--spread) * 0.25 - var(--spread) * 0.5) * 1deg),
+      rgba(0, 0, 0, 0) 0deg,
+      #fff,
+      rgba(0, 0, 0, 0) calc(var(--spread) * 0.5deg)
+    );
+  filter: brightness(1.5);
+  mask-clip: padding-box, border-box;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  z-index: 3;
 }
 
 .app-card:hover .app-card-actions {
@@ -9,11 +95,11 @@
 }
 
 .app-card-logo {
-  @apply w-7 h-7 rounded-md object-contain bg-white/5 border border-slate-600 shrink-0;
+  @apply w-7 h-7 rounded-md object-contain bg-white/5 border border-zinc-600 shrink-0;
 }
 
 .app-card-logo-fallback {
-  @apply w-7 h-7 rounded-md bg-slate-700 shrink-0 flex items-center justify-center text-slate-300 text-xs font-bold;
+  @apply w-7 h-7 rounded-md bg-zinc-700 shrink-0 flex items-center justify-center text-zinc-300 text-xs font-bold;
 }
 
 .app-card-company {
@@ -21,7 +107,7 @@
 }
 
 .app-card-role {
-  @apply text-xs text-slate-300 truncate;
+  @apply text-xs text-zinc-300 truncate;
 }
 
 .app-card-prep {
@@ -44,17 +130,17 @@
 }
 
 .app-card-salary {
-  @apply text-xs text-slate-300 bg-slate-700 rounded-md px-1.5 py-0.5;
+  @apply text-xs text-zinc-300 bg-zinc-700 rounded-md px-1.5 py-0.5;
 }
 
 .app-card-actions {
-  @apply flex items-center justify-end gap-1 mt-2 pt-2 border-t border-slate-700 opacity-0 transition-opacity;
+  @apply flex items-center justify-end gap-1 mt-2 pt-2 border-t border-zinc-700 opacity-0 transition-opacity;
 }
 
 .app-card-action-btn {
-  @apply p-1 text-slate-400 hover:text-slate-100 transition-colors rounded;
+  @apply p-1.5 text-zinc-400 transition-colors rounded;
 }
 
 .app-card-widget-btn {
-  @apply p-1 text-slate-500 hover:text-slate-200 transition-colors rounded;
+  @apply p-1 text-zinc-500 hover:text-zinc-200 transition-colors rounded;
 }

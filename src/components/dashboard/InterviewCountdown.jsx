@@ -30,7 +30,7 @@ export default function InterviewCountdown() {
     .slice(0, 5)
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5">
+    <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 sm:p-5">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-6 h-6 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
           <Calendar size={12} className="text-orange-400" />
@@ -39,10 +39,10 @@ export default function InterviewCountdown() {
       </div>
       {upcoming.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-6 gap-2">
-          <div className="w-9 h-9 rounded-full border border-dashed border-slate-700 flex items-center justify-center">
-            <Calendar size={15} className="text-slate-600" />
+          <div className="w-9 h-9 rounded-full border border-dashed border-zinc-700 flex items-center justify-center">
+            <Calendar size={15} className="text-zinc-600" />
           </div>
-          <p className="text-xs text-slate-500">No interviews scheduled</p>
+          <p className="text-xs text-zinc-500">No interviews scheduled</p>
         </div>
       ) : (
         <ul className="space-y-3">
@@ -52,7 +52,7 @@ export default function InterviewCountdown() {
               <li key={i} className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-white truncate">{job.company}</p>
-                  <p className="text-xs text-slate-500">{job.role} · {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                  <p className="text-xs text-zinc-500">{job.role} · {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
                 {countdown && (
                   <span className="text-[11px] text-orange-400 font-semibold bg-orange-400/10 px-2 py-0.5 rounded-full shrink-0">{countdown}</span>

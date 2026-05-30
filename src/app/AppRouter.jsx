@@ -18,9 +18,11 @@ function hasSeenWelcome(uid) {
 }
 
 const ResumePage = lazy(() => import('../pages/ResumePage'))
+const ResumeDetailPage = lazy(() => import('../pages/ResumeDetailPage'))
 const ApplicationDetailPage = lazy(() => import('../pages/ApplicationDetailPage'))
 const OutreachPage = lazy(() => import('../pages/OutreachPage'))
 const TargetCompaniesPage = lazy(() => import('../pages/TargetCompaniesPage'))
+const DiscoverPage = lazy(() => import('../pages/DiscoverPage'))
 
 /**
  * Blocks protected routes until Firebase auth resolves, then requires a verified user.
@@ -81,9 +83,11 @@ export default function AppRouter() {
           <Route path="board" element={<BoardPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="resumes" element={<Suspense fallback={<LoadingScreen />}><ResumePage /></Suspense>} />
+          <Route path="resumes/:resumeId" element={<Suspense fallback={<LoadingScreen />}><ResumeDetailPage /></Suspense>} />
           <Route path="applications/:jobId" element={<Suspense fallback={<LoadingScreen />}><ApplicationDetailPage /></Suspense>} />
           <Route path="outreach" element={<Suspense fallback={<LoadingScreen />}><OutreachPage /></Suspense>} />
           <Route path="targets" element={<Suspense fallback={<LoadingScreen />}><TargetCompaniesPage /></Suspense>} />
+          <Route path="discover" element={<Suspense fallback={<LoadingScreen />}><DiscoverPage /></Suspense>} />
           <Route path="profile" element={<ProfilePage />} />
         </Route>
 

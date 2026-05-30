@@ -414,7 +414,7 @@ function BuilderPanel({ sections, onSectionsChange, activeVars, onStyleOverride,
             />
           )
           : (
-            <p className="text-xs text-slate-500 px-4 py-3 leading-relaxed">
+            <p className="text-xs text-zinc-500 px-4 py-3 leading-relaxed">
               Re-generate the resume to enable section editing.
             </p>
           )
@@ -435,7 +435,7 @@ function AnalysisPanel({ keywordAnalysis, rewrittenBullets, rewrittenSummary }) 
         <Section title="Professional Summary">
           <div className="trm-summary-card">
             <div className="flex items-start justify-between gap-2 mb-2">
-              <p className="text-xs text-slate-400">Mirrors the JD's top 3 requirements. Ready to paste.</p>
+              <p className="text-xs text-zinc-400">Mirrors the JD's top 3 requirements. Ready to paste.</p>
               <CopyButton text={summaryText} className="shrink-0" />
             </div>
             {rewrittenSummary.map((line, i) => (
@@ -447,7 +447,7 @@ function AnalysisPanel({ keywordAnalysis, rewrittenBullets, rewrittenSummary }) 
 
       {rewrittenBullets?.length > 0 && (
         <Section title={`ATS Bullet Points (${rewrittenBullets.length})`}>
-          <p className="trm-hint">Keywords in <strong className="text-violet-400">bold</strong>. Copy individual bullets or paste into your resume.</p>
+          <p className="trm-hint">Keywords in <strong className="text-blue-400">bold</strong>. Copy individual bullets or paste into your resume.</p>
           <ol className="trm-bullet-list">
             {rewrittenBullets.map((bullet, i) => (
               <li key={i} className="trm-bullet-item">
@@ -495,7 +495,7 @@ function AnalysisPanel({ keywordAnalysis, rewrittenBullets, rewrittenSummary }) 
             {ka.extracted.map((kw, i) => {
               const isUnmappable = ka.unmappable.includes(kw)
               return (
-                <span key={i} className={`trm-kw-badge ${isUnmappable ? 'trm-kw-badge--red' : 'trm-kw-badge--slate'}`}>
+                <span key={i} className={`trm-kw-badge ${isUnmappable ? 'trm-kw-badge--red' : 'trm-kw-badge--zinc'}`}>
                   {kw}
                 </span>
               )
@@ -689,7 +689,7 @@ export default function TailoredResumeModal({
               <p className="text-sm font-semibold text-white truncate">
                 Tailored Resume — {job?.company}
               </p>
-              <p className="text-xs text-slate-400 truncate">{job?.role}</p>
+              <p className="text-xs text-zinc-400 truncate">{job?.role}</p>
             </div>
           </div>
 
@@ -730,7 +730,7 @@ export default function TailoredResumeModal({
               {saved ? 'Saved!' : 'Save'}
             </button>
 
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-200 transition-colors">
+            <button onClick={onClose} className="text-zinc-500 hover:text-zinc-200 transition-colors">
               <X size={18} />
             </button>
           </div>
@@ -800,7 +800,7 @@ export default function TailoredResumeModal({
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center p-8">
-                  <p className="text-xs text-slate-400 text-center leading-relaxed max-w-xs">
+                  <p className="text-xs text-zinc-400 text-center leading-relaxed max-w-xs">
                     No analysis data yet. Generate a new tailored resume to see keyword mapping, ATS bullets, and gap analysis.
                   </p>
                 </div>

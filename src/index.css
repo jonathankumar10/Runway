@@ -9,24 +9,39 @@
   /* Base font size — scales all rem units site-wide */
   font-size: 112.5%; /* 18px */
 
-  /* Backgrounds — darkest to lightest */
-  --color-bg:             #020817;  /* slate-950 — page background          */
-  --color-surface:        #0f172a;  /* slate-900 — cards, panels            */
-  --color-surface-raised: #1e293b;  /* slate-800 — inputs, raised elements  */
+  /* ── Portfolio palette (jonathanpasupulety.netlify.app) ── */
 
-  /* Borders */
-  --color-border:        #334155;   /* slate-700 — standard borders         */
-  --color-border-subtle: #1e293b;   /* slate-800 — subtle dividers          */
+  /* Backgrounds */
+  --color-bg:             #09090b;  /* zinc-950 — page background           */
+  --color-surface:        #18181b;  /* zinc-900 — cards, panels             */
+  --color-surface-raised: #27272a;  /* zinc-800 — inputs, raised elements   */
+
+  /* Borders — very subtle white, same as portfolio */
+  --color-border:        rgba(255, 255, 255, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
 
   /* Text */
-  --color-text:        #f1f5f9;     /* slate-100 — primary text             */
-  --color-text-muted:  #94a3b8;     /* slate-400 — secondary / helper text  */
-  --color-text-subtle: #64748b;     /* slate-500 — timestamps, labels       */
+  --color-text:        #fafafa;     /* zinc-50  — primary text              */
+  --color-text-muted:  #a1a1aa;     /* zinc-400 — secondary text            */
+  --color-text-subtle: #71717a;     /* zinc-500 — timestamps, labels        */
 
-  /* Brand accent (violet) */
-  --color-accent:       #7c3aed;    /* violet-600 — buttons, active states  */
-  --color-accent-hover: #6d28d9;    /* violet-700 — hover                   */
-  --color-accent-text:  #a78bfa;    /* violet-400 — accent text and icons   */
+  /* Accent — blue-400, same as portfolio $accent */
+  --color-accent:       #60a5fa;
+  --color-accent-hover: #93c5fd;    /* blue-300 for hover                   */
+  --color-accent-text:  #60a5fa;
+
+  /* Typography scale — matches portfolio */
+  --font-primary: 'Inter', system-ui, sans-serif;
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --tracking-tight: -0.025em;
+  --tracking-wide:   0.1em;
 }
 
 @media (max-width: 640px) {
@@ -41,11 +56,13 @@ html {
 
 body {
   margin: 0;
-  background: #04091a;
-  color: #f1f5f9;
+  background-color: #09090b;
+  color: #fafafa;
   font-family: 'Inter', system-ui, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  line-height: 1.6;
 }
 
 #root {
@@ -57,7 +74,98 @@ body {
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Portfolio glow-card effect (mouse-tracking conic gradient border) ─── */
+/* Add class="glow-card" to any card, set --start and --active via JS       */
+.glow-card {
+  --active: 0;
+  --start: 0;
+  --spread: 60;
+  --blur: 20;
+  position: relative;
+}
+
+.glow-card:hover { z-index: 2; }
+
+.glow-card .glows {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  filter: blur(calc(var(--blur) * 1px));
+}
+
+.glow-card .glows::before,
+.glow-card .glows::after {
+  content: "";
+  position: absolute;
+  opacity: var(--active);
+  transition: opacity 0.8s ease;
+  background: conic-gradient(
+    from 180deg at 50% 70%,
+    #1d4ed8 0deg, #1e40af 72deg, #60a5fa 144deg,
+    #1e3a8a 216deg, #60a5fa 288deg, #fff 1turn
+  );
+  background-attachment: fixed;
+  inset: -5px;
+  border: 8px solid transparent;
+  border-radius: inherit;
+  mask: linear-gradient(#0000, #0000),
+    conic-gradient(
+      from calc((var(--start) - (var(--spread) * 0.5)) * 1deg),
+      #000 0deg, #fff, #0000 calc(var(--spread) * 1deg)
+    );
+  mask-composite: intersect;
+  mask-clip: padding-box, border-box;
+}
+
+.glow-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--active);
+  transition: opacity 0.8s ease;
+  background: rgba(96, 165, 250, 0.08);
+  background-attachment: fixed;
+  mask: linear-gradient(#0000, #0000),
+    conic-gradient(
+      from calc(((var(--start) + (var(--spread) * 0.25)) - (var(--spread) * 1.5)) * 1deg),
+      rgba(255,255,255,0.15) 0deg, #fff, rgba(255,255,255,0.15) calc(var(--spread) * 2.5deg)
+    );
+  mask-clip: padding-box, border-box;
+  mask-composite: intersect;
+}
+
+.glow-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--active);
+  transition: opacity 0.8s ease;
+  background: conic-gradient(
+    from 180deg at 50% 70%,
+    #1d4ed8 0deg, #1e40af 72deg, #60a5fa 144deg,
+    #1e3a8a 216deg, #60a5fa 288deg, #fff 1turn
+  );
+  background-attachment: fixed;
+  filter: brightness(1.5);
+  mask: linear-gradient(#0000, #0000),
+    conic-gradient(
+      from calc(((var(--start) + (var(--spread) * 0.25)) - (var(--spread) * 0.5)) * 1deg),
+      #0000 0deg, #fff, #0000 calc(var(--spread) * 0.5deg)
+    );
+  mask-clip: padding-box, border-box;
+  mask-composite: intersect;
+}
 
 /* Login page dot-grid background */
 .dot-grid {

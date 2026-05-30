@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { ExternalLink, Pencil, Trash2 } from 'lucide-react'
@@ -44,14 +45,33 @@ export default function ApplicationCard({ job, isDragging, isSelected, onCardCli
   const navigate = useNavigate()
   const stage = STAGE_MAP[job.stage]
 
+  const glowRef = useRef(null)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortableDragging } = useSortable({ id: job.id })
+
+  const mergedRef = useCallback((el) => {
+    setNodeRef(el)
+    glowRef.current = el
+  }, [setNodeRef])
+
+  const handleMouseMove = useCallback((e) => {
+    const el = glowRef.current
+    if (!el) return
+    const { left, top, width, height } = el.getBoundingClientRect()
+    const angle = Math.atan2(e.clientY - (top + height / 2), e.clientX - (left + width / 2)) * (180 / Math.PI)
+    el.style.setProperty('--start', String(angle + 90))
+    el.style.setProperty('--active', '1')
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    glowRef.current?.style.setProperty('--active', '0')
+  }, [])
 
   const dndStyle = { transform: CSS.Transform.toString(transform), transition, opacity: isSortableDragging ? 0.4 : 1 }
   const salary = formatSalary(job.salaryMin, job.salaryMax)
 
   const borderClass = isSelected
-    ? 'border-violet-500/60 ring-1 ring-violet-500/30'
-    : (stage?.borderClass ?? 'border-slate-700')
+    ? 'border-blue-500/60 ring-1 ring-blue-500/30'
+    : (stage?.borderClass ?? 'border-zinc-700')
 
   async function handleDelete(e) {
     e.stopPropagation()
@@ -60,15 +80,18 @@ export default function ApplicationCard({ job, isDragging, isSelected, onCardCli
 
   return (
     <div
-      ref={setNodeRef}
+      ref={mergedRef}
       style={dndStyle}
       onClick={() => onCardClick?.(job)}
       onDoubleClick={() => navigate(`/applications/${job.id}`)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       className={`app-card ${borderClass}${isDragging ? ' shadow-2xl scale-105' : ''}`}
       {...attributes}
       {...listeners}
     >
-      <div className={`h-0.5 w-full ${stage?.dotClass ?? 'bg-slate-600'}`} />
+      <div className="glows" />
+      <div className={`h-0.5 w-full ${stage?.dotClass ?? 'bg-zinc-600'}`} />
 
       <div className="p-3">
         <div className="flex items-start gap-2.5 mb-2">
@@ -80,32 +103,9 @@ export default function ApplicationCard({ job, isDragging, isSelected, onCardCli
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-1.5">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <p className="app-card-company">{job.company || 'Untitled'}</p>
-                <MatchPill score={job.matchScore} />
-              </div>
-              <div className="flex items-center gap-0.5 shrink-0" onPointerDown={e => e.stopPropagation()}>
-                {job.jobUrl && (
-                  <a
-                    href={job.jobUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    className="app-card-widget-btn"
-                    title="Visit site"
-                  >
-                    <ExternalLink size={11} />
-                  </a>
-                )}
-                <button
-                  onClick={e => { e.stopPropagation(); navigate(`/applications/${job.id}`) }}
-                  className="app-card-widget-btn"
-                  title="Edit application"
-                >
-                  <Pencil size={11} />
-                </button>
-              </div>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <p className="app-card-company">{job.company || 'Untitled'}</p>
+              <MatchPill score={job.matchScore} />
             </div>
             <p className="app-card-role">{job.role || 'No role'}</p>
             <PrepPill status={job.aiPrepStatus} />
@@ -114,12 +114,31 @@ export default function ApplicationCard({ job, isDragging, isSelected, onCardCli
 
         <div className="flex items-center gap-2 flex-wrap">
           {salary && <span className="app-card-salary">{salary}</span>}
-          {job.location && <span className="text-xs text-slate-400 truncate">{job.location}</span>}
+          {job.location && <span className="text-xs text-zinc-400 truncate">{job.location}</span>}
         </div>
 
         <div className="app-card-actions" onPointerDown={e => e.stopPropagation()}>
-          <button onClick={handleDelete} className="p-1 text-slate-500 hover:text-red-400 transition-colors rounded">
-            <Trash2 size={11} />
+          <button onClick={handleDelete} className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors rounded mr-auto">
+            <Trash2 size={13} />
+          </button>
+          {job.jobUrl && (
+            <a
+              href={job.jobUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="app-card-action-btn hover:text-emerald-400 hover:bg-emerald-500/10"
+              title="Visit site"
+            >
+              <ExternalLink size={13} />
+            </a>
+          )}
+          <button
+            onClick={e => { e.stopPropagation(); navigate(`/applications/${job.id}`) }}
+            className="app-card-action-btn hover:text-amber-400 hover:bg-amber-500/10"
+            title="Edit application"
+          >
+            <Pencil size={13} />
           </button>
         </div>
       </div>

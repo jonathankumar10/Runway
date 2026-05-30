@@ -41,14 +41,14 @@ export default function NextMoves() {
     .slice(0, 8)
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5">
+    <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 sm:p-5">
       <h3 className="text-sm font-semibold text-white mb-4">Next Moves</h3>
       {active.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-6 gap-2">
-          <div className="w-9 h-9 rounded-full border border-dashed border-slate-700 flex items-center justify-center">
-            <ArrowRight size={15} className="text-slate-600" />
+          <div className="w-9 h-9 rounded-full border border-dashed border-zinc-700 flex items-center justify-center">
+            <ArrowRight size={15} className="text-zinc-600" />
           </div>
-          <p className="text-xs text-slate-500">No active applications</p>
+          <p className="text-xs text-zinc-500">No active applications</p>
         </div>
       ) : (
         <ul className="space-y-3">
@@ -58,10 +58,10 @@ export default function NextMoves() {
             if (!move) return null
             return (
               <li key={job.id} className="flex items-start gap-2.5">
-                <span className={`w-2 h-2 rounded-full mt-1 shrink-0 ${move.urgent ? 'bg-amber-400' : (stage?.dotClass ?? 'bg-slate-500')}`} />
+                <span className={`w-2 h-2 rounded-full mt-1 shrink-0 ${move.urgent ? 'bg-amber-400' : (stage?.dotClass ?? 'bg-zinc-500')}`} />
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-slate-200 truncate">{job.company} — {job.role}</p>
-                  <p className={`text-xs flex items-center gap-1 mt-0.5 ${move.urgent ? 'text-amber-400' : 'text-slate-500'}`}>
+                  <p className="text-xs font-medium text-zinc-200 truncate">{job.company} — {job.role}</p>
+                  <p className={`text-xs flex items-center gap-1 mt-0.5 ${move.urgent ? 'text-amber-400' : 'text-zinc-500'}`}>
                     <ArrowRight size={9} className="shrink-0" />
                     {move.text}
                   </p>

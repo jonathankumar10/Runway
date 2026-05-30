@@ -20,7 +20,7 @@ const STEPS = [
   {
     number: 2,
     icon: FileText,
-    color: 'violet',
+    color: 'blue',
     title: 'Upload & Score Your Resume',
     desc: 'Upload your resume, paste a job description, and get an AI match score with specific tips to improve your fit.',
   },
@@ -48,7 +48,7 @@ const STEPS = [
   {
     number: 6,
     icon: User,
-    color: 'slate',
+    color: 'zinc',
     title: 'Set Up Your Profile',
     desc: 'Add your target roles, locations, and salary range so Runway can tailor its suggestions to your search.',
   },

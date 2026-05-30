@@ -10,17 +10,17 @@ import TargetCompaniesInsights from '../components/dashboard/TargetCompaniesInsi
 
 function StatCard({ label, value, sub, icon: Icon, iconColor }) {
   return (
-    <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+    <div className="bg-zinc-800/60 border border-zinc-700 rounded-xl p-4">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-slate-400">{label}</p>
+        <p className="text-xs text-zinc-400">{label}</p>
         {Icon && (
-          <div className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0">
             <Icon size={13} className={iconColor} />
           </div>
         )}
       </div>
       <p className="text-2xl font-bold text-white">{value}</p>
-      {sub && <p className="text-xs text-slate-500 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-zinc-500 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -48,7 +48,7 @@ export default function DashboardPage() {
         <h1 className="text-lg font-semibold text-white">
           {firstName ? `Hi, ${firstName}` : 'Dashboard'}
         </h1>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="text-xs text-zinc-400 mt-0.5">
           {activeCount > 0
             ? `${activeCount} active application${activeCount !== 1 ? 's' : ''} in your pipeline`
             : 'Your job search at a glance'}
@@ -56,7 +56,7 @@ export default function DashboardPage() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <StatCard label="Total Applied" value={totalApplied} icon={Send} iconColor="text-blue-400" />
-        <StatCard label="Interviews" value={interviewed} sub={`${interviewRate}% interview rate`} icon={Users} iconColor="text-violet-400" />
+        <StatCard label="Interviews" value={interviewed} sub={`${interviewRate}% interview rate`} icon={Users} iconColor="text-blue-400" />
         <StatCard label="Offers" value={offers} sub={`${offerRate}% offer rate`} icon={Trophy} iconColor="text-emerald-400" />
         <StatCard label="Response Rate" value={`${responseRate}%`} sub={`${responded} of ${totalApplied} replied`} icon={MailOpen} iconColor="text-amber-400" />
       </div>

@@ -7,9 +7,9 @@ import { useAuth } from '../../context/auth'
 const STATUS_CONFIG = [
   { key: 'contacted', label: 'Contacted',    color: 'bg-green-500' },
   { key: 'emailed',   label: 'Emailed',      color: 'bg-emerald-500' },
-  { key: 'tracked',   label: 'Tracked',      color: 'bg-violet-500' },
+  { key: 'tracked',   label: 'Tracked',      color: 'bg-blue-500' },
   { key: 'retrieved', label: 'Retrieved',    color: 'bg-sky-500' },
-  { key: 'new',       label: 'Not searched', color: 'bg-slate-600' },
+  { key: 'new',       label: 'Not searched', color: 'bg-zinc-600' },
 ]
 
 function getStatus(company, cachedDomains, outreachByCompany) {
@@ -63,18 +63,18 @@ export default function TargetCompaniesInsights() {
   const contactedPct = total > 0 ? Math.round((counts.contacted / total) * 100) : 0
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5">
+    <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 sm:p-5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-white">Target Companies</h3>
-        <span className="text-xs text-slate-500">{total} compan{total !== 1 ? 'ies' : 'y'}</span>
+        <span className="text-xs text-zinc-500">{total} compan{total !== 1 ? 'ies' : 'y'}</span>
       </div>
 
       {total === 0 ? (
         <div className="flex flex-col items-center justify-center py-6 gap-2">
-          <div className="w-9 h-9 rounded-full border border-dashed border-slate-700 flex items-center justify-center">
-            <Target size={15} className="text-slate-600" />
+          <div className="w-9 h-9 rounded-full border border-dashed border-zinc-700 flex items-center justify-center">
+            <Target size={15} className="text-zinc-600" />
           </div>
-          <p className="text-xs text-slate-500">No target companies yet</p>
+          <p className="text-xs text-zinc-500">No target companies yet</p>
         </div>
       ) : (
         <div className="space-y-2.5">
@@ -83,15 +83,15 @@ export default function TargetCompaniesInsights() {
             const pct = total > 0 ? Math.round((count / total) * 100) : 0
             return (
               <div key={s.key} className="flex items-center gap-3">
-                <span className="text-xs text-slate-400 w-24 shrink-0 truncate">{s.label}</span>
-                <div className="flex-1 bg-slate-800 rounded-full h-2 overflow-hidden">
+                <span className="text-xs text-zinc-400 w-24 shrink-0 truncate">{s.label}</span>
+                <div className="flex-1 bg-zinc-800 rounded-full h-2 overflow-hidden">
                   <div className={`h-full rounded-full ${s.color} transition-all duration-500`} style={{ width: `${pct}%` }} />
                 </div>
-                <span className="text-xs font-medium text-slate-300 w-5 text-right">{count}</span>
+                <span className="text-xs font-medium text-zinc-300 w-5 text-right">{count}</span>
               </div>
             )
           })}
-          <p className="text-xs text-slate-500 pt-2 border-t border-slate-800">
+          <p className="text-xs text-zinc-500 pt-2 border-t border-zinc-800">
             <span className="font-medium text-green-400">{contactedPct}%</span> of targets fully contacted
           </p>
         </div>

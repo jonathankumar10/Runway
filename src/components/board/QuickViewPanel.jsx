@@ -11,14 +11,14 @@ import './QuickViewPanel.css'
 
 const URGENCY_BOX = {
   high:   'bg-orange-500/5 border-orange-500/20',
-  medium: 'bg-violet-500/5 border-violet-500/20',
-  low:    'bg-slate-800/50 border-slate-700',
+  medium: 'bg-blue-500/5 border-blue-500/20',
+  low:    'bg-zinc-800/50 border-zinc-700',
 }
 
 const URGENCY_LABEL = {
   high:   'text-orange-400',
-  medium: 'text-violet-400',
-  low:    'text-slate-500',
+  medium: 'text-blue-400',
+  low:    'text-zinc-500',
 }
 
 function getNextAction(job) {
@@ -89,12 +89,12 @@ export default function QuickViewPanel({ job, onClose }) {
     <>
       <div className="qv-panel">
         <div className="qv-header">
-          <span className="text-xs font-semibold text-slate-300">Quick View</span>
+          <span className="text-xs font-semibold text-zinc-300">Quick View</span>
           <div className="flex items-center gap-1">
-            <button onClick={() => navigate(`/applications/${job.id}`)} className="text-slate-500 hover:text-violet-400 transition-colors" title="Open full view">
+            <button onClick={() => navigate(`/applications/${job.id}`)} className="text-zinc-500 hover:text-blue-400 transition-colors" title="Open full view">
               <Maximize2 size={13} />
             </button>
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-300 transition-colors">
+            <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors">
               <X size={15} />
             </button>
           </div>
@@ -109,13 +109,13 @@ export default function QuickViewPanel({ job, onClose }) {
             )}
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-white text-sm leading-tight">{job.company || 'Untitled'}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{job.role || 'No role'}</p>
+              <p className="text-xs text-zinc-400 mt-0.5">{job.role || 'No role'}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <MatchBadge score={job.matchScore} />
-            <button onClick={handleMatchResume} disabled={matching} className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50">
+            <button onClick={handleMatchResume} disabled={matching} className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50">
               {matching ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
               {matching ? 'Matching...' : job.matchScore != null ? 'Re-match' : 'Match resume'}
             </button>
@@ -123,20 +123,20 @@ export default function QuickViewPanel({ job, onClose }) {
 
           <div className="space-y-1.5">
             <Row label="Status">
-              <span className={`flex items-center gap-1.5 text-xs font-medium ${stage?.textClass ?? 'text-slate-300'}`}>
+              <span className={`flex items-center gap-1.5 text-xs font-medium ${stage?.textClass ?? 'text-zinc-300'}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${stage?.dotClass}`} />
                 {stage?.label ?? job.stage}
               </span>
             </Row>
-            {appliedDate && <Row label="Applied"><span className="text-xs text-slate-300">{appliedDate}</span></Row>}
-            {salary && <Row label="Salary"><span className="text-xs text-slate-300">{salary}</span></Row>}
-            {job.location && <Row label="Location"><span className="text-xs text-slate-300">{job.location}</span></Row>}
+            {appliedDate && <Row label="Applied"><span className="text-xs text-zinc-300">{appliedDate}</span></Row>}
+            {salary && <Row label="Salary"><span className="text-xs text-zinc-300">{salary}</span></Row>}
+            {job.location && <Row label="Location"><span className="text-xs text-zinc-300">{job.location}</span></Row>}
           </div>
 
           {nextAction && (
             <div className={`qv-next-action ${URGENCY_BOX[nextAction.urgency]}`}>
               <p className={`qv-next-action-label ${URGENCY_LABEL[nextAction.urgency]}`}>Next best action</p>
-              <p className="text-xs text-slate-300 flex items-start gap-1.5">
+              <p className="text-xs text-zinc-300 flex items-start gap-1.5">
                 <ArrowRight size={11} className="mt-0.5 shrink-0" />
                 {nextAction.text}
               </p>
@@ -146,9 +146,9 @@ export default function QuickViewPanel({ job, onClose }) {
           {(job.recruiterName || job.recruiterEmail) && (
             <div>
               <p className="qv-section-label">Contact</p>
-              {job.recruiterName && <p className="text-xs text-slate-300">{job.recruiterName}</p>}
+              {job.recruiterName && <p className="text-xs text-zinc-300">{job.recruiterName}</p>}
               {job.recruiterEmail && (
-                <a href={`mailto:${job.recruiterEmail}`} className="text-xs text-violet-400 hover:underline flex items-center gap-1 mt-0.5">
+                <a href={`mailto:${job.recruiterEmail}`} className="text-xs text-blue-400 hover:underline flex items-center gap-1 mt-0.5">
                   <Mail size={10} /> {job.recruiterEmail}
                 </a>
               )}
@@ -169,7 +169,7 @@ export default function QuickViewPanel({ job, onClose }) {
           {job.notes && (
             <div>
               <p className="qv-section-label">Notes</p>
-              <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">{job.notes}</p>
+              <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap">{job.notes}</p>
             </div>
           )}
         </div>
@@ -194,7 +194,7 @@ export default function QuickViewPanel({ job, onClose }) {
 function Row({ label, children }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-slate-400 font-medium shrink-0">{label}</span>
+      <span className="text-xs text-zinc-400 font-medium shrink-0">{label}</span>
       {children}
     </div>
   )

@@ -1,5 +1,5 @@
 import { NavLink, Link } from 'react-router-dom'
-import { LayoutDashboard, Kanban, LogOut, FileText, User, X, Send, Target } from 'lucide-react'
+import { LayoutDashboard, Kanban, LogOut, FileText, User, X, Send, Target, Compass } from 'lucide-react'
 import { useAuth } from '../../context/auth'
 import NotificationBell from '../common/NotificationBell'
 import RunwayLogoMark from '../brand/RunwayLogoMark'
@@ -20,7 +20,7 @@ export default function Sidebar({ isOpen, onClose }) {
         </Link>
         <button
           onClick={onClose}
-          className="ml-auto text-slate-500 hover:text-slate-300 transition-colors md:hidden"
+          className="ml-auto text-zinc-500 hover:text-zinc-300 transition-colors md:hidden"
         >
           <X size={16} />
         </button>
@@ -31,6 +31,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <p className="sidebar-section-label">Launchpad</p>
           <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
           <NavItem to="/board" icon={Kanban} label="Applications" />
+          <NavItem to="/discover" icon={Compass} label="Discover" />
         </div>
 
         <div>
@@ -52,16 +53,16 @@ export default function Sidebar({ isOpen, onClose }) {
           <NavLink
             to="/profile"
             className={({ isActive }) =>
-              `flex items-center gap-2 flex-1 min-w-0 rounded-lg px-2 py-1.5 transition-colors ${isActive ? 'bg-slate-700' : 'hover:bg-slate-800'}`
+              `flex items-center gap-2 flex-1 min-w-0 rounded-lg px-2 py-1.5 transition-colors ${isActive ? 'bg-zinc-700' : 'hover:bg-zinc-800'}`
             }
           >
             {user?.photoURL
               ? <img src={user.photoURL} alt="" className="w-6 h-6 rounded-full shrink-0" />
-              : <User size={16} className="text-slate-400 shrink-0" />
+              : <User size={16} className="text-zinc-400 shrink-0" />
             }
-            <span className="text-xs text-slate-400 truncate">{user?.displayName}</span>
+            <span className="text-xs text-zinc-400 truncate">{user?.displayName}</span>
           </NavLink>
-          <button onClick={signOut} className="text-slate-500 hover:text-slate-300 transition-colors" title="Sign out">
+          <button onClick={signOut} className="text-zinc-500 hover:text-zinc-300 transition-colors" title="Sign out">
             <LogOut size={14} />
           </button>
         </div>

@@ -2,12 +2,12 @@
 
 /* Page shell */
 .wp-root {
-  @apply flex-1 min-h-screen bg-slate-950 flex flex-col;
+  @apply flex-1 min-h-screen bg-zinc-950 flex flex-col;
 }
 
 /* Top bar */
 .wp-topbar {
-  @apply flex items-center justify-between px-6 py-4 border-b border-slate-800;
+  @apply flex items-center justify-between px-6 py-4 border-b border-zinc-800;
 }
 
 .wp-logo {
@@ -23,7 +23,7 @@
 }
 
 .wp-skip {
-  @apply text-sm text-slate-400 hover:text-slate-200 transition-colors cursor-pointer;
+  @apply text-sm text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer;
 }
 
 /* Main content area */
@@ -37,7 +37,7 @@
 }
 
 .wp-eyebrow {
-  @apply text-sm text-violet-300 font-semibold tracking-wide uppercase mb-3;
+  @apply text-sm text-blue-300 font-semibold tracking-wide uppercase mb-3;
 }
 
 .wp-title {
@@ -45,7 +45,7 @@
 }
 
 .wp-subtitle {
-  @apply text-base text-slate-200 leading-relaxed;
+  @apply text-base text-zinc-200 leading-relaxed;
 }
 
 /* Feature cards grid */
@@ -54,7 +54,7 @@
 }
 
 .wp-card {
-  @apply bg-slate-800/60 border border-slate-700 rounded-xl p-5 flex flex-col gap-3;
+  @apply bg-zinc-800/60 border border-zinc-700 rounded-xl p-5 flex flex-col gap-3;
 }
 
 .wp-card-top {
@@ -62,7 +62,7 @@
 }
 
 .wp-card-number {
-  @apply text-sm font-bold text-slate-400;
+  @apply text-sm font-bold text-zinc-400;
 }
 
 .wp-card-icon {
@@ -70,22 +70,22 @@
 }
 
 .wp-card-icon--sky     { @apply bg-sky-500/30     border-sky-400/40     text-sky-200;     }
-.wp-card-icon--violet  { @apply bg-violet-500/30  border-violet-400/40  text-violet-200;  }
+.wp-card-icon--blue  { @apply bg-blue-500/30  border-blue-400/40  text-blue-200;  }
 .wp-card-icon--rose    { @apply bg-rose-500/30    border-rose-400/40    text-rose-200;    }
 .wp-card-icon--emerald { @apply bg-emerald-500/30 border-emerald-400/40 text-emerald-200; }
 .wp-card-icon--amber   { @apply bg-amber-500/30   border-amber-400/40   text-amber-200;   }
-.wp-card-icon--slate   { @apply bg-slate-500/30   border-slate-400/40   text-slate-200;   }
+.wp-card-icon--zinc   { @apply bg-zinc-500/30   border-zinc-400/40   text-zinc-200;   }
 
 .wp-card-title {
   @apply text-base font-semibold text-white mb-1;
 }
 
 .wp-card-desc {
-  @apply text-sm text-slate-200 leading-relaxed;
+  @apply text-sm text-zinc-200 leading-relaxed;
 }
 
 /* Get started button */
 .wp-cta {
-  @apply flex items-center gap-2 bg-violet-600 hover:bg-violet-500
+  @apply flex items-center gap-2 bg-blue-600 hover:bg-blue-500
          text-white text-base font-semibold px-7 py-3 rounded-xl transition-colors cursor-pointer;
 }

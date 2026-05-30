@@ -116,5 +116,12 @@ export function useAI() {
     return result.data
   }
 
-  return { parseJD, getCoaching, draftFollowUp, matchResume, matchTailoredResume, importFromUrl, tailorResume, findRecruiter, draftRecruiterOutreach, parseResumeStructure }
+  /** Searches Dice job listings with keyword + filters. */
+  async function searchJobs({ keyword, location, workplaceTypes, employmentTypes, willingToSponsor, postedDate, page }) {
+    const fn = httpsCallable(functions, 'searchJobs', { timeout: 30000 })
+    const result = await fn({ keyword, location, workplaceTypes, employmentTypes, willingToSponsor, postedDate, page })
+    return result.data
+  }
+
+  return { parseJD, getCoaching, draftFollowUp, matchResume, matchTailoredResume, importFromUrl, tailorResume, findRecruiter, draftRecruiterOutreach, parseResumeStructure, searchJobs }
 }

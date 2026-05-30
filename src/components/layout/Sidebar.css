@@ -1,23 +1,24 @@
 @reference "tailwindcss";
 
 .sidebar {
-  @apply md:w-52 shrink-0 flex flex-col bg-slate-900 border-r border-slate-700;
+  @apply md:w-52 shrink-0 flex flex-col;
+  background-color: rgba(9, 9, 11, 0.95);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   width: min(18rem, 82vw);
-  /* Mobile: fixed off-screen drawer */
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
   z-index: 30;
   transform: translateX(-100%);
-  transition: transform 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+  backdrop-filter: blur(10px);
 }
 
 .sidebar--open {
   transform: translateX(0);
 }
 
-/* Desktop: sticky to viewport height */
 @media (min-width: 768px) {
   .sidebar {
     width: 13rem;
@@ -34,7 +35,8 @@
 }
 
 .sidebar-logo-bar {
-  @apply flex items-center gap-2.5 px-4 h-14 border-b border-slate-700;
+  @apply flex items-center gap-2.5 px-4 h-14;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-nav {
@@ -42,23 +44,37 @@
 }
 
 .sidebar-section-label {
-  @apply text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-1;
+  @apply text-xs font-semibold uppercase px-3 mb-1;
+  color: #71717a;
+  letter-spacing: 0.1em;
 }
 
 .sidebar-nav-link {
-  @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
+  @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  letter-spacing: 0.01em;
 }
 
 .sidebar-nav-link-active {
-  @apply bg-violet-600/20 text-violet-300;
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.08);
+  border: 1px solid rgba(96, 165, 250, 0.2);
 }
 
 .sidebar-nav-link-inactive {
-  @apply text-slate-300 hover:text-white hover:bg-slate-800;
+  color: #a1a1aa;
+  border: 1px solid transparent;
+}
+
+.sidebar-nav-link-inactive:hover {
+  color: #fafafa;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .sidebar-footer {
-  @apply px-3 py-4 border-t border-slate-700 space-y-1;
+  @apply px-3 py-4 space-y-1;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-user {

@@ -6,24 +6,24 @@
   min-height: 34px;
   margin: 8px 0;
   padding: 7px 13px 7px 8px;
-  background: linear-gradient(135deg, #111827 0%, #312e81 100%);
+  background: linear-gradient(135deg, #0a1830 0%, #1e3a8a 100%);
   color: #f8fafc;
   font-size: 13px;
   font-weight: 650;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1;
-  border: 1px solid rgba(125, 211, 252, 0.34);
+  border: 1px solid rgba(96, 165, 250, 0.34);
   border-radius: 999px;
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
   white-space: nowrap;
   z-index: 9999;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
 }
 
 .runway-btn:hover:not(:disabled) {
-  border-color: rgba(125, 211, 252, 0.72);
-  box-shadow: 0 10px 24px rgba(49, 46, 129, 0.36);
+  border-color: rgba(96, 165, 250, 0.72);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.4);
   transform: translateY(-1px);
 }
 
@@ -41,8 +41,8 @@
   border-radius: 22%;
   overflow: hidden;
   background:
-    radial-gradient(circle at 72% 28%, rgba(139, 92, 246, 0.72), transparent 52%),
-    linear-gradient(145deg, #111827 0%, #312e81 100%);
+    radial-gradient(circle at 72% 28%, rgba(37, 99, 235, 0.72), transparent 52%),
+    linear-gradient(145deg, #0a1830 0%, #1e3a8a 100%);
   border: 1px solid rgba(125, 211, 252, 0.3);
 }
 
@@ -151,7 +151,7 @@
   max-height: min(420px, calc(100vh - 164px));
   overflow: hidden;
   color: #0f172a;
-  background: #ffffff;
+  background: #09090b;
   border: 1px solid rgba(15, 23, 42, 0.14);
   border-radius: 8px;
   box-shadow: 0 18px 48px rgba(2, 6, 23, 0.28);
@@ -301,11 +301,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #111827 0%, #312e81 100%);
-  border: 1px solid rgba(125, 211, 252, 0.3);
+  background: linear-gradient(135deg, #0a1830 0%, #1e3a8a 100%);
+  border: 1px solid rgba(96, 165, 250, 0.3);
   border-right: none;
   border-radius: 10px 0 0 10px;
-  box-shadow: -3px 2px 16px rgba(15, 23, 42, 0.4);
+  box-shadow: -3px 2px 16px rgba(37, 99, 235, 0.35);
   cursor: pointer;
   pointer-events: all;
   padding: 0;
@@ -315,7 +315,7 @@
 }
 
 .runway-panel__launcher:hover {
-  box-shadow: -4px 2px 20px rgba(49, 46, 129, 0.55);
+  box-shadow: -4px 2px 20px rgba(37, 99, 235, 0.55);
   transform: translateX(-2px);
 }
 
@@ -331,9 +331,11 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: #ffffff;
-  border-left: 1px solid rgba(15, 23, 42, 0.12);
-  box-shadow: -4px 0 32px rgba(2, 6, 23, 0.2);
+  background: #09090b;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.6);
+  color: #fafafa;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .runway-panel__header {
@@ -443,7 +445,7 @@
   margin: 12px 12px 0;
   padding: 6px 8px;
   color: #111827;
-  background: #ffffff;
+  background: #09090b;
   border: 1px solid rgba(15, 23, 42, 0.18);
   border-radius: 6px;
 }
@@ -459,7 +461,7 @@
   min-height: 32px;
   padding: 7px 10px;
   color: #111827;
-  background: #ffffff;
+  background: #09090b;
   border: 1px solid rgba(15, 23, 42, 0.18);
   border-radius: 6px;
   cursor: pointer;
@@ -492,7 +494,7 @@
   width: min(300px, calc(100vw - 32px));
   padding: 13px;
   color: #0f172a;
-  background: #ffffff;
+  background: #09090b;
   border: 1px solid rgba(15, 23, 42, 0.14);
   border-radius: 8px;
   box-shadow: 0 18px 48px rgba(2, 6, 23, 0.24);
@@ -517,7 +519,7 @@
   width: 100%;
   padding: 6px 8px;
   color: #111827;
-  background: #ffffff;
+  background: #09090b;
   border: 1px solid rgba(15, 23, 42, 0.18);
   border-radius: 6px;
   font: inherit;
@@ -539,7 +541,7 @@
 
 .runway-apply__button--secondary {
   color: #111827;
-  background: #ffffff;
+  background: #09090b;
   border-color: rgba(15, 23, 42, 0.18);
 }
 
@@ -654,7 +656,7 @@
 
 .runway-panel__body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #101828;
+  color: #fafafa;
 }
 
 /* ── Header ───────────────────────────────────────────────────────────────── */
@@ -665,7 +667,7 @@
   justify-content: space-between;
   min-height: 48px;
   padding: 0 14px;
-  border-bottom: 1px solid #F2F4F7;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 /* Add-job variant: × on left, title follows */
@@ -677,14 +679,14 @@
 .rp-header__brand {
   font-size: 14px;
   font-weight: 700;
-  color: #101828;
+  color: #fafafa;
   letter-spacing: -0.01em;
 }
 
 .rp-header__title {
   font-size: 13px;
   font-weight: 600;
-  color: #101828;
+  color: #fafafa;
   line-height: 1.3;
 }
 
@@ -696,7 +698,7 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  color: #667085;
+  color: #71717a;
   background: transparent;
   border: 0;
   border-radius: 6px;
@@ -707,8 +709,8 @@
 }
 
 .rp-close:hover {
-  background: #F2F4F7;
-  color: #344054;
+  background: rgba(255,255,255,0.06);
+  color: #a1a1aa;
 }
 
 /* ── Add-job review form ──────────────────────────────────────────────────── */
@@ -718,11 +720,11 @@
   align-items: center;
   gap: 7px;
   padding: 9px 14px;
-  background: #ECFDF3;
-  border-bottom: 1px solid #ABEFC6;
+  background: rgba(74,222,128,0.1);
+  border-bottom: 1px solid rgba(74,222,128,0.25);
   font-size: 12px;
   font-weight: 600;
-  color: #067647;
+  color: #4ade80;
 }
 
 .rp-banner__dot {
@@ -745,16 +747,16 @@
 .rp-field__label {
   font-size: 12px;
   font-weight: 500;
-  color: #344054;
+  color: #a1a1aa;
 }
 
 .rp-field__input {
   width: 100%;
   height: 36px;
   padding: 0 10px;
-  color: #101828;
-  background: #ffffff;
-  border: 1px solid #D0D5DD;
+  color: #fafafa;
+  background: #09090b;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px;
   font: inherit;
   font-size: 13px;
@@ -773,9 +775,9 @@
   width: 100%;
   min-height: 128px;
   padding: 8px 10px;
-  color: #101828;
-  background: #ffffff;
-  border: 1px solid #D0D5DD;
+  color: #fafafa;
+  background: #09090b;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px;
   font: inherit;
   font-size: 12px;
@@ -823,7 +825,7 @@
 
 .rp-job-card {
   padding: 14px 14px 12px;
-  border-bottom: 1px solid #F2F4F7;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .rp-job-card__top {
@@ -850,7 +852,7 @@
   flex: 1;
   font-size: 14px;
   font-weight: 600;
-  color: #101828;
+  color: #fafafa;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -859,9 +861,9 @@
 .rp-match-badge {
   flex-shrink: 0;
   padding: 2px 8px;
-  background: #ECFDF3;
-  color: #067647;
-  border: 1px solid #ABEFC6;
+  background: rgba(74,222,128,0.1);
+  color: #4ade80;
+  border: 1px solid rgba(74,222,128,0.25);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
@@ -882,21 +884,21 @@
 .rp-job-card__role--primary {
   font-size: 15px;
   font-weight: 600;
-  color: #101828;
+  color: #fafafa;
   margin-top: 4px;
 }
 
 .rp-job-card__meta {
   margin-top: 3px;
   font-size: 12px;
-  color: #667085;
+  color: #71717a;
 }
 
 /* ── Focused job card (browse mode) ────────────────────────────────────── */
 
 .rp-focus-card {
   padding: 14px 14px 10px;
-  border-bottom: 1px solid #F2F4F7;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .rp-focus-card__company-row {
@@ -920,7 +922,7 @@
 .rp-focus-card__company-name {
   font-size: 13px;
   font-weight: 650;
-  color: #101828;
+  color: #fafafa;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -929,20 +931,20 @@
 .rp-focus-card__role {
   font-size: 16px;
   font-weight: 700;
-  color: #101828;
+  color: #fafafa;
   line-height: 1.3;
   margin-bottom: 5px;
 }
 
 .rp-focus-card__meta {
   font-size: 12px;
-  color: #667085;
+  color: #71717a;
   margin-bottom: 3px;
 }
 
 .rp-focus-card__applicants {
   font-size: 11px;
-  color: #98A2B3;
+  color: #52525b;
   margin-top: 2px;
 }
 
@@ -951,7 +953,7 @@
   margin: 12px 0 6px;
   display: flex;
   flex-direction: column;
-  border: 1px solid #F2F4F7;
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -962,7 +964,7 @@
   align-items: baseline;
   gap: 6px;
   padding: 7px 10px;
-  border-bottom: 1px solid #F2F4F7;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .rp-info-row:last-child { border-bottom: none; }
@@ -970,7 +972,7 @@
 .rp-info-row__label {
   font-size: 10px;
   font-weight: 700;
-  color: #98A2B3;
+  color: #52525b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
@@ -979,19 +981,19 @@
 .rp-info-row__value {
   font-size: 12px;
   font-weight: 500;
-  color: #344054;
+  color: #a1a1aa;
   line-height: 1.35;
 }
 
-.rp-info-row__value--green     { color: #067647; font-weight: 600; }
-.rp-info-row__value--highlight  { color: #175CD3; font-weight: 700; }
+.rp-info-row__value--green     { color: #4ade80; font-weight: 600; }
+.rp-info-row__value--highlight  { color: #60a5fa; font-weight: 700; }
 .rp-info-row__value--warn       { color: #B42318; }
 
 /* Description preview */
 .rp-focus-card__desc {
   margin: 10px 0 0;
   font-size: 12px;
-  color: #667085;
+  color: #71717a;
   line-height: 1.55;
 }
 
@@ -999,10 +1001,10 @@
   padding: 8px 14px 6px;
   font-size: 11px;
   font-weight: 600;
-  color: #98A2B3;
+  color: #52525b;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  border-top: 1px solid #F2F4F7;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 .rp-browse-list {
@@ -1012,7 +1014,7 @@
 .rp-job-card__role {
   font-size: 13px;
   font-weight: 400;
-  color: #344054;
+  color: #a1a1aa;
   line-height: 1.4;
 }
 
@@ -1055,7 +1057,7 @@
 /* ── Apply panel: sections ────────────────────────────────────────────────── */
 
 .rp-section {
-  border-top: 1px solid #F2F4F7;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 .rp-section__row {
@@ -1077,11 +1079,11 @@
   flex: 1;
   font-size: 13px;
   font-weight: 500;
-  color: #101828;
+  color: #fafafa;
 }
 
 .rp-section__arrow {
-  color: #98A2B3;
+  color: #52525b;
   font-size: 18px;
   line-height: 1;
 }
@@ -1096,7 +1098,7 @@
 .rp-file-name {
   margin: 0 0 4px;
   font-size: 11px;
-  color: #667085;
+  color: #71717a;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1108,9 +1110,9 @@
   display: block;
   width: 100%;
   padding: 8px 12px;
-  color: #344054;
-  background: #ffffff;
-  border: 1px solid #D0D5DD;
+  color: #a1a1aa;
+  background: #09090b;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px;
   font: inherit;
   font-size: 12px;
@@ -1122,7 +1124,7 @@
 }
 
 .rp-ghost-btn:hover:not(:disabled) {
-  background: #F9FAFB;
+  background: rgba(255,255,255,0.04);
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
 }
 
@@ -1135,7 +1137,7 @@
   margin: 0;
   padding: 6px 14px 4px;
   font-size: 12px;
-  color: #667085;
+  color: #71717a;
   line-height: 1.4;
 }
 
@@ -1143,7 +1145,7 @@
   margin: 0;
   padding: 14px;
   font-size: 12px;
-  color: #667085;
+  color: #71717a;
   line-height: 1.5;
 }
 
@@ -1155,12 +1157,12 @@
   align-items: center;
   gap: 6px;
   padding: 10px 14px 14px;
-  border-top: 1px solid #F2F4F7;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 .rp-bottom__link {
   padding: 0;
-  color: #667085;
+  color: #71717a;
   background: transparent;
   border: 0;
   font: inherit;
@@ -1171,7 +1173,7 @@
   transition: color 0.1s;
 }
 
-.rp-bottom__link:hover { color: #344054; }
+.rp-bottom__link:hover { color: #a1a1aa; }
 
 /* ── Dark mode for rp-* ───────────────────────────────────────────────────── */
 

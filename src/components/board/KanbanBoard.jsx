@@ -32,7 +32,7 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
   const { jobs } = useJobs()
   const { updateStage } = useJobMutations()
   const [activeJob, setActiveJob] = useState(null)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [modalStage, setModalStage] = useState(null)
   const [bulkOpen, setBulkOpen] = useState(false)
 
   const sensors = useSensors(
@@ -65,23 +65,23 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
 
   return (
     <div className="flex flex-col flex-1 min-w-0 h-full">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-6 py-3 border-b border-slate-700 shrink-0">
-        <p className="text-xs text-slate-300 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-6 py-3 border-b border-zinc-700 shrink-0">
+        <p className="text-xs text-zinc-300 shrink-0">
           {filteredJobs.length} application{filteredJobs.length !== 1 ? 's' : ''}
-          {activeStage !== 'all' && <span className="text-slate-500"> · filtered</span>}
+          {activeStage !== 'all' && <span className="text-zinc-500"> · filtered</span>}
         </p>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => setBulkOpen(true)}
-            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2 sm:px-3 py-2 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2 sm:px-3 py-2 sm:py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
           >
             <ListPlus size={13} />
             <span className="sm:hidden">Bulk</span>
             <span className="hidden sm:inline">Bulk Import</span>
           </button>
           <button
-            onClick={() => setModalOpen(true)}
-            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2 sm:px-3 py-2 sm:py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
+            onClick={() => setModalStage('')}
+            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2 sm:px-3 py-2 sm:py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors"
           >
             <Zap size={13} />
             <span className="sm:hidden">Single</span>
@@ -96,7 +96,7 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-3 px-4 sm:px-6 py-4 h-full min-w-max">
+          <div className="flex gap-3 px-4 sm:px-6 py-4 min-w-max items-start">
             {STAGES.map(stage => (
               <KanbanColumn
                 key={stage.id}
@@ -104,6 +104,7 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
                 jobs={jobsByStage[stage.id]}
                 selectedJobId={selectedJobId}
                 onCardClick={onCardClick}
+                onAddClick={() => setModalStage(stage.id)}
                 dimmed={activeStage !== 'all' && activeStage !== stage.id}
               />
             ))}
@@ -115,7 +116,7 @@ export default function KanbanBoard({ activeStage = 'all', selectedJobId, onCard
         </DndContext>
       </div>
 
-      {modalOpen && <ApplicationModal onClose={() => setModalOpen(false)} />}
+      {modalStage !== null && <ApplicationModal defaultStage={modalStage || 'saved'} onClose={() => setModalStage(null)} />}
       {bulkOpen && <BulkImportModal onClose={() => setBulkOpen(false)} />}
     </div>
   )

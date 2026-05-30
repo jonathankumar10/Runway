@@ -16,6 +16,15 @@ import { usePagination } from '../hooks/usePagination'
 import Pagination from '../components/common/Pagination'
 import './TargetCompaniesPage.css'
 
+function onGlowMove(e) {
+  const el = e.currentTarget
+  const { left, top, width, height } = el.getBoundingClientRect()
+  const angle = Math.atan2(e.clientY - (top + height / 2), e.clientX - (left + width / 2)) * (180 / Math.PI)
+  el.style.setProperty('--start', String(angle + 90))
+  el.style.setProperty('--active', '1')
+}
+function onGlowLeave(e) { e.currentTarget.style.setProperty('--active', '0') }
+
 const functions = getFunctions(app)
 
 const SEED_COMPANIES = [
@@ -230,7 +239,7 @@ export default function TargetCompaniesPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-white">Target Companies</h1>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 {companies.length} companies · {STATUS_FILTERS.find(f => f.key === 'contacted')?.count ?? 0} contacted · {STATUS_FILTERS.find(f => f.key === 'tracked')?.count ?? 0} tracked
               </p>
             </div>
@@ -245,8 +254,9 @@ export default function TargetCompaniesPage() {
       </div>
 
       <div className="px-4 py-4 sm:px-6 max-w-7xl mx-auto">
-        <div className="targets-prompt-bar">
-          <p className="text-xs font-medium text-slate-300 mb-2 flex items-center gap-1.5">
+        <div className="targets-prompt-bar" onMouseMove={onGlowMove} onMouseLeave={onGlowLeave}>
+          <div className="glows" />
+          <p className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-1.5">
             <Sparkles size={11} className="text-sky-400" /> Update list with AI
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -281,11 +291,11 @@ export default function TargetCompaniesPage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   filter === f.key
                     ? 'bg-sky-600/20 text-sky-400 border border-sky-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
                 }`}
               >
                 {f.label}
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${filter === f.key ? 'bg-sky-600/30 text-sky-300' : 'bg-slate-800 text-slate-500'}`}>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${filter === f.key ? 'bg-sky-600/30 text-sky-300' : 'bg-zinc-800 text-zinc-500'}`}>
                   {f.count}
                 </span>
               </button>
@@ -295,17 +305,18 @@ export default function TargetCompaniesPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search companies…"
-            className="lg:ml-auto bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 lg:py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 w-full lg:w-48"
+            className="lg:ml-auto bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 lg:py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 w-full lg:w-48"
           />
         </div>
 
         {loading || seeding ? (
-          <div className="flex items-center justify-center py-16 gap-2 text-slate-400">
+          <div className="flex items-center justify-center py-16 gap-2 text-zinc-400">
             <Loader2 size={18} className="animate-spin" />
             <span className="text-sm">{seeding ? 'Seeding companies…' : 'Loading…'}</span>
           </div>
         ) : (
-          <div className="targets-table-wrap">
+          <div className="targets-table-wrap" onMouseMove={onGlowMove} onMouseLeave={onGlowLeave}>
+            <div className="glows" />
             <table className="targets-table">
               <thead>
                 <tr>
@@ -336,31 +347,31 @@ export default function TargetCompaniesPage() {
                             href={`https://${company.domain}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[10px] text-slate-500 hover:text-violet-400 transition-colors"
+                            className="text-[10px] text-zinc-500 hover:text-blue-400 transition-colors"
                           >
                             {company.domain}
                           </a>
                           {(outreachByCompany.get(company.name?.toLowerCase())?.length ?? 0) > 0 && (
-                            <span className="text-[10px] text-violet-400">
+                            <span className="text-[10px] text-blue-400">
                               · {outreachByCompany.get(company.name?.toLowerCase()).length} tracked
                             </span>
                           )}
                         </div>
                       </td>
                       <td>
-                        <p className="text-slate-300">{company.space}</p>
+                        <p className="text-zinc-300">{company.space}</p>
                       </td>
                       <td>
                         <span className="targets-stage-badge">{company.stage}</span>
                       </td>
                       <td>
-                        <p className={`text-slate-400 leading-relaxed ${!notesExpanded ? 'line-clamp-2' : ''}`}>
+                        <p className={`text-zinc-400 leading-relaxed ${!notesExpanded ? 'line-clamp-2' : ''}`}>
                           {company.notes}
                         </p>
                         {company.notes?.length > 80 && (
                           <button
                             onClick={() => toggleNotes(company.id)}
-                            className="text-[10px] text-slate-600 hover:text-slate-400 mt-0.5"
+                            className="text-[10px] text-zinc-600 hover:text-zinc-400 mt-0.5"
                           >
                             {notesExpanded ? '↑ less' : '↓ more'}
                           </button>
@@ -369,7 +380,7 @@ export default function TargetCompaniesPage() {
                       <td>
                         <div className="flex flex-wrap gap-1">
                           {(company.targetRoles || '').split(',').map((r, i) => (
-                            <span key={i} className="text-[10px] px-1.5 py-0.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-md whitespace-nowrap">
+                            <span key={i} className="text-[10px] px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-md whitespace-nowrap">
                               {r.trim()}
                             </span>
                           ))}
@@ -403,14 +414,14 @@ export default function TargetCompaniesPage() {
                               href={company.careersUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-slate-400 border border-slate-700 hover:bg-slate-800 rounded-lg transition-colors"
+                              className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-zinc-400 border border-zinc-700 hover:bg-zinc-800 rounded-lg transition-colors"
                             >
                               <ExternalLink size={9} /> Careers
                             </a>
                           )}
                           <button
                             onClick={() => handleDelete(company)}
-                            className="flex items-center gap-1 px-2 py-1 text-[10px] text-slate-600 hover:text-red-400 transition-colors"
+                            className="flex items-center gap-1 px-2 py-1 text-[10px] text-zinc-600 hover:text-red-400 transition-colors"
                           >
                             <Trash2 size={9} /> Remove
                           </button>
@@ -421,7 +432,7 @@ export default function TargetCompaniesPage() {
                 })}
                 {displayed.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-500 text-sm">
+                    <td colSpan={7} className="text-center py-8 text-zinc-500 text-sm">
                       No companies match your filter.
                     </td>
                   </tr>
@@ -475,9 +486,9 @@ function AddCompanyModal({ userId, onClose }) {
   return (
     <div className="targets-add-modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="targets-add-modal">
-        <div className="flex items-center justify-between p-5 border-b border-slate-800">
+        <div className="flex items-center justify-between p-5 border-b border-zinc-800">
           <h2 className="text-sm font-semibold text-white">Add Target Company</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300"><X size={16} /></button>
+          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300"><X size={16} /></button>
         </div>
         <div className="p-5 space-y-3">
           {fields.map(f => (

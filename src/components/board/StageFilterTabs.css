@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .stage-tabs {
-  @apply flex items-center gap-1 px-4 sm:px-6 py-2 border-b border-slate-700 overflow-x-auto;
+  @apply flex items-center gap-1 px-4 sm:px-6 py-2 border-b border-zinc-700 overflow-x-auto;
   scrollbar-width: none;
 }
 
@@ -14,9 +14,9 @@
 }
 
 .stage-tab-active {
-  @apply bg-slate-700 text-white;
+  @apply bg-zinc-700 text-white;
 }
 
 .stage-tab-inactive {
-  @apply text-slate-300 hover:text-white hover:bg-slate-800;
+  @apply text-zinc-300 hover:text-white hover:bg-zinc-800;
 }

@@ -47,17 +47,17 @@ export default function ResumeModal({ onClose }) {
       <div className="rm-box" onClick={e => e.stopPropagation()}>
         <div className="rm-header">
           <div className="flex items-center gap-2">
-            <FileText size={14} className="text-violet-400" />
+            <FileText size={14} className="text-blue-400" />
             <h2 className="text-sm font-semibold text-white">Your Resume</h2>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-100 transition-colors">
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-100 transition-colors">
             <X size={18} />
           </button>
         </div>
 
         <div className="px-5 py-4">
-          <p className="text-xs text-slate-400 mb-3">
-            Paste your resume text or upload a <code className="bg-slate-800 px-1 rounded">.txt</code> file.
+          <p className="text-xs text-zinc-400 mb-3">
+            Paste your resume text or upload a <code className="bg-zinc-800 px-1 rounded">.txt</code> file.
             Runway uses it to calculate resume match scores for each job.
           </p>
 
@@ -73,7 +73,7 @@ export default function ResumeModal({ onClose }) {
             rows={12}
             className="rm-textarea"
           />
-          <p className="text-[10px] text-slate-600 mt-1">{text.length.toLocaleString()} characters</p>
+          <p className="text-[10px] text-zinc-600 mt-1">{text.length.toLocaleString()} characters</p>
         </div>
 
         <div className="rm-footer">

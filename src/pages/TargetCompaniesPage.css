@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .targets-topnav {
-  @apply sticky top-0 z-10 bg-slate-950/80 backdrop-blur-sm px-4 sm:px-6 py-4 border-b border-slate-700;
+  @apply sticky top-0 z-10 bg-zinc-950/80 backdrop-blur-sm px-4 sm:px-6 py-4 border-b border-zinc-700;
 }
 
 .targets-header-icon {
@@ -9,29 +9,106 @@
 }
 
 .targets-prompt-bar {
-  @apply bg-slate-900 border border-slate-700 rounded-xl p-4 mb-5;
-}
-
-.targets-prompt-input {
-  @apply w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500;
+  @apply relative bg-zinc-900 border border-zinc-700 rounded-xl p-4 mb-5;
+  --active: 0;
+  --start: 0;
+  --spread: 60;
+  --blur: 20;
 }
 
 .targets-table-wrap {
-  @apply overflow-x-auto rounded-xl border border-slate-700;
+  @apply relative overflow-x-auto rounded-xl border border-zinc-700;
   -webkit-overflow-scrolling: touch;
+  --active: 0;
+  --start: 0;
+  --spread: 60;
+  --blur: 20;
+}
+
+/* shared glow rules for prompt bar and table wrap */
+.targets-prompt-bar .glows,
+.targets-table-wrap .glows {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  filter: blur(calc(var(--blur) * 1px));
+  z-index: 0;
+}
+
+.targets-prompt-bar .glows::before, .targets-prompt-bar .glows::after,
+.targets-table-wrap .glows::before, .targets-table-wrap .glows::after {
+  content: "";
+  position: absolute;
+  opacity: var(--active);
+  transition: opacity 0.8s ease;
+  background: conic-gradient(from 180deg at 50% 70%, #1d4ed8, #1e40af, #60a5fa, #1e3a8a, #60a5fa, #fff 1turn);
+  background-attachment: fixed;
+  inset: -5px;
+  border: 8px solid transparent;
+  border-radius: inherit;
+  mask: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)),
+    conic-gradient(from calc((var(--start) - var(--spread) * 0.5) * 1deg), #000 0deg, #fff, rgba(0,0,0,0) calc(var(--spread) * 1deg));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  mask-clip: padding-box, border-box;
+}
+
+.targets-prompt-bar::before, .targets-table-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--active);
+  transition: opacity 0.8s ease;
+  background: #60a5fa26;
+  background-attachment: fixed;
+  mask: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)),
+    conic-gradient(from calc((var(--start) + var(--spread) * 0.25 - var(--spread) * 1.5) * 1deg), rgba(255,255,255,0.15) 0deg, #fff, rgba(255,255,255,0.15) calc(var(--spread) * 2.5deg));
+  mask-clip: padding-box, border-box;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  z-index: 1;
+}
+
+.targets-prompt-bar::after, .targets-table-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--active);
+  transition: opacity 0.8s ease;
+  background: conic-gradient(from 180deg at 50% 70%, #1d4ed8, #1e40af, #60a5fa, #1e3a8a, #60a5fa, #fff 1turn);
+  background-attachment: fixed;
+  mask: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)),
+    conic-gradient(from calc((var(--start) + var(--spread) * 0.25 - var(--spread) * 0.5) * 1deg), rgba(0,0,0,0) 0deg, #fff, rgba(0,0,0,0) calc(var(--spread) * 0.5deg));
+  filter: brightness(1.5);
+  mask-clip: padding-box, border-box;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  z-index: 1;
+}
+
+.targets-prompt-input {
+  @apply w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500;
 }
 
 .targets-table {
-  @apply w-full text-xs border-collapse bg-slate-900;
+  @apply w-full text-xs border-collapse bg-zinc-900;
   min-width: 860px;
 }
 
 .targets-table th {
-  @apply text-left px-3 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wide bg-slate-900 border-b border-slate-700 whitespace-nowrap;
+  @apply text-left px-3 py-2.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wide bg-zinc-900 border-b border-zinc-700 whitespace-nowrap;
 }
 
 .targets-table td {
-  @apply px-3 py-3 border-b border-slate-800/60 align-top;
+  @apply px-3 py-3 border-b border-zinc-800/60 align-top;
 }
 
 .targets-table tr:last-child td {
@@ -39,7 +116,7 @@
 }
 
 .targets-table tr:hover td {
-  @apply bg-slate-800/30;
+  @apply bg-zinc-800/30;
 }
 
 .targets-status-badge {
@@ -47,7 +124,7 @@
 }
 
 .targets-status-new {
-  @apply text-slate-500 bg-slate-800 border-slate-700;
+  @apply text-zinc-500 bg-zinc-800 border-zinc-700;
 }
 
 .targets-status-retrieved {
@@ -55,7 +132,7 @@
 }
 
 .targets-status-tracked {
-  @apply text-violet-400 bg-violet-500/10 border-violet-500/20;
+  @apply text-blue-400 bg-blue-500/10 border-blue-500/20;
 }
 
 .targets-status-emailed {
@@ -67,11 +144,11 @@
 }
 
 .targets-action-btn {
-  @apply flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] font-medium text-violet-400 border border-violet-500/30 hover:bg-violet-500/10 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50;
+  @apply flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] font-medium text-blue-400 border border-blue-500/30 hover:bg-blue-500/10 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50;
 }
 
 .targets-stage-badge {
-  @apply text-[10px] px-1.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 whitespace-nowrap;
+  @apply text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 whitespace-nowrap;
 }
 
 .targets-add-modal-overlay {
@@ -79,13 +156,13 @@
 }
 
 .targets-add-modal {
-  @apply bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto;
+  @apply bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto;
 }
 
 .targets-form-label {
-  @apply block text-xs font-medium text-slate-400 mb-1;
+  @apply block text-xs font-medium text-zinc-400 mb-1;
 }
 
 .targets-form-input {
-  @apply w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500 placeholder-slate-600;
+  @apply w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500 placeholder-zinc-600;
 }

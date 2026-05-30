@@ -10,21 +10,33 @@
 }
 
 .resume-stat-card {
-  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-4 sm:px-5 sm:py-4;
+  @apply bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-4 sm:px-5 sm:py-4;
 }
 
 /* Library section */
 
 .resume-library-section {
-  @apply bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden;
+  @apply bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden;
+}
+
+.resume-list-header {
+  @apply flex items-center justify-between px-4 pt-4 pb-2;
 }
 
 .resume-library-card {
   @apply w-full flex items-center gap-3 px-4 py-3.5 transition-all text-left;
 }
 
+.resume-card-stats {
+  @apply flex items-center gap-3 mt-1 flex-wrap;
+}
+
+.resume-card-stat {
+  @apply text-[11px] text-zinc-500;
+}
+
 .resume-library-card-idle {
-  @apply hover:bg-slate-800/50;
+  @apply hover:bg-zinc-800/50;
 }
 
 .resume-library-card-selected {
@@ -38,19 +50,19 @@
 }
 
 .resume-upload-zone-idle {
-  @apply border-slate-700/80 hover:border-violet-600/40 hover:bg-violet-600/5;
+  @apply border-zinc-700/80 hover:border-blue-600/40 hover:bg-blue-600/5;
 }
 
 .resume-upload-zone-drag {
-  @apply border-violet-500 bg-violet-500/5;
+  @apply border-blue-500 bg-blue-500/5;
 }
 
 .resume-upload-icon-wrap {
-  @apply w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center;
+  @apply w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center;
 }
 
 .resume-detail-card {
-  @apply bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6;
+  @apply bg-zinc-900 border border-zinc-700 rounded-2xl p-4 sm:p-6;
 }
 
 .resume-detail-top {
@@ -58,7 +70,7 @@
 }
 
 .resume-detail-icon {
-  @apply w-11 h-11 sm:w-12 sm:h-12 bg-violet-600/20 border border-violet-500/35 rounded-xl flex items-center justify-center shrink-0;
+  @apply w-11 h-11 sm:w-12 sm:h-12 bg-blue-600/20 border border-blue-500/35 rounded-xl flex items-center justify-center shrink-0;
 }
 
 .resume-detail-actions {
@@ -66,26 +78,26 @@
 }
 
 .resume-detail-divider {
-  @apply border-t border-slate-800 mb-5;
+  @apply border-t border-zinc-800 mb-5;
 }
 
 .resume-section-title {
-  @apply text-xs font-semibold text-slate-300 uppercase tracking-wide;
+  @apply text-xs font-semibold text-zinc-300 uppercase tracking-wide;
 }
 
 /* Stats mini cards */
 .resume-stat-mini {
-  @apply bg-slate-800/60 border border-slate-700 rounded-xl px-3 py-3 sm:px-4;
+  @apply bg-zinc-800/60 border border-zinc-700 rounded-xl px-3 py-3 sm:px-4;
 }
 
 /* Skill tags */
 .resume-skill-tag {
-  @apply text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700/80;
+  @apply text-xs bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700/80;
 }
 
 /* Label editing */
 .resume-label-input-lg {
-  @apply bg-transparent border-b border-violet-500 text-lg font-bold text-white focus:outline-none w-full pb-0.5;
+  @apply bg-transparent border-b border-blue-500 text-lg font-bold text-white focus:outline-none w-full pb-0.5;
 }
 
 /* Default badge */
@@ -95,20 +107,20 @@
 
 /* Empty detail state */
 .resume-empty-detail {
-  @apply flex flex-col items-center justify-center py-14 sm:py-20 text-center bg-slate-900 border border-slate-700 rounded-2xl;
+  @apply flex flex-col items-center justify-center py-14 sm:py-20 text-center bg-zinc-900 border border-zinc-700 rounded-2xl;
 }
 
 .resume-empty-icon-wrap {
-  @apply w-14 h-14 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center;
+  @apply w-14 h-14 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center;
 }
 
 /* Action buttons */
 .resume-action-btn {
-  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-slate-300 border-slate-700 hover:bg-slate-800 hover:text-white;
+  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-zinc-300 border-zinc-700 hover:bg-zinc-800 hover:text-white;
 }
 
 .resume-action-btn-accent {
-  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-violet-300 border-violet-600/40 bg-violet-600/10 hover:bg-violet-600/20;
+  @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors text-blue-300 border-blue-600/40 bg-blue-600/10 hover:bg-blue-600/20;
 }
 
 .resume-action-btn-danger {
@@ -138,7 +150,7 @@
 .se-skill-group {}
 
 .se-skill-label {
-  @apply text-[11px] text-slate-500 font-medium mb-1.5;
+  @apply text-[11px] text-zinc-500 font-medium mb-1.5;
 }
 
 .se-skill-chips {
@@ -146,19 +158,19 @@
 }
 
 .se-chip {
-  @apply inline-flex items-center gap-1 text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-700/80;
+  @apply inline-flex items-center gap-1 text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded-lg border border-zinc-700/80;
 }
 
 .se-chip-remove {
-  @apply text-slate-500 hover:text-red-400 transition-colors ml-0.5 flex items-center;
+  @apply text-zinc-500 hover:text-red-400 transition-colors ml-0.5 flex items-center;
 }
 
 .se-chip-add {
-  @apply inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 border border-dashed border-slate-700 hover:border-slate-500 px-2 py-0.5 rounded-lg transition-colors;
+  @apply inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 border border-dashed border-zinc-700 hover:border-zinc-500 px-2 py-0.5 rounded-lg transition-colors;
 }
 
 .se-chip-input {
-  @apply text-xs bg-slate-700 border border-violet-500 text-white px-2 py-0.5 rounded-lg focus:outline-none w-28;
+  @apply text-xs bg-zinc-700 border border-blue-500 text-white px-2 py-0.5 rounded-lg focus:outline-none w-28;
 }
 
 /* Experience / Projects */
@@ -198,31 +210,31 @@
 
 /* Inline header field inputs */
 .se-header-input-role {
-  @apply bg-transparent border-b border-violet-500/60 focus:outline-none focus:border-violet-400 text-xs font-semibold text-slate-200;
+  @apply bg-transparent border-b border-blue-500/60 focus:outline-none focus:border-blue-400 text-xs font-semibold text-zinc-200;
 }
 
 .se-header-input-company {
-  @apply bg-transparent border-b border-violet-500/60 focus:outline-none focus:border-violet-400 text-xs text-slate-400;
+  @apply bg-transparent border-b border-blue-500/60 focus:outline-none focus:border-blue-400 text-xs text-zinc-400;
 }
 
 .se-header-input-dates {
-  @apply bg-transparent border-b border-violet-500/60 focus:outline-none focus:border-violet-400 text-[11px] text-slate-500 ml-auto;
+  @apply bg-transparent border-b border-blue-500/60 focus:outline-none focus:border-blue-400 text-[11px] text-zinc-500 ml-auto;
 }
 
 .se-header-input-location {
-  @apply bg-transparent border-b border-violet-500/60 focus:outline-none focus:border-violet-400 text-[11px] text-slate-500;
+  @apply bg-transparent border-b border-blue-500/60 focus:outline-none focus:border-blue-400 text-[11px] text-zinc-500;
 }
 
 .se-exp-role {
-  @apply text-xs font-semibold text-slate-200;
+  @apply text-xs font-semibold text-zinc-200;
 }
 
 .se-exp-company {
-  @apply text-xs text-slate-400;
+  @apply text-xs text-zinc-400;
 }
 
 .se-exp-dates {
-  @apply text-[11px] text-slate-500 ml-auto shrink-0;
+  @apply text-[11px] text-zinc-500 ml-auto shrink-0;
 }
 
 /* Bullets */
@@ -235,15 +247,15 @@
 }
 
 .se-bullet-text {
-  @apply flex items-start gap-1.5 cursor-text rounded px-1 py-0.5 hover:bg-slate-800/60 transition-colors;
+  @apply flex items-start gap-1.5 cursor-text rounded px-1 py-0.5 hover:bg-zinc-800/60 transition-colors;
 }
 
 .se-bullet-dot {
-  @apply text-slate-600 text-sm leading-5 shrink-0;
+  @apply text-zinc-600 text-sm leading-5 shrink-0;
 }
 
 .se-bullet-content {
-  @apply text-xs text-slate-300 leading-5 flex-1;
+  @apply text-xs text-zinc-300 leading-5 flex-1;
 }
 
 .se-bullet-actions {
@@ -251,11 +263,11 @@
 }
 
 .se-bullet-pencil {
-  @apply text-slate-700 transition-colors;
+  @apply text-zinc-700 transition-colors;
 }
 
 .se-bullet-text:hover .se-bullet-pencil {
-  @apply text-slate-400;
+  @apply text-zinc-400;
 }
 
 /* Bullet delete button — visible on bullet hover */
@@ -277,16 +289,16 @@
 
 /* Add bullet button */
 .se-add-bullet-btn {
-  @apply flex items-center gap-1 text-[11px] text-slate-600 hover:text-slate-400 px-1 py-0.5 transition-colors mt-0.5;
+  @apply flex items-center gap-1 text-[11px] text-zinc-600 hover:text-zinc-400 px-1 py-0.5 transition-colors mt-0.5;
 }
 
 /* Add entry button */
 .se-add-entry-btn {
-  @apply flex items-center justify-center gap-1.5 w-full text-xs text-slate-500 hover:text-slate-300 border border-dashed border-slate-700 hover:border-slate-600 px-3 py-2 rounded-lg transition-colors mt-3;
+  @apply flex items-center justify-center gap-1.5 w-full text-xs text-zinc-500 hover:text-zinc-300 border border-dashed border-zinc-700 hover:border-zinc-600 px-3 py-2 rounded-lg transition-colors mt-3;
 }
 
 .se-bullet-textarea {
-  @apply w-full text-xs text-slate-200 bg-slate-800 border border-violet-500/70 rounded-lg px-2.5 py-2 resize-none focus:outline-none focus:border-violet-500 leading-relaxed;
+  @apply w-full text-xs text-zinc-200 bg-zinc-800 border border-blue-500/70 rounded-lg px-2.5 py-2 resize-none focus:outline-none focus:border-blue-500 leading-relaxed;
 }
 
 /* Summary */
@@ -306,7 +318,7 @@
 
 /* Parse structure button */
 .se-parse-btn {
-  @apply flex items-center gap-2 px-3 py-2 text-xs font-medium text-violet-400 border border-violet-500/30 hover:bg-violet-500/10 rounded-lg transition-colors;
+  @apply flex items-center gap-2 px-3 py-2 text-xs font-medium text-blue-400 border border-blue-500/30 hover:bg-blue-500/10 rounded-lg transition-colors;
 }
 
 /* Inline PDF preview */

@@ -45,8 +45,11 @@ const TABS = [
 /**
  * Modal for creating, editing, or importing a single application.
  */
-export default function ApplicationModal({ job, onClose }) {
-  const [form, setForm] = useState(toForm(job))
+export default function ApplicationModal({ job, onClose, defaultStage }) {
+  const [form, setForm] = useState(() => {
+    const base = toForm(job)
+    return defaultStage && !job ? { ...base, stage: defaultStage } : base
+  })
   const [tab, setTab] = useState('basics')
   const [saving, setSaving] = useState(false)
   const [importUrl, setImportUrl] = useState(job?.jobUrl ?? '')
@@ -115,16 +118,16 @@ export default function ApplicationModal({ job, onClose }) {
         <div className="modal-header">
           <div className="flex items-center gap-2.5">
             <div className="modal-header-icon">
-              <span className="text-violet-400 text-sm font-bold">+</span>
+              <span className="text-blue-400 text-sm font-bold">+</span>
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">{job ? 'Edit Application' : 'Single Import'}</h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-zinc-500">
                 {job ? 'Update this job opportunity' : 'Paste one job URL or enter details manually'}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-200 transition-colors mt-0.5">
+          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-200 transition-colors mt-0.5">
             <X size={17} />
           </button>
         </div>

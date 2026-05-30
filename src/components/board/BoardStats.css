@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .board-stats {
-  @apply flex gap-2 sm:gap-3 px-4 sm:px-6 py-3 border-b border-slate-700 overflow-x-auto;
+  @apply flex gap-2 sm:gap-3 px-4 sm:px-6 py-3 border-b border-zinc-700 overflow-x-auto;
   scrollbar-width: none;
 }
 
@@ -10,13 +10,13 @@
 }
 
 .board-stat-card {
-  @apply min-w-36 sm:min-w-0 sm:flex-1 bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2;
+  @apply min-w-36 sm:min-w-0 sm:flex-1 bg-zinc-800/60 border border-zinc-700 rounded-lg px-3 py-2;
 }
 
 .board-stat-label {
-  @apply text-xs text-slate-400 font-medium uppercase tracking-wide;
+  @apply text-xs text-zinc-400 font-medium uppercase tracking-wide;
 }
 
 .board-stat-sub {
-  @apply text-xs text-slate-500 mt-0.5;
+  @apply text-xs text-zinc-500 mt-0.5;
 }

@@ -53,10 +53,10 @@ export default function BulkImportModal({ onClose }) {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">Bulk Import Jobs</h2>
-              <p className="text-xs text-slate-500">Paste multiple job URLs; each valid URL is imported separately</p>
+              <p className="text-xs text-zinc-500">Paste multiple job URLs; each valid URL is imported separately</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-100 transition-colors">
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-100 transition-colors">
             <X size={17} />
           </button>
         </div>
@@ -73,7 +73,7 @@ export default function BulkImportModal({ onClose }) {
                 autoFocus
               />
               {(urls.length > 0 || invalid.length > 0) && (
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-xs text-zinc-500 mt-2">
                   {urls.length} valid URL{urls.length !== 1 ? 's' : ''} detected
                   {invalid.length > 0 && (
                     <span className="text-amber-400"> · {invalid.length} ignored</span>
@@ -104,21 +104,21 @@ export default function BulkImportModal({ onClose }) {
                 {items.map(item => (
                   <div key={item.id} className="bulk-item">
                     <div className="bulk-item-icon">
-                      {item.status === 'loading' && <Loader2 size={14} className="text-violet-400 animate-spin" />}
+                      {item.status === 'loading' && <Loader2 size={14} className="text-blue-400 animate-spin" />}
                       {item.status === 'success' && <CheckCircle2 size={14} className="text-green-400" />}
                       {item.status === 'error'   && <XCircle size={14} className="text-red-400" />}
-                      {item.status === 'idle'    && <div className="w-3.5 h-3.5 rounded-full border border-slate-600" />}
+                      {item.status === 'idle'    && <div className="w-3.5 h-3.5 rounded-full border border-zinc-600" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       {item.status === 'success' && item.result ? (
-                        <p className="text-xs font-medium text-slate-200 truncate">
+                        <p className="text-xs font-medium text-zinc-200 truncate">
                           {item.result.company} — {item.result.role}
                         </p>
                       ) : (
-                        <p className="text-xs text-slate-500 truncate">{item.url}</p>
+                        <p className="text-xs text-zinc-500 truncate">{item.url}</p>
                       )}
                       {item.status === 'loading' && (
-                        <p className="text-[10px] text-slate-500 mt-0.5">Importing...</p>
+                        <p className="text-[10px] text-zinc-500 mt-0.5">Importing...</p>
                       )}
                       {item.status === 'error' && (
                         <p className="text-[10px] text-red-400 mt-0.5">{item.error}</p>

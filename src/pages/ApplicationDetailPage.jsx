@@ -21,14 +21,20 @@ import './ApplicationDetailPage.css'
 const ROUND_TYPES = ['Phone Screen', 'Technical Interview', 'System Design', 'Behavioral', 'Final Round', 'Other']
 const ROUND_RESULTS = ['Pending', 'Passed', 'Failed']
 
-function getDomainFromUrl(url) {
-  if (!url) return ''
-
-  try {
-    return new URL(url).hostname.replace(/^www\./, '')
-  } catch {
-    return ''
+function getDomainFromJob(job) {
+  if (!job) return ''
+  // The logoUrl encodes the already-inferred company domain — extract it first.
+  if (job.logoUrl) {
+    try {
+      const domain = new URL(job.logoUrl).searchParams.get('domain')
+      if (domain) return domain
+    } catch {}
   }
+  // Fallback: derive from company name.
+  if (job.company) {
+    return job.company.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '') + '.com'
+  }
+  return ''
 }
 
 /**
@@ -113,7 +119,7 @@ export default function ApplicationDetailPage() {
   const [outreachDrafts, setOutreachDrafts] = useState([])
   const [draftingOutreach, setDraftingOutreach] = useState(false)
 
-  const defaultFinderDomain = useMemo(() => getDomainFromUrl(job?.jobUrl), [job?.jobUrl])
+  const defaultFinderDomain = useMemo(() => getDomainFromJob(job), [job?.logoUrl, job?.company])
   const finderDomain = finderDomainEdited ? finderDomainInput : defaultFinderDomain
 
   if (!loading && !job) {
@@ -124,7 +130,7 @@ export default function ApplicationDetailPage() {
   if (!job) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <Loader2 size={20} className="text-slate-400 animate-spin" />
+        <Loader2 size={20} className="text-zinc-400 animate-spin" />
       </div>
     )
   }
@@ -357,14 +363,11 @@ export default function ApplicationDetailPage() {
   }
 
   async function handleSelectRecruiter(r) {
-    const linkedin = r.linkedin
-      ? r.linkedin.startsWith('http') ? r.linkedin : `https://${r.linkedin}`
-      : ''
     await updateDoc(doc(db, 'users', user.uid, 'applications', job.id), {
       recruiterName: r.name,
       recruiterEmail: r.email,
       recruiterTitle: r.title ?? '',
-      recruiterLinkedIn: linkedin,
+      recruiterLinkedIn: '',
     })
     setFinderResults(null)
   }
@@ -408,7 +411,7 @@ export default function ApplicationDetailPage() {
       </div>
 
       <div className="px-4 py-4 sm:px-6 sm:py-5 max-w-7xl mx-auto">
-        <p className="text-xs text-slate-400 mb-4">WORKSPACE &rsaquo; {job.company?.toUpperCase()}</p>
+        <p className="text-xs text-zinc-400 mb-4">WORKSPACE &rsaquo; {job.company?.toUpperCase()}</p>
 
         <div className="flex items-start gap-3 sm:gap-4 mb-6">
           {job.logoUrl ? (
@@ -440,10 +443,10 @@ export default function ApplicationDetailPage() {
                 </button>
               </div>
             </div>
-            <p className="text-slate-400 mt-0.5">{job.role || 'No role'}</p>
+            <p className="text-zinc-400 mt-0.5">{job.role || 'No role'}</p>
             <div className="flex flex-wrap items-center gap-2 mt-2.5">
-              <span className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 ${stage?.textClass ?? 'text-slate-300'}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${stage?.dotClass ?? 'bg-slate-500'}`} />
+              <span className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700 ${stage?.textClass ?? 'text-zinc-300'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${stage?.dotClass ?? 'bg-zinc-500'}`} />
                 {stage?.label ?? job.stage}
               </span>
               {job.matchScore != null && (
@@ -451,28 +454,28 @@ export default function ApplicationDetailPage() {
                   {job.matchScore}% match
                 </span>
               )}
-              {salary && <span className="text-xs text-slate-300 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700">{salary}</span>}
-              {job.location && <span className="text-xs text-slate-300 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700">{job.location}</span>}
-              {appliedDate && <span className="text-xs text-slate-400 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700">Applied {appliedDate}</span>}
+              {salary && <span className="text-xs text-zinc-300 px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700">{salary}</span>}
+              {job.location && <span className="text-xs text-zinc-300 px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700">{job.location}</span>}
+              {appliedDate && <span className="text-xs text-zinc-400 px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700">Applied {appliedDate}</span>}
             </div>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div className="detail-action-card">
             <div className="flex items-center gap-2 mb-3">
-              <div className="detail-action-icon-violet">
-                <Sparkles size={13} className="text-violet-400" />
+              <div className="detail-action-icon-blue">
+                <Sparkles size={13} className="text-blue-400" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-white">
                   {job.matchScore != null ? `${job.matchScore}% Match Score` : 'AI Match Score'}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-zinc-400">
                   {job.matchScore != null ? 'View report · Re-analyze' : 'Run analysis'}
                 </p>
               </div>
             </div>
-            <button onClick={handleMatchResume} disabled={matching} className="detail-action-btn-violet">
+            <button onClick={handleMatchResume} disabled={matching} className="detail-action-btn-blue">
               {matching ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
               {matching ? 'Analyzing...' : job.matchScore != null ? 'Re-analyze' : 'Run Analysis'}
             </button>
@@ -488,17 +491,17 @@ export default function ApplicationDetailPage() {
             <Section title="Job Description" icon={FileText}>
               {job.jobDescription ? (
                 <div>
-                  <p className={`text-sm text-slate-300 leading-relaxed whitespace-pre-wrap ${!jdExpanded ? 'line-clamp-6' : ''}`}>
+                  <p className={`text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap ${!jdExpanded ? 'line-clamp-6' : ''}`}>
                     {job.jobDescription}
                   </p>
-                  <button onClick={() => setJdExpanded(x => !x)} className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 mt-2 transition-colors">
+                  <button onClick={() => setJdExpanded(x => !x)} className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 mt-2 transition-colors">
                     {jdExpanded ? <><ChevronUp size={12} /> Show less</> : <><ChevronDown size={12} /> Show more</>}
                   </button>
                 </div>
               ) : (
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-zinc-400">
                   No job description added.{' '}
-                  <button onClick={() => setEditing(true)} className="text-violet-400 hover:underline">Edit this application</button>{' '}
+                  <button onClick={() => setEditing(true)} className="text-blue-400 hover:underline">Edit this application</button>{' '}
                   to paste it in.
                 </p>
               )}
@@ -513,7 +516,7 @@ export default function ApplicationDetailPage() {
                         <p className="text-xs font-semibold text-green-400 uppercase tracking-wide mb-2">Strengths</p>
                         <ul className="space-y-2">
                           {job.matchHighlights.map((h, i) => (
-                            <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                            <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
                               <CheckCircle2 size={12} className="text-green-400 shrink-0 mt-0.5" /> {h}
                             </li>
                           ))}
@@ -525,7 +528,7 @@ export default function ApplicationDetailPage() {
                         <p className="text-xs font-semibold text-orange-400 uppercase tracking-wide mb-2">Gaps</p>
                         <ul className="space-y-2">
                           {job.matchGaps.map((g, i) => (
-                            <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                            <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
                               <AlertTriangle size={12} className="text-orange-400 shrink-0 mt-0.5" /> {g}
                             </li>
                           ))}
@@ -537,13 +540,13 @@ export default function ApplicationDetailPage() {
                 {job.matchSuggestions?.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold text-sky-400 uppercase tracking-wide mb-2">Suggested additions for your resume</p>
-                    <p className="text-xs text-slate-500 mb-3">Copy any of these directly into your master resume.</p>
+                    <p className="text-xs text-zinc-500 mb-3">Copy any of these directly into your master resume.</p>
                     <div className="space-y-2">
                       {job.matchSuggestions.map((s, i) => (
-                        <div key={i} className="flex items-start gap-2 p-2.5 bg-slate-800/60 border border-slate-700 rounded-lg group">
+                        <div key={i} className="flex items-start gap-2 p-2.5 bg-zinc-800/60 border border-zinc-700 rounded-lg group">
                           <div className="flex-1 min-w-0">
                             <p className="text-[10px] font-semibold text-sky-400 uppercase tracking-wide mb-0.5">{s.section}</p>
-                            <p className="text-xs text-slate-300 leading-relaxed">{s.suggestion}</p>
+                            <p className="text-xs text-zinc-300 leading-relaxed">{s.suggestion}</p>
                           </div>
                           <button
                             onClick={() => {
@@ -551,7 +554,7 @@ export default function ApplicationDetailPage() {
                               setCopiedIdx(i)
                               setTimeout(() => setCopiedIdx(null), 2000)
                             }}
-                            className="shrink-0 p-1 text-slate-500 hover:text-slate-200 transition-colors"
+                            className="shrink-0 p-1 text-zinc-500 hover:text-zinc-200 transition-colors"
                             title="Copy to clipboard"
                           >
                             {copiedIdx === i
@@ -568,7 +571,7 @@ export default function ApplicationDetailPage() {
             )}
 
             <Section title="Tailored Resume" icon={Wand2}>
-              <p className="text-xs text-slate-400 mb-4">
+              <p className="text-xs text-zinc-400 mb-4">
                 Generate a version of your resume optimised for this specific role. You can edit and download it as a PDF.
                 {job.matchScore == null && <span className="text-orange-400 ml-1">Run AI match analysis first for better results.</span>}
               </p>
@@ -577,21 +580,21 @@ export default function ApplicationDetailPage() {
                   <div className="flex items-center justify-between gap-3 p-3 bg-green-500/5 border border-green-500/20 rounded-xl mb-2">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 size={14} className="text-green-400 shrink-0" />
-                      <p className="text-xs text-slate-300">Tailored resume saved for this job</p>
+                      <p className="text-xs text-zinc-300">Tailored resume saved for this job</p>
                     </div>
                     <button
                       onClick={() => setResumeModalOpen(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 border border-zinc-700 hover:bg-zinc-700 rounded-lg transition-colors"
                     >
                       <Eye size={11} /> View / Edit
                     </button>
                   </div>
                   {job.tailoredMatchScore != null ? (
-                    <div className="flex items-center justify-between gap-3 p-3 bg-slate-800/60 border border-slate-700 rounded-xl mb-4">
+                    <div className="flex items-center justify-between gap-3 p-3 bg-zinc-800/60 border border-zinc-700 rounded-xl mb-4">
                       <div className="flex items-center gap-3">
-                        <TrendingUp size={14} className="text-violet-400 shrink-0" />
+                        <TrendingUp size={14} className="text-blue-400 shrink-0" />
                         <div>
-                          <p className="text-xs text-slate-400">Tailored resume score</p>
+                          <p className="text-xs text-zinc-400">Tailored resume score</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className={`text-sm font-bold ${job.tailoredMatchScore >= 75 ? 'text-green-400' : job.tailoredMatchScore >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
                               {job.tailoredMatchScore}%
@@ -599,7 +602,7 @@ export default function ApplicationDetailPage() {
                             {job.matchScore != null && (() => {
                               const delta = job.tailoredMatchScore - job.matchScore
                               return (
-                                <span className={`text-xs font-medium ${delta > 0 ? 'text-green-400' : delta < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                                <span className={`text-xs font-medium ${delta > 0 ? 'text-green-400' : delta < 0 ? 'text-red-400' : 'text-zinc-400'}`}>
                                   {delta > 0 ? `+${delta}` : delta} pts vs base ({job.matchScore}%)
                                 </span>
                               )
@@ -610,7 +613,7 @@ export default function ApplicationDetailPage() {
                       <button
                         onClick={handleMatchTailoredResume}
                         disabled={matchingTailored}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors shrink-0 disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 border border-zinc-700 hover:bg-zinc-700 rounded-lg transition-colors shrink-0 disabled:opacity-50"
                       >
                         {matchingTailored ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
                         {matchingTailored ? 'Scoring...' : 'Re-score'}
@@ -620,7 +623,7 @@ export default function ApplicationDetailPage() {
                     <button
                       onClick={handleMatchTailoredResume}
                       disabled={matchingTailored}
-                      className="w-full flex items-center justify-center gap-1.5 py-2 mb-4 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
+                      className="w-full flex items-center justify-center gap-1.5 py-2 mb-4 text-xs font-medium text-zinc-300 border border-zinc-700 hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50"
                     >
                       {matchingTailored ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
                       {matchingTailored ? 'Scoring...' : 'Score tailored resume'}
@@ -629,18 +632,18 @@ export default function ApplicationDetailPage() {
                 </>
               )}
               {tailorDraft?.suggestions.length > 0 && (
-                <div className="p-4 bg-violet-500/5 border border-violet-500/20 rounded-xl mb-4">
-                  <p className="text-xs font-semibold text-violet-400 uppercase tracking-wide mb-2.5">What was improved</p>
+                <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl mb-4">
+                  <p className="text-xs font-semibold text-blue-400 uppercase tracking-wide mb-2.5">What was improved</p>
                   <ul className="space-y-1.5">
                     {tailorDraft.suggestions.map((s, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
-                        <span className="text-violet-400 shrink-0 mt-0.5">→</span> {s}
+                      <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="text-blue-400 shrink-0 mt-0.5">→</span> {s}
                       </li>
                     ))}
                   </ul>
                   <button
                     onClick={() => setResumeModalOpen(true)}
-                    className="flex items-center gap-1.5 mt-3 px-3 py-1.5 text-xs font-medium text-violet-300 border border-violet-600/40 bg-violet-600/10 hover:bg-violet-600/20 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 mt-3 px-3 py-1.5 text-xs font-medium text-blue-300 border border-blue-600/40 bg-blue-600/10 hover:bg-blue-600/20 rounded-lg transition-colors"
                   >
                     <Eye size={11} /> Open in editor
                   </button>
@@ -662,14 +665,14 @@ export default function ApplicationDetailPage() {
                 rows={8}
                 className="detail-form-textarea"
               />
-              {notesSaving && <p className="text-xs text-slate-400 mt-1">Saving...</p>}
+              {notesSaving && <p className="text-xs text-zinc-400 mt-1">Saving...</p>}
             </Section>
           </div>
           <div className="min-w-0 space-y-5">
 
             <Section title="My To-Dos" icon={CheckCircle2} badge={`${completedTodos}/${todos.length}`}>
-              <div className="w-full bg-slate-800 rounded-full h-1 mb-4">
-                <div className="todo-progress bg-violet-500 h-1 rounded-full transition-all"
+              <div className="w-full bg-zinc-800 rounded-full h-1 mb-4">
+                <div className="todo-progress bg-blue-500 h-1 rounded-full transition-all"
                   style={{ '--progress-w': `${(completedTodos / todos.length) * 100}%` }} />
               </div>
               <div className="space-y-3">
@@ -677,13 +680,13 @@ export default function ApplicationDetailPage() {
                   <div key={todo.id} className="flex items-start gap-3">
                     {todo.done
                       ? <CheckCircle2 size={15} className="text-green-400 shrink-0 mt-0.5" />
-                      : <Circle size={15} className="text-slate-600 shrink-0 mt-0.5" />
+                      : <Circle size={15} className="text-zinc-600 shrink-0 mt-0.5" />
                     }
                     <div>
-                      <p className={`text-xs font-medium ${todo.done ? 'text-slate-500 line-through' : 'text-slate-200'}`}>
+                      <p className={`text-xs font-medium ${todo.done ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>
                         {todo.label}
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{todo.desc}</p>
+                      <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">{todo.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -694,7 +697,7 @@ export default function ApplicationDetailPage() {
               title="Interview Rounds"
               icon={Calendar}
               action={
-                <button onClick={() => setAddingRound(x => !x)} className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                <button onClick={() => setAddingRound(x => !x)} className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors">
                   <Plus size={12} /> Add Round
                 </button>
               }
@@ -716,12 +719,12 @@ export default function ApplicationDetailPage() {
                         {ROUND_RESULTS.map(r => <option key={r}>{r}</option>)}
                       </select>
                       <textarea value={newRound.notes} onChange={e => setNewRound(r => ({ ...r, notes: e.target.value }))}
-                        placeholder="Notes (optional)" rows={2} className="detail-form-select w-full resize-none placeholder-slate-600" />
+                        placeholder="Notes (optional)" rows={2} className="detail-form-select w-full resize-none placeholder-zinc-600" />
                       <div className="flex flex-col sm:flex-row gap-2">
-                        <button onClick={handleAddRound} className="flex-1 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors">
+                        <button onClick={handleAddRound} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors">
                           Save Round
                         </button>
-                        <button onClick={() => setAddingRound(false)} className="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">
+                        <button onClick={() => setAddingRound(false)} className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
                           Cancel
                         </button>
                       </div>
@@ -729,7 +732,7 @@ export default function ApplicationDetailPage() {
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-slate-400">No interview rounds tracked yet.</p>
+                <p className="text-sm text-zinc-400">No interview rounds tracked yet.</p>
               )}
             </Section>
             {(job.source || job.nextStep || addedDate || updatedDate) && (
@@ -737,14 +740,14 @@ export default function ApplicationDetailPage() {
                 {job.source && <MetaRow label="Source" value={job.source} />}
                 {job.nextStep && (
                   <div>
-                    <p className="text-xs text-slate-400 font-medium mb-1">Next Step</p>
-                    <p className="text-xs text-slate-300">{job.nextStep}</p>
+                    <p className="text-xs text-zinc-400 font-medium mb-1">Next Step</p>
+                    <p className="text-xs text-zinc-300">{job.nextStep}</p>
                   </div>
                 )}
                 {addedDate && <MetaRow label="Added" value={addedDate} />}
                 {updatedDate && <MetaRow label="Updated" value={updatedDate} />}
-                <div className="pt-1 border-t border-slate-800">
-                  <Link to="/resumes" className="flex items-center gap-2 text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                <div className="pt-1 border-t border-zinc-800">
+                  <Link to="/resumes" className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors">
                     <FileText size={12} /> Manage resumes →
                   </Link>
                 </div>
@@ -765,7 +768,7 @@ export default function ApplicationDetailPage() {
             <aside className="detail-sidebar-card">
               <p className="detail-sidebar-label">Recruiter</p>
 
-              {(job.recruiterName || job.recruiterEmail || job.recruiterLinkedIn) && (
+              {(job.recruiterName || job.recruiterEmail) && (
                 <div className="space-y-2 mb-4">
                   {editingRecruiter ? (
                     <div className="space-y-2">
@@ -794,10 +797,10 @@ export default function ApplicationDetailPage() {
                         className="detail-form-select w-full text-xs"
                       />
                       <div className="flex flex-col sm:flex-row gap-2">
-                        <button onClick={handleSaveRecruiter} className="flex-1 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors">
+                        <button onClick={handleSaveRecruiter} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors">
                           Save
                         </button>
-                        <button onClick={() => setEditingRecruiter(false)} className="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">
+                        <button onClick={() => setEditingRecruiter(false)} className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
                           Cancel
                         </button>
                         <button onClick={handleClearRecruiter} className="px-3 py-1.5 text-xs text-red-400 hover:text-red-300 transition-colors">
@@ -810,30 +813,30 @@ export default function ApplicationDetailPage() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-1.5">
                           {job.recruiterName && <p className="text-sm font-medium text-white">{job.recruiterName}</p>}
-                          {job.recruiterTitle && <p className="text-xs text-slate-400">{job.recruiterTitle}</p>}
+                          {job.recruiterTitle && <p className="text-xs text-zinc-400">{job.recruiterTitle}</p>}
                           {job.recruiterEmail && (
-                            <a href={`mailto:${job.recruiterEmail}`} className="flex items-center gap-2 text-xs text-violet-400 hover:underline">
+                            <a href={`mailto:${job.recruiterEmail}`} className="flex items-center gap-2 text-xs text-blue-400 hover:underline">
                               <Mail size={11} /> {job.recruiterEmail}
                             </a>
                           )}
-                          {job.recruiterLinkedIn && (
-                            <a href={job.recruiterLinkedIn} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-violet-400 hover:underline">
+                          {job.recruiterLinkedIn && !job.recruiterLinkedIn.includes('linkedin.com/jobs') && (
+                            <a href={job.recruiterLinkedIn} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-blue-400 hover:underline">
                               <ExternalLink size={11} /> LinkedIn Profile
                             </a>
                           )}
                         </div>
-                        <button onClick={startEditRecruiter} className="shrink-0 text-slate-500 hover:text-slate-300 transition-colors mt-0.5">
+                        <button onClick={startEditRecruiter} className="shrink-0 text-zinc-500 hover:text-zinc-300 transition-colors mt-0.5">
                           <Pencil size={12} />
                         </button>
                       </div>
                       {job.recruiterName && <OutreachCard job={job} />}
                     </>
                   )}
-                  <div className="border-t border-slate-800 pt-1" />
+                  <div className="border-t border-zinc-800 pt-1" />
                 </div>
               )}
 
-              <p className="text-xs text-slate-500 mb-2">Search by company domain</p>
+              <p className="text-xs text-zinc-500 mb-2">Search by company domain</p>
               <div className="flex flex-col sm:flex-row gap-2 mb-2">
                 <input
                   type="text"
@@ -851,7 +854,7 @@ export default function ApplicationDetailPage() {
                 <button
                   onClick={handleFindRecruiter}
                   disabled={finding || !finderDomain.trim()}
-                  className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg transition-colors shrink-0"
+                  className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg transition-colors shrink-0"
                 >
                   {finding ? <Loader2 size={11} className="animate-spin" /> : <Search size={11} />}
                   {finding ? 'Searching…' : 'Search'}
@@ -862,12 +865,12 @@ export default function ApplicationDetailPage() {
 
               {finderResults !== null && finderResults.length === 0 && (
                 <div className="mt-2">
-                  <p className="text-xs text-slate-400 mb-2">No recruiters found via Hunter.io.</p>
+                  <p className="text-xs text-zinc-400 mb-2">No recruiters found via Hunter.io.</p>
                   <a
                     href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`recruiter ${job.company}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-xs text-violet-400 hover:underline"
+                    className="flex items-center gap-1.5 text-xs text-blue-400 hover:underline"
                   >
                     <ExternalLink size={11} /> Search LinkedIn instead
                   </a>
@@ -877,7 +880,7 @@ export default function ApplicationDetailPage() {
               {finderResults?.length > 0 && (
                 <div className="space-y-2 mt-2">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-slate-500">Select recruiters to contact</p>
+                    <p className="text-xs text-zinc-500">Select recruiters to contact</p>
                     {finderFromCache && (
                       <span className="text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 px-1.5 py-0.5 rounded-full">
                         from cache · no API call
@@ -893,15 +896,15 @@ export default function ApplicationDetailPage() {
                         onClick={() => !alreadyContacted && toggleRecruiterSelection(i)}
                         className={`w-full text-left p-2.5 rounded-lg border transition-colors ${
                           alreadyContacted
-                            ? 'bg-slate-800/40 border-slate-700/50 opacity-60 cursor-default'
+                            ? 'bg-zinc-800/40 border-zinc-700/50 opacity-60 cursor-default'
                             : checked
-                              ? 'bg-violet-600/10 border-violet-500/40 cursor-pointer'
-                              : 'bg-slate-800 hover:bg-slate-700 border-slate-700 hover:border-slate-600 cursor-pointer'
+                              ? 'bg-blue-600/10 border-blue-500/40 cursor-pointer'
+                              : 'bg-zinc-800 hover:bg-zinc-700 border-zinc-700 hover:border-zinc-600 cursor-pointer'
                         }`}
                       >
                         <div className="flex items-start gap-2">
                           {!alreadyContacted && (
-                            <div className={`w-3.5 h-3.5 rounded border shrink-0 mt-0.5 flex items-center justify-center transition-colors ${checked ? 'bg-violet-600 border-violet-500' : 'border-slate-600'}`}>
+                            <div className={`w-3.5 h-3.5 rounded border shrink-0 mt-0.5 flex items-center justify-center transition-colors ${checked ? 'bg-blue-600 border-blue-500' : 'border-zinc-600'}`}>
                               {checked && <Check size={9} className="text-white" />}
                             </div>
                           )}
@@ -914,14 +917,14 @@ export default function ApplicationDetailPage() {
                                 </span>
                               )}
                             </div>
-                            {r.title && <p className="text-[11px] text-slate-400 mt-0.5">{r.title}</p>}
-                            <p className="text-[11px] text-violet-400 mt-0.5">{r.email}</p>
-                            <p className="text-[10px] text-slate-500 mt-0.5">{r.confidence}% confidence</p>
+                            {r.title && <p className="text-[11px] text-zinc-400 mt-0.5">{r.title}</p>}
+                            <p className="text-[11px] text-blue-400 mt-0.5">{r.email}</p>
+                            <p className="text-[10px] text-zinc-500 mt-0.5">{r.confidence}% confidence</p>
                           </div>
                           {!alreadyContacted && (
                             <button
                               onClick={e => { e.stopPropagation(); handleSelectRecruiter(r) }}
-                              className="shrink-0 text-[10px] text-slate-500 hover:text-slate-300 px-1.5 py-0.5 rounded border border-slate-700 hover:border-slate-500 transition-colors mt-0.5"
+                              className="shrink-0 text-[10px] text-zinc-500 hover:text-zinc-300 px-1.5 py-0.5 rounded border border-zinc-700 hover:border-zinc-500 transition-colors mt-0.5"
                             >
                               Save
                             </button>
@@ -934,7 +937,7 @@ export default function ApplicationDetailPage() {
                     <button
                       onClick={handleDraftMultipleOutreach}
                       disabled={draftingOutreach}
-                      className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg transition-colors"
+                      className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg transition-colors"
                     >
                       {draftingOutreach ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />}
                       {draftingOutreach
@@ -947,7 +950,7 @@ export default function ApplicationDetailPage() {
 
               {outreachDrafts.length > 0 && (
                 <div className="mt-3 space-y-4">
-                  <p className="text-xs font-semibold text-slate-300">Outreach Drafts ({outreachDrafts.length})</p>
+                  <p className="text-xs font-semibold text-zinc-300">Outreach Drafts ({outreachDrafts.length})</p>
                   {outreachDrafts.map((d, i) => (
                     <MultiOutreachDraft key={i} draft={d} />
                   ))}
@@ -992,7 +995,7 @@ function Section({ title, icon: Icon, badge, action, children }) {
     <div className="detail-section-card">
       <div className="detail-section-header">
         <div className="detail-section-title">
-          <Icon size={14} className="text-slate-400" />
+          <Icon size={14} className="text-zinc-400" />
           <h3 className="text-sm font-semibold text-white">{title}</h3>
           {badge && <span className="detail-section-badge">{badge}</span>}
         </div>
@@ -1006,7 +1009,7 @@ function Section({ title, icon: Icon, badge, action, children }) {
 function RoundRow({ round, onDelete }) {
   const resultColor = round.result === 'Passed' ? 'text-green-400 bg-green-500/10'
     : round.result === 'Failed' ? 'text-red-400 bg-red-500/10'
-    : 'text-slate-400 bg-slate-800'
+    : 'text-zinc-400 bg-zinc-800'
 
   const dateStr = round.date
     ? new Date(round.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -1019,10 +1022,10 @@ function RoundRow({ round, onDelete }) {
           <p className="text-sm font-medium text-white">{round.type}</p>
           <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${resultColor}`}>{round.result}</span>
         </div>
-        {dateStr && <p className="text-xs text-slate-400">{dateStr}</p>}
-        {round.notes && <p className="text-xs text-slate-400 mt-1">{round.notes}</p>}
+        {dateStr && <p className="text-xs text-zinc-400">{dateStr}</p>}
+        {round.notes && <p className="text-xs text-zinc-400 mt-1">{round.notes}</p>}
       </div>
-      <button onClick={onDelete} className="text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5">
+      <button onClick={onDelete} className="text-zinc-600 hover:text-red-400 transition-colors shrink-0 mt-0.5">
         <Trash2 size={13} />
       </button>
     </div>
@@ -1032,8 +1035,8 @@ function RoundRow({ round, onDelete }) {
 function MetaRow({ label, value }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-slate-400 font-medium shrink-0">{label}</span>
-      <span className="text-xs text-slate-300 text-right">{value}</span>
+      <span className="text-xs text-zinc-400 font-medium shrink-0">{label}</span>
+      <span className="text-xs text-zinc-300 text-right">{value}</span>
     </div>
   )
 }
@@ -1045,15 +1048,15 @@ function MultiOutreachDraft({ draft }) {
   const linkedInSearchUrl = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`${draft.recruiter.name} ${draft.recruiter.email?.split('@')[1]?.split('.')[0] ?? ''}`)}`
 
   return (
-    <div className="p-3 bg-slate-800/60 border border-slate-700 rounded-xl space-y-3">
+    <div className="p-3 bg-zinc-800/60 border border-zinc-700 rounded-xl space-y-3">
       <div>
         <p className="text-xs font-semibold text-white">{draft.recruiter.name}</p>
-        {draft.recruiter.title && <p className="text-[11px] text-slate-400">{draft.recruiter.title}</p>}
-        <p className="text-[11px] text-violet-400">{draft.recruiter.email}</p>
+        {draft.recruiter.title && <p className="text-[11px] text-zinc-400">{draft.recruiter.title}</p>}
+        <p className="text-[11px] text-blue-400">{draft.recruiter.email}</p>
       </div>
 
       <div>
-        <p className="text-[10px] font-medium text-slate-400 mb-1">Subject: {draft.emailSubject}</p>
+        <p className="text-[10px] font-medium text-zinc-400 mb-1">Subject: {draft.emailSubject}</p>
         <textarea
           value={emailBody}
           onChange={e => setEmailBody(e.target.value)}
@@ -1064,16 +1067,16 @@ function MultiOutreachDraft({ draft }) {
           href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(draft.recruiter.email)}&su=${encodeURIComponent(draft.emailSubject ?? '')}&body=${encodeURIComponent(emailBody)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-1.5 flex items-center justify-center gap-1.5 w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+          className="mt-1.5 flex items-center justify-center gap-1.5 w-full py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
         >
           <Mail size={11} /> Open in Gmail
         </a>
       </div>
 
       {draft.linkedInMessage && (
-        <div className="pt-2 border-t border-slate-700/60">
-          <p className="text-[10px] font-medium text-slate-400 mb-1.5">LinkedIn message</p>
-          <p className="text-xs text-slate-300 leading-relaxed bg-slate-800 border border-slate-700 rounded-lg p-2">
+        <div className="pt-2 border-t border-zinc-700/60">
+          <p className="text-[10px] font-medium text-zinc-400 mb-1.5">LinkedIn message</p>
+          <p className="text-xs text-zinc-300 leading-relaxed bg-zinc-800 border border-zinc-700 rounded-lg p-2">
             {draft.linkedInMessage}
           </p>
           <div className="flex gap-2 mt-1.5">
@@ -1083,7 +1086,7 @@ function MultiOutreachDraft({ draft }) {
                 setCopiedLinkedIn(true)
                 setTimeout(() => setCopiedLinkedIn(false), 2000)
               }}
-              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
             >
               {copiedLinkedIn ? <ClipboardCheck size={11} className="text-green-400" /> : <Copy size={11} />}
               {copiedLinkedIn ? 'Copied!' : 'Copy'}
@@ -1092,7 +1095,7 @@ function MultiOutreachDraft({ draft }) {
               href={linkedInSearchUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
             >
               <ExternalLink size={11} /> LinkedIn
             </a>
@@ -1140,7 +1143,7 @@ function OutreachCard({ job }) {
         <button
           onClick={handleDraft}
           disabled={drafting}
-          className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-zinc-300 border border-zinc-700 hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50"
         >
           {drafting ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />}
           {drafting ? 'Drafting outreach...' : 'Draft outreach message'}
@@ -1153,10 +1156,10 @@ function OutreachCard({ job }) {
     <div className="space-y-3 pt-2">
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <p className="text-xs font-semibold text-slate-300">Email Draft</p>
-          <button onClick={() => setDraft(null)} className="text-xs text-slate-500 hover:text-slate-300">Clear</button>
+          <p className="text-xs font-semibold text-zinc-300">Email Draft</p>
+          <button onClick={() => setDraft(null)} className="text-xs text-zinc-500 hover:text-zinc-300">Clear</button>
         </div>
-        <p className="text-[11px] font-medium text-slate-400 mb-1.5">Subject: {draft.emailSubject}</p>
+        <p className="text-[11px] font-medium text-zinc-400 mb-1.5">Subject: {draft.emailSubject}</p>
         <textarea
           value={emailBody}
           onChange={e => setEmailBody(e.target.value)}
@@ -1168,16 +1171,16 @@ function OutreachCard({ job }) {
             href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(job.recruiterEmail)}&su=${encodeURIComponent(draft.emailSubject ?? '')}&body=${encodeURIComponent(emailBody)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 flex items-center justify-center gap-1.5 w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+            className="mt-2 flex items-center justify-center gap-1.5 w-full py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
           >
             <Mail size={11} /> Open in Gmail
           </a>
         )}
       </div>
       {draft.linkedInMessage && (
-        <div className="pt-3 border-t border-slate-800">
-          <p className="text-xs font-semibold text-slate-300 mb-1.5">LinkedIn Message</p>
-          <p className="text-xs text-slate-300 leading-relaxed bg-slate-800/60 border border-slate-700 rounded-lg p-2.5">
+        <div className="pt-3 border-t border-zinc-800">
+          <p className="text-xs font-semibold text-zinc-300 mb-1.5">LinkedIn Message</p>
+          <p className="text-xs text-zinc-300 leading-relaxed bg-zinc-800/60 border border-zinc-700 rounded-lg p-2.5">
             {draft.linkedInMessage}
           </p>
           <div className="flex gap-2 mt-2">
@@ -1187,7 +1190,7 @@ function OutreachCard({ job }) {
                 setCopiedLinkedIn(true)
                 setTimeout(() => setCopiedLinkedIn(false), 2000)
               }}
-              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
             >
               {copiedLinkedIn ? <ClipboardCheck size={11} className="text-green-400" /> : <Copy size={11} />}
               {copiedLinkedIn ? 'Copied!' : 'Copy message'}
@@ -1196,7 +1199,7 @@ function OutreachCard({ job }) {
               href={linkedInSearchUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
             >
               <ExternalLink size={11} /> LinkedIn
             </a>
@@ -1237,14 +1240,14 @@ function FollowUpCard({ job }) {
       <div className="detail-action-card">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-semibold text-white">Follow-Up Draft</p>
-          <button onClick={() => setDraft(null)} className="text-xs text-slate-400 hover:text-slate-200">Clear</button>
+          <button onClick={() => setDraft(null)} className="text-xs text-zinc-400 hover:text-zinc-200">Clear</button>
         </div>
-        <p className="text-[11px] font-medium text-slate-400 mb-1">Subject: {draft.subject}</p>
-        <p className="text-xs text-slate-300 leading-relaxed line-clamp-4">{draft.body}</p>
+        <p className="text-[11px] font-medium text-zinc-400 mb-1">Subject: {draft.subject}</p>
+        <p className="text-xs text-zinc-300 leading-relaxed line-clamp-4">{draft.body}</p>
         {job.recruiterEmail && (
           <a
             href={`mailto:${job.recruiterEmail}?subject=${encodeURIComponent(draft.subject ?? '')}&body=${encodeURIComponent(draft.body ?? '')}`}
-            className="mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+            className="mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
           >
             <Mail size={11} /> Open in Email
           </a>
@@ -1261,7 +1264,7 @@ function FollowUpCard({ job }) {
         </div>
         <div>
           <p className="text-xs font-semibold text-white">Draft Follow-Up</p>
-          <p className="text-xs text-slate-400">Generate a tailored email</p>
+          <p className="text-xs text-zinc-400">Generate a tailored email</p>
         </div>
       </div>
       <button onClick={handleDraft} disabled={drafting} className="detail-action-btn-green">
