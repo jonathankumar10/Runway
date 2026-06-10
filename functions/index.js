@@ -1003,7 +1003,7 @@ async function sendEmail(to, subject, text) {
 // Get your free key at: https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch
 // Set it with: firebase functions:secrets:set JSEARCH_API_KEY
 exports.searchJobs = onCall({ secrets: [JSEARCH_API_KEY], cors: true, timeoutSeconds: 30 }, async (request) => {
-  const { keyword, location, workplaceTypes, willingToSponsor, employmentTypes, page } = request.data
+  const { keyword, city, country, workplaceTypes, willingToSponsor, employmentTypes, postedDate, page } = request.data
 
   if (!keyword || typeof keyword !== 'string' || !keyword.trim()) {
     return { error: 'KEYWORD_REQUIRED' }
@@ -1011,7 +1011,7 @@ exports.searchJobs = onCall({ secrets: [JSEARCH_API_KEY], cors: true, timeoutSec
 
   try {
     // JSearch combines keyword + location into a single query string
-    const query = [keyword.trim(), location?.trim()].filter(Boolean).join(' in ')
+    const query = [keyword.trim(), city?.trim()].filter(Boolean).join(' in ')
 
     // Map frontend date codes → JSearch values
     const dateMap = { ONE: 'today', THREE: '3days', SEVEN: 'week', MONTH: 'month' }
@@ -1020,6 +1020,7 @@ exports.searchJobs = onCall({ secrets: [JSEARCH_API_KEY], cors: true, timeoutSec
       page: String(page || 1),
       num_pages: '1',
       date_posted: dateMap[postedDate] || 'week',
+      country: country || 'us',
     })
 
     // Map our filter values to JSearch params

@@ -116,10 +116,10 @@ export function useAI() {
     return result.data
   }
 
-  /** Searches Dice job listings with keyword + filters. */
-  async function searchJobs({ keyword, location, workplaceTypes, employmentTypes, willingToSponsor, postedDate, page }) {
+  /** Searches job listings with keyword + NA region filters. */
+  async function searchJobs({ keyword, city, country, workplaceTypes, employmentTypes, willingToSponsor, postedDate, page }) {
     const fn = httpsCallable(functions, 'searchJobs', { timeout: 30000 })
-    const result = await fn({ keyword, location, workplaceTypes, employmentTypes, willingToSponsor, postedDate, page })
+    const result = await fn({ keyword, city, country, workplaceTypes, employmentTypes, willingToSponsor, postedDate, page })
     return result.data
   }
 

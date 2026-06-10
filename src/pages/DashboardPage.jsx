@@ -8,19 +8,41 @@ import NextMoves from '../components/dashboard/NextMoves'
 import OutreachInsights from '../components/dashboard/OutreachInsights'
 import TargetCompaniesInsights from '../components/dashboard/TargetCompaniesInsights'
 
-function StatCard({ label, value, sub, icon: Icon, iconColor }) {
+function StatCard({ label, value, sub, icon: Icon, iconColor, delay = 0 }) {
+  function handleMouseMove(e) {
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+    const angle = Math.atan2(
+      e.clientY - rect.top - rect.height / 2,
+      e.clientX - rect.left - rect.width / 2
+    ) * (180 / Math.PI) + 180
+    card.style.setProperty('--start', angle)
+    card.style.setProperty('--active', '1')
+  }
+  function handleMouseLeave(e) {
+    e.currentTarget.style.setProperty('--active', '0')
+  }
+
   return (
-    <div className="bg-zinc-800/60 border border-zinc-700 rounded-xl p-4">
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-zinc-400">{label}</p>
-        {Icon && (
-          <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0">
-            <Icon size={13} className={iconColor} />
-          </div>
-        )}
+    <div
+      className="card-enter glow-card overflow-hidden bg-zinc-800/60 border border-zinc-700 rounded-xl p-4"
+      style={{ animationDelay: `${delay}ms` }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="glows" />
+      <div className="relative z-[1]">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs text-zinc-400">{label}</p>
+          {Icon && (
+            <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0">
+              <Icon size={13} className={iconColor} />
+            </div>
+          )}
+        </div>
+        <p className="text-2xl font-bold text-white">{value}</p>
+        {sub && <p className="text-xs text-zinc-500 mt-0.5">{sub}</p>}
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      {sub && <p className="text-xs text-zinc-500 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -55,10 +77,10 @@ export default function DashboardPage() {
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <StatCard label="Total Applied" value={totalApplied} icon={Send} iconColor="text-blue-400" />
-        <StatCard label="Interviews" value={interviewed} sub={`${interviewRate}% interview rate`} icon={Users} iconColor="text-blue-400" />
-        <StatCard label="Offers" value={offers} sub={`${offerRate}% offer rate`} icon={Trophy} iconColor="text-emerald-400" />
-        <StatCard label="Response Rate" value={`${responseRate}%`} sub={`${responded} of ${totalApplied} replied`} icon={MailOpen} iconColor="text-amber-400" />
+        <StatCard label="Total Applied" value={totalApplied} icon={Send} iconColor="text-blue-400" delay={0} />
+        <StatCard label="Interviews" value={interviewed} sub={`${interviewRate}% interview rate`} icon={Users} iconColor="text-blue-400" delay={75} />
+        <StatCard label="Offers" value={offers} sub={`${offerRate}% offer rate`} icon={Trophy} iconColor="text-emerald-400" delay={150} />
+        <StatCard label="Response Rate" value={`${responseRate}%`} sub={`${responded} of ${totalApplied} replied`} icon={MailOpen} iconColor="text-amber-400" delay={225} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <PipelineFunnel />

@@ -167,6 +167,16 @@ body {
   mask-composite: intersect;
 }
 
+/* Shared entrance animation for cards */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-enter {
+  animation: card-enter 0.4s ease both;
+}
+
 /* Login page dot-grid background */
 .dot-grid {
   background-image: radial-gradient(circle, #ffffff 1px, transparent 1px);

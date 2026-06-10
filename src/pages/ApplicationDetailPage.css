@@ -1,5 +1,10 @@
 @reference "tailwindcss";
 
+@keyframes detail-enter {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .detail-topnav {
   @apply sticky top-0 z-10 bg-zinc-950/80 backdrop-blur-sm px-4 sm:px-8 py-3 border-b border-zinc-700 flex items-center justify-between;
 }
@@ -26,6 +31,7 @@
 
 .detail-action-card {
   @apply bg-zinc-900 border border-zinc-700 rounded-xl p-4;
+  animation: detail-enter 0.35s ease both;
 }
 
 .detail-action-icon-blue {
@@ -54,6 +60,7 @@
 
 .detail-section-card {
   @apply bg-zinc-900 border border-zinc-700 rounded-xl p-4 sm:p-5;
+  animation: detail-enter 0.35s ease both;
 }
 
 .detail-section-header {
@@ -90,6 +97,7 @@
 
 .detail-sidebar-card {
   @apply bg-zinc-900 border border-zinc-700 rounded-xl p-4;
+  animation: detail-enter 0.35s ease both;
 }
 
 .detail-sidebar-label {

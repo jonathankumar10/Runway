@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Search, MapPin, Loader2, ExternalLink, CheckCircle2,
-  Briefcase, ChevronLeft, ChevronRight, SlidersHorizontal,
+  Briefcase, ChevronLeft, ChevronRight, SlidersHorizontal, Globe,
 } from 'lucide-react'
 import { useAuth } from '../context/auth'
 import { useAI } from '../hooks/useAI'
@@ -14,6 +14,15 @@ const POSTED_OPTIONS = [
   { label: 'Last 24 hours', value: 'ONE' },
   { label: 'Last 3 days', value: 'THREE' },
   { label: 'Last 7 days', value: 'SEVEN' },
+]
+const COUNTRIES = [
+  { label: 'United States', value: 'us' },
+  { label: 'Canada', value: 'ca' },
+]
+const TECH_ROLES = [
+  'Software Engineer', 'Frontend Engineer', 'Backend Engineer', 'Full Stack Engineer',
+  'Data Engineer', 'ML Engineer', 'DevOps Engineer', 'Data Scientist',
+  'Mobile Engineer', 'Security Engineer', 'Product Manager', 'QA Engineer',
 ]
 
 function relativeDate(iso) {
@@ -150,7 +159,8 @@ export default function DiscoverPage() {
   const { addJob } = useJobMutations()
 
   const [keyword, setKeyword] = useState('Software Engineer')
-  const [location, setLocation] = useState('')
+  const [city, setCity] = useState('')
+  const [country, setCountry] = useState('us')
   const [workplaceType, setWorkplaceType] = useState('')
   const [employmentType, setEmploymentType] = useState('')
   const [sponsorOnly, setSponsorOnly] = useState(false)
@@ -174,7 +184,8 @@ export default function DiscoverPage() {
     try {
       const data = await searchJobs({
         keyword: keyword.trim(),
-        location: location.trim() || undefined,
+        city: city.trim() || undefined,
+        country,
         workplaceTypes: workplaceType ? [workplaceType] : undefined,
         employmentTypes: employmentType ? [employmentType] : undefined,
         willingToSponsor: sponsorOnly || undefined,
@@ -195,7 +206,7 @@ export default function DiscoverPage() {
     } finally {
       setLoading(false)
     }
-  }, [keyword, location, workplaceType, employmentType, sponsorOnly, postedDate, searchJobs])
+  }, [keyword, city, country, workplaceType, employmentType, sponsorOnly, postedDate, searchJobs])
 
   // Auto-search on mount
   useEffect(() => {
@@ -225,6 +236,34 @@ export default function DiscoverPage() {
     if (e.key === 'Enter') doSearch(1)
   }
 
+  const handleRoleChip = useCallback(async (role) => {
+    setKeyword(role)
+    setLoading(true)
+    setError('')
+    setPage(1)
+    try {
+      const data = await searchJobs({
+        keyword: role,
+        city: city.trim() || undefined,
+        country,
+        workplaceTypes: workplaceType ? [workplaceType] : undefined,
+        employmentTypes: employmentType ? [employmentType] : undefined,
+        willingToSponsor: sponsorOnly || undefined,
+        postedDate,
+        page: 1,
+      })
+      if (data?.error) throw new Error('Search failed. Please try again.')
+      setJobs(data.jobs || [])
+      setTotal(data.total || 0)
+      setPageCount(data.pageCount || 1)
+      setHasSearched(true)
+    } catch (err) {
+      setError(err.message || 'Search failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }, [city, country, workplaceType, employmentType, sponsorOnly, postedDate, searchJobs])
+
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
       {/* Page header */}
@@ -240,6 +279,23 @@ export default function DiscoverPage() {
 
       {/* Filter bar */}
       <div className="bg-zinc-800/60 border border-zinc-700 rounded-xl p-4 mb-5">
+        {/* Tech role quick-picks */}
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {TECH_ROLES.map(role => (
+            <button
+              key={role}
+              onClick={() => handleRoleChip(role)}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                keyword === role
+                  ? 'bg-blue-600 border-blue-500 text-white'
+                  : 'bg-zinc-800 border-zinc-600 text-zinc-400 hover:border-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              {role}
+            </button>
+          ))}
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-2 mb-3">
           {/* Keyword */}
           <div className="relative flex-1">
@@ -253,17 +309,28 @@ export default function DiscoverPage() {
               className="w-full pl-8 pr-3 py-2 bg-zinc-900 border border-zinc-600 rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
-          {/* Location */}
-          <div className="relative sm:w-48">
+          {/* City */}
+          <div className="relative sm:w-40">
             <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
             <input
               type="text"
-              value={location}
-              onChange={e => setLocation(e.target.value)}
+              value={city}
+              onChange={e => setCity(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Location (optional)"
+              placeholder="City (optional)"
               className="w-full pl-8 pr-3 py-2 bg-zinc-900 border border-zinc-600 rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
+          </div>
+          {/* Country */}
+          <div className="relative sm:w-36">
+            <Globe size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+            <select
+              value={country}
+              onChange={e => setCountry(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 bg-zinc-900 border border-zinc-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 transition-colors appearance-none"
+            >
+              {COUNTRIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
           </div>
           {/* Search button */}
           <button

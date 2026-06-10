@@ -142,6 +142,21 @@ const STATS_BAR = [
   { value: '∞', label: 'Applications to track' },
 ]
 
+function handleGlowMove(e) {
+  const card = e.currentTarget
+  const rect = card.getBoundingClientRect()
+  const angle = Math.atan2(
+    e.clientY - rect.top - rect.height / 2,
+    e.clientX - rect.left - rect.width / 2
+  ) * (180 / Math.PI) + 180
+  card.style.setProperty('--start', angle)
+  card.style.setProperty('--active', '1')
+}
+
+function handleGlowLeave(e) {
+  e.currentTarget.style.setProperty('--active', '0')
+}
+
 /**
  * Renders the static product preview shown in the landing hero.
  */
@@ -251,20 +266,25 @@ function FeatureGroup({ icon: Icon, color, title, desc, items, delay }) {
   return (
     <div
       ref={ref}
-      className={`lp-feature-card lp-feature-card--${color} ${inView ? 'lp-reveal' : 'lp-hidden'}`}
+      className={`lp-feature-card lp-feature-card--${color} glow-card ${inView ? 'lp-reveal' : 'lp-hidden'}`}
       style={{ transitionDelay: `${delay}ms` }}
+      onMouseMove={handleGlowMove}
+      onMouseLeave={handleGlowLeave}
     >
-      <div className={`lp-feature-icon lp-feature-icon--${color}`}><Icon size={18} /></div>
-      <h3 className="lp-feature-title">{title}</h3>
-      <p className="lp-feature-desc">{desc}</p>
-      <ul className="lp-feature-list">
-        {items.map(item => (
-          <li key={item}>
-            <CheckCircle2 size={12} />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="glows" />
+      <div className="relative z-[1]">
+        <div className={`lp-feature-icon lp-feature-icon--${color}`}><Icon size={18} /></div>
+        <h3 className="lp-feature-title">{title}</h3>
+        <p className="lp-feature-desc">{desc}</p>
+        <ul className="lp-feature-list">
+          {items.map(item => (
+            <li key={item}>
+              <CheckCircle2 size={12} />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }
@@ -321,12 +341,15 @@ function WorkflowBlueprint() {
             <span className="lp-blueprint-panel-label">Runway tools</span>
             <div className="lp-blueprint-tools">
               {activeStep.tools.map(tool => (
-                <div key={tool.name} className="lp-blueprint-tool">
-                  <div className="lp-blueprint-tool-title">
-                    <strong>{tool.name}</strong>
-                    {tool.badge && <span>{tool.badge}</span>}
+                <div key={tool.name} className="lp-blueprint-tool glow-card" onMouseMove={handleGlowMove} onMouseLeave={handleGlowLeave}>
+                  <div className="glows" />
+                  <div className="relative z-[1]">
+                    <div className="lp-blueprint-tool-title">
+                      <strong>{tool.name}</strong>
+                      {tool.badge && <span>{tool.badge}</span>}
+                    </div>
+                    <p>{tool.desc}</p>
                   </div>
-                  <p>{tool.desc}</p>
                 </div>
               ))}
             </div>
@@ -343,6 +366,7 @@ function WorkflowBlueprint() {
 export default function LandingPage() {
   const navigate = useNavigate()
   const [featRef, featInView] = useInView(0.05)
+  const [statsRef, statsInView] = useInView(0.2)
   const [ctaRef, ctaInView] = useInView(0.3)
 
   function handleSignIn() {
@@ -410,7 +434,7 @@ export default function LandingPage() {
       </section>
 
       <section className="lp-stats-bar">
-        <div className="lp-stats-inner">
+        <div ref={statsRef} className={`lp-stats-inner ${statsInView ? 'stats-visible' : ''}`}>
           {STATS_BAR.map(stat => (
             <div key={stat.label} className="lp-stat-item">
               <div className="lp-stat-value">{stat.value}</div>
@@ -452,11 +476,12 @@ export default function LandingPage() {
       </section>
 
       <section className="lp-section lp-extension-section">
-        <div className="lp-extension-card">
-          <div className="lp-extension-icon">
+        <div className="lp-extension-card glow-card" onMouseMove={handleGlowMove} onMouseLeave={handleGlowLeave}>
+          <div className="glows" />
+          <div className="lp-extension-icon relative z-[1]">
             <Puzzle size={20} />
           </div>
-          <div className="lp-extension-copy">
+          <div className="lp-extension-copy relative z-[1]">
             <p className="lp-section-eyebrow">Browser extension</p>
             <h2 className="lp-extension-title">Capture roles without breaking your browsing flow</h2>
             <p className="lp-extension-desc">
@@ -468,15 +493,18 @@ export default function LandingPage() {
       </section>
 
       <section className="lp-section">
-        <div ref={ctaRef} className={`lp-cta-box ${ctaInView ? 'lp-reveal' : 'lp-hidden'}`}>
+        <div ref={ctaRef} className={`lp-cta-box glow-card ${ctaInView ? 'lp-reveal' : 'lp-hidden'}`} onMouseMove={handleGlowMove} onMouseLeave={handleGlowLeave}>
+          <div className="glows" />
           <div className="lp-cta-orb" />
-          <p className="lp-cta-eyebrow">Ready to get started?</p>
-          <h2 className="lp-cta-h2">Give your search a system</h2>
-          <p className="lp-cta-sub">Start with your board, then add resumes, targets, outreach, and dashboard signals as you go.</p>
-          <button onClick={handleSignIn} className="lp-cta-primary lp-cta-primary--large">
-            Get started — it's free
-            <ArrowRight size={15} />
-          </button>
+          <div className="relative z-[1]">
+            <p className="lp-cta-eyebrow">Ready to get started?</p>
+            <h2 className="lp-cta-h2">Give your search a system</h2>
+            <p className="lp-cta-sub">Start with your board, then add resumes, targets, outreach, and dashboard signals as you go.</p>
+            <button onClick={handleSignIn} className="lp-cta-primary lp-cta-primary--large">
+              Get started — it's free
+              <ArrowRight size={15} />
+            </button>
+          </div>
         </div>
       </section>
 
