@@ -7,6 +7,7 @@ import { useAuth } from '../../context/auth'
 const STATUS_CONFIG = [
   { key: 'contacted', label: 'Contacted',    color: 'bg-green-500' },
   { key: 'emailed',   label: 'Emailed',      color: 'bg-emerald-500' },
+  
   { key: 'tracked',   label: 'Tracked',      color: 'bg-blue-500' },
   { key: 'retrieved', label: 'Retrieved',    color: 'bg-sky-500' },
   { key: 'new',       label: 'Not searched', color: 'bg-zinc-600' },

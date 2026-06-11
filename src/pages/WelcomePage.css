@@ -1,91 +1,374 @@
 @reference "tailwindcss";
 
-/* Page shell */
+/* ── Page shell ─────────────────────────────────────────────── */
 .wp-root {
-  @apply flex-1 min-h-screen bg-zinc-950 flex flex-col;
+  @apply relative flex flex-1 min-h-screen bg-zinc-950 flex-col overflow-hidden;
 }
 
-/* Top bar */
-.wp-topbar {
-  @apply flex items-center justify-between px-6 py-4 border-b border-zinc-800;
+/* ── Animated orbs ──────────────────────────────────────────── */
+.wp-orbs { @apply absolute inset-0 overflow-hidden pointer-events-none; }
+.wp-orb-tl {
+  @apply absolute -top-64 -left-64 w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-3xl;
+  animation: wp-orb-tl 9s ease-in-out infinite;
+}
+.wp-orb-br {
+  @apply absolute -bottom-64 -right-64 w-[600px] h-[600px] rounded-full bg-indigo-600/10 blur-3xl;
+  animation: wp-orb-br 10s ease-in-out infinite 1s;
+}
+.wp-orb-center {
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-blue-900/8 blur-[80px];
+  animation: wp-orb-center 11s ease-in-out infinite 0.5s;
 }
 
-.wp-logo {
-  @apply flex items-center gap-2;
+/* ── Top bar ────────────────────────────────────────────────── */
+.wp-topbar          { @apply relative z-10 flex items-center justify-between px-6 py-4 border-b border-zinc-800/60; }
+.wp-logo            { @apply flex items-center gap-2; }
+.wp-logo-icon       { box-shadow: 0 0 14px rgba(79,70,229,0.28); }
+.wp-logo-wordmark   { @apply text-sm font-semibold text-white; }
+.wp-skip            { @apply text-sm text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer; }
+
+/* ── Progress bar ───────────────────────────────────────────── */
+.wp-progress-track { @apply relative z-10 h-0.5 w-full bg-zinc-800; }
+.wp-progress-fill  {
+  @apply h-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-all duration-500 ease-out;
+  box-shadow: 0 0 8px rgba(99,102,241,0.5);
 }
 
-.wp-logo-icon {
-  box-shadow: 0 0 14px rgba(79, 70, 229, 0.28);
-}
-
-.wp-logo-wordmark {
-  @apply text-sm font-semibold text-white;
-}
-
-.wp-skip {
-  @apply text-sm text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer;
-}
-
-/* Main content area */
+/* ── Content area ───────────────────────────────────────────── */
 .wp-content {
-  @apply flex-1 flex flex-col items-center justify-center px-4 py-12;
+  @apply relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-8 gap-8;
 }
 
-/* Header text block */
+/* ── Header ─────────────────────────────────────────────────── */
 .wp-header {
-  @apply text-center mb-10 max-w-lg;
+  @apply text-center max-w-lg;
+  animation: fade-up 0.5s cubic-bezier(0.22,1,0.36,1) both;
+}
+.wp-eyebrow  { @apply text-xs text-blue-400 font-semibold tracking-widest uppercase mb-2; }
+.wp-title    { @apply text-3xl font-bold text-white mb-2; }
+.wp-subtitle { @apply text-sm text-zinc-400 leading-relaxed; }
+
+/* ══════════════════════════════════════════════════════════════
+   STAGE — clipping container, no card background
+══════════════════════════════════════════════════════════════ */
+.wp-stage {
+  @apply relative w-full max-w-lg overflow-hidden;
+  min-height: 340px;
 }
 
-.wp-eyebrow {
-  @apply text-sm text-blue-300 font-semibold tracking-wide uppercase mb-3;
+/* ── Content layers: absolutely fill the stage, no card chrome ── */
+.wp-layer {
+  @apply absolute inset-0 flex flex-col items-center justify-center text-center gap-5 px-4 py-6;
 }
 
-.wp-title {
-  @apply text-3xl font-bold text-white mb-4;
+/* ── Illustration wrapper: bigger without card padding constraints ── */
+.wp-illus-wrap {
+  @apply w-full rounded-2xl overflow-hidden;
+  height: 160px;
+}
+.wp-illus { @apply w-full h-full; display: block; }
+
+/* Per-color ambient glow under illustration */
+.wp-illus-wrap--sky     { background: radial-gradient(ellipse at center, rgba(14,165,233,0.10) 0%, transparent 70%); }
+.wp-illus-wrap--blue    { background: radial-gradient(ellipse at center, rgba(59,130,246,0.10) 0%, transparent 70%); }
+.wp-illus-wrap--rose    { background: radial-gradient(ellipse at center, rgba(244,63,94,0.10) 0%, transparent 70%); }
+.wp-illus-wrap--emerald { background: radial-gradient(ellipse at center, rgba(16,185,129,0.10) 0%, transparent 70%); }
+.wp-illus-wrap--amber   { background: radial-gradient(ellipse at center, rgba(245,158,11,0.10) 0%, transparent 70%); }
+.wp-illus-wrap--zinc    { background: radial-gradient(ellipse at center, rgba(113,113,122,0.10) 0%, transparent 70%); }
+
+.wp-step-title { @apply text-xl font-bold text-white; }
+.wp-step-desc  { @apply text-sm text-zinc-400 leading-relaxed max-w-xs; }
+
+/* ══════════════════════════════════════════════════════════════
+   HORIZONTAL SLIDE TRANSITIONS
+   Next: old exits left, new enters from right.
+   Back: old exits right, new enters from left.
+══════════════════════════════════════════════════════════════ */
+
+/* EXIT — next direction (slides out to left) */
+.wp-layer--exit[data-dir="next"] {
+  animation: slide-out-left 0.32s cubic-bezier(0.4,0,1,1) both;
+  pointer-events: none;
+}
+/* EXIT — back direction (slides out to right) */
+.wp-layer--exit[data-dir="back"] {
+  animation: slide-out-right 0.32s cubic-bezier(0.4,0,1,1) both;
+  pointer-events: none;
 }
 
-.wp-subtitle {
-  @apply text-base text-zinc-200 leading-relaxed;
+@keyframes slide-out-left {
+  to { opacity: 0; transform: translateX(-72px) scale(0.94); filter: blur(2px); }
+}
+@keyframes slide-out-right {
+  to { opacity: 0; transform: translateX(72px) scale(0.94); filter: blur(2px); }
 }
 
-/* Feature cards grid */
-.wp-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl mb-10;
+/* ENTER — next direction (comes from right) */
+.wp-layer--enter[data-dir="next"] {
+  animation: slide-in-right 0.42s cubic-bezier(0.22,1,0.36,1) both;
+}
+/* ENTER — back direction (comes from left) */
+.wp-layer--enter[data-dir="back"] {
+  animation: slide-in-left 0.42s cubic-bezier(0.22,1,0.36,1) both;
 }
 
-.wp-card {
-  @apply bg-zinc-800/60 border border-zinc-700 rounded-xl p-5 flex flex-col gap-3;
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(80px) scale(0.96); }
+  to   { opacity: 1; transform: translateX(0)    scale(1); }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-80px) scale(0.96); }
+  to   { opacity: 1; transform: translateX(0)     scale(1); }
 }
 
-.wp-card-top {
-  @apply flex items-center gap-3;
+/* Stagger title and desc slightly after the layer slides in */
+.wp-layer--enter .wp-step-title {
+  animation: inherit, elem-fade-up 0.38s 0.08s cubic-bezier(0.22,1,0.36,1) both;
+}
+.wp-layer--enter .wp-step-desc {
+  animation: inherit, elem-fade-up 0.36s 0.16s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes elem-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.wp-card-number {
-  @apply text-sm font-bold text-zinc-400;
+/* ══════════════════════════════════════════════════════════════
+   SVG ILLUSTRATION ANIMATIONS
+══════════════════════════════════════════════════════════════ */
+
+/* All SVG animated elements need transform-box for correct origin */
+.wp-illus * { transform-box: fill-box; }
+
+/* ── Step 1: Pipeline card moving across columns ─────────────── */
+.pl-card, .pl-card-glow {
+  animation: pl-move 3.2s cubic-bezier(0.22,1,0.36,1) infinite;
+}
+.pl-card-glow {
+  animation: pl-move 3.2s cubic-bezier(0.22,1,0.36,1) infinite, pl-glow-pulse 3.2s ease-in-out infinite;
+  opacity: 0;
+}
+@keyframes pl-move {
+  0%   { transform: translateX(0);    opacity: 0; }
+  8%   { opacity: 1; }
+  28%  { transform: translateX(40px); opacity: 1; }
+  48%  { transform: translateX(80px); opacity: 1; }
+  68%  { transform: translateX(120px);opacity: 1; }
+  82%  { transform: translateX(120px);opacity: 0; }
+  83%  { transform: translateX(0);    opacity: 0; }
+  100% { transform: translateX(0);    opacity: 0; }
+}
+@keyframes pl-glow-pulse {
+  0%,100% { opacity: 0; }
+  30%,50% { opacity: 0.6; }
 }
 
-.wp-card-icon {
-  @apply w-10 h-10 rounded-lg flex items-center justify-center border;
+/* ── Step 2: Resume scan beam + crane hook + score badge ─────── */
+.scan-beam {
+  animation: scan-sweep 2.4s cubic-bezier(0.4,0,0.6,1) infinite;
+  transform-origin: center top;
+}
+@keyframes scan-sweep {
+  0%   { transform: translateY(0);    opacity: 0.8; }
+  80%  { transform: translateY(70px); opacity: 0.6; }
+  85%  { transform: translateY(70px); opacity: 0; }
+  86%  { transform: translateY(0);    opacity: 0; }
+  90%  { opacity: 0.8; }
+  100% { transform: translateY(0);    opacity: 0.8; }
+}
+.crane-arm {
+  animation: crane-swing 3s ease-in-out infinite;
+  transform-origin: 120px 10px;
+}
+.crane-hook {
+  animation: crane-swing 3s ease-in-out infinite;
+  transform-origin: 120px 10px;
+}
+@keyframes crane-swing {
+  0%,100% { transform: rotate(0deg); }
+  40%     { transform: rotate(-8deg); }
+  60%     { transform: rotate(5deg); }
+}
+.score-badge {
+  animation: score-pop 0.6s 0.8s cubic-bezier(0.34,1.56,0.64,1) both,
+             score-idle 3s 1.4s ease-in-out infinite;
+}
+@keyframes score-pop {
+  from { opacity:0; transform: scale(0.3); }
+  to   { opacity:1; transform: scale(1); }
+}
+@keyframes score-idle {
+  0%,100% { transform: scale(1);    }
+  50%     { transform: scale(1.06); }
+}
+.score-label {
+  animation: fade-up 0.5s 1.0s cubic-bezier(0.22,1,0.36,1) both;
 }
 
-.wp-card-icon--sky     { @apply bg-sky-500/30     border-sky-400/40     text-sky-200;     }
-.wp-card-icon--blue  { @apply bg-blue-500/30  border-blue-400/40  text-blue-200;  }
-.wp-card-icon--rose    { @apply bg-rose-500/30    border-rose-400/40    text-rose-200;    }
-.wp-card-icon--emerald { @apply bg-emerald-500/30 border-emerald-400/40 text-emerald-200; }
-.wp-card-icon--amber   { @apply bg-amber-500/30   border-amber-400/40   text-amber-200;   }
-.wp-card-icon--zinc   { @apply bg-zinc-500/30   border-zinc-400/40   text-zinc-200;   }
-
-.wp-card-title {
-  @apply text-base font-semibold text-white mb-1;
+/* ── Step 3: Target pins popping in + crosshair spinning ─────── */
+.target-pin-1 {
+  animation: pin-pop 0.5s 0.1s cubic-bezier(0.34,1.56,0.64,1) both,
+             pin-float 3s 0.6s ease-in-out infinite;
+  transform-origin: center center;
+}
+.target-pin-2 {
+  animation: pin-pop 0.5s 0.35s cubic-bezier(0.34,1.56,0.64,1) both,
+             pin-float 3.4s 0.85s ease-in-out infinite;
+  transform-origin: center center;
+}
+.target-pin-3 {
+  animation: pin-pop 0.5s 0.6s cubic-bezier(0.34,1.56,0.64,1) both,
+             pin-float 2.8s 1.1s ease-in-out infinite;
+  transform-origin: center center;
+}
+@keyframes pin-pop {
+  from { opacity:0; transform: scale(0); }
+  to   { opacity:1; transform: scale(1); }
+}
+@keyframes pin-float {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%     { transform: translateY(-3px) scale(1.05); }
+}
+.crosshair-spin {
+  animation: crosshair-rotate 8s linear infinite;
+}
+@keyframes crosshair-rotate {
+  to { transform: rotate(360deg); }
 }
 
-.wp-card-desc {
-  @apply text-sm text-zinc-200 leading-relaxed;
+/* ── Step 4: Envelope flying with trail ─────────────────────── */
+.envelope-fly {
+  animation: env-swoop 2.6s cubic-bezier(0.22,1,0.36,1) infinite;
+}
+@keyframes env-swoop {
+  0%   { transform: translateX(0) translateY(0) rotate(0deg); opacity:0; }
+  10%  { opacity:1; }
+  70%  { transform: translateX(28px) translateY(-14px) rotate(-8deg); opacity:1; }
+  85%  { transform: translateX(44px) translateY(-22px) rotate(-12deg); opacity:0; }
+  86%  { transform: translateX(0) translateY(0) rotate(0deg); opacity:0; }
+  100% { transform: translateX(0) translateY(0) rotate(0deg); opacity:0; }
+}
+.env-sparkle {
+  animation: sparkle-pop 2.6s ease-in-out infinite;
+}
+@keyframes sparkle-pop {
+  0%,60%,100% { opacity:0; transform:scale(0.5); }
+  70%         { opacity:1; transform:scale(1.2); }
+  80%         { opacity:0.6; transform:scale(1); }
+}
+.send-pulse {
+  animation: pulse-ring 2.6s ease-in-out infinite;
+}
+@keyframes pulse-ring {
+  0%    { transform:scale(0.5); opacity:0.8; }
+  40%   { transform:scale(1.4); opacity:0; }
+  100%  { transform:scale(1.4); opacity:0; }
 }
 
-/* Get started button */
+/* ── Step 5: Bar chart growing + line drawing ────────────────── */
+.bar-1 { animation: bar-grow 0.5s 0.05s cubic-bezier(0.34,1.4,0.64,1) both; }
+.bar-2 { animation: bar-grow 0.5s 0.18s cubic-bezier(0.34,1.4,0.64,1) both; }
+.bar-3 { animation: bar-grow 0.5s 0.30s cubic-bezier(0.34,1.4,0.64,1) both; }
+.bar-4 { animation: bar-grow 0.5s 0.42s cubic-bezier(0.34,1.56,0.64,1) both; }
+@keyframes bar-grow {
+  from { transform: scaleY(0); opacity:0; }
+  to   { transform: scaleY(1); opacity:1; }
+}
+.chart-line {
+  animation: line-draw 0.8s 0.55s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes line-draw {
+  to { stroke-dashoffset: 0; }
+}
+.chart-dot-1 { animation: dot-pop 0.4s 0.60s cubic-bezier(0.34,1.56,0.64,1) both; }
+.chart-dot-2 { animation: dot-pop 0.4s 0.72s cubic-bezier(0.34,1.56,0.64,1) both; }
+.chart-dot-3 { animation: dot-pop 0.4s 0.84s cubic-bezier(0.34,1.56,0.64,1) both; }
+.chart-dot-4 { animation: dot-pop 0.4s 0.96s cubic-bezier(0.34,1.56,0.64,1) both; }
+@keyframes dot-pop {
+  from { opacity:0; transform:scale(0); }
+  to   { opacity:1; transform:scale(1); }
+}
+
+/* ── Step 6: Profile card assembling ────────────────────────── */
+.profile-avatar {
+  animation: item-pop 0.45s 0.05s cubic-bezier(0.34,1.56,0.64,1) both;
+  transform-origin: center center;
+}
+.profile-name {
+  animation: item-slide 0.4s 0.20s cubic-bezier(0.22,1,0.36,1) both;
+}
+.profile-role {
+  animation: item-slide 0.4s 0.30s cubic-bezier(0.22,1,0.36,1) both;
+}
+.profile-loc {
+  animation: item-slide 0.4s 0.38s cubic-bezier(0.22,1,0.36,1) both;
+}
+.pref-row-a {
+  animation: item-slide 0.4s 0.48s cubic-bezier(0.22,1,0.36,1) both;
+}
+.pref-row-b {
+  animation: item-slide 0.4s 0.58s cubic-bezier(0.22,1,0.36,1) both;
+}
+.profile-badge {
+  animation: item-pop 0.45s 0.70s cubic-bezier(0.34,1.56,0.64,1) both;
+  transform-origin: center center;
+}
+@keyframes item-pop {
+  from { opacity:0; transform:scale(0); }
+  to   { opacity:1; transform:scale(1); }
+}
+@keyframes item-slide {
+  from { opacity:0; transform:translateX(16px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+
+/* ── Dots ───────────────────────────────────────────────────── */
+.wp-dots { @apply flex items-center gap-2; }
+.wp-dot  {
+  @apply w-2 h-2 rounded-full bg-zinc-700 transition-all duration-300 cursor-pointer hover:bg-zinc-500;
+}
+.wp-dot--done   { @apply bg-blue-700/60; }
+.wp-dot--active {
+  @apply w-6 bg-blue-500 rounded-full;
+  box-shadow: 0 0 8px rgba(59,130,246,0.5);
+}
+
+/* ── Navigation ─────────────────────────────────────────────── */
+.wp-nav { @apply flex items-center gap-3; }
+.wp-nav-back {
+  @apply flex items-center gap-1.5 px-4 py-2.5 rounded-xl
+         border border-zinc-700/60 text-zinc-400 hover:text-zinc-300 hover:border-zinc-600
+         text-sm font-medium transition-all duration-150 cursor-pointer
+         disabled:opacity-25 disabled:cursor-not-allowed;
+}
+.wp-nav-next {
+  @apply flex items-center gap-1.5 px-5 py-2.5 rounded-xl
+         bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/60 hover:border-zinc-600
+         text-white text-sm font-semibold
+         transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer;
+}
 .wp-cta {
-  @apply flex items-center gap-2 bg-blue-600 hover:bg-blue-500
-         text-white text-base font-semibold px-7 py-3 rounded-xl transition-colors cursor-pointer;
+  @apply flex items-center gap-1.5
+         bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600
+         text-white text-sm font-semibold px-6 py-2.5 rounded-xl
+         transition-all duration-150
+         hover:shadow-lg hover:shadow-blue-900/40 hover:scale-[1.02] active:scale-[0.98] cursor-pointer;
+}
+
+/* ── Keyframes ──────────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes wp-orb-tl {
+  0%,100% { transform:translate(0,0) scale(1); }
+  50%     { transform:translate(16px,-22px) scale(1.05); }
+}
+@keyframes wp-orb-br {
+  0%,100% { transform:translate(0,0) scale(1); }
+  50%     { transform:translate(-14px,18px) scale(1.04); }
+}
+@keyframes wp-orb-center {
+  0%,100% { opacity:0.5; }
+  50%     { opacity:0.8; }
 }

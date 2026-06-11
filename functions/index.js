@@ -1023,8 +1023,10 @@ exports.searchJobs = onCall({ secrets: [JSEARCH_API_KEY], cors: true, timeoutSec
       country: country || 'us',
     })
 
-    // Map our filter values to JSearch params
-    if (workplaceTypes?.includes('Remote')) params.set('remote_jobs_only', 'true')
+    // Only restrict to remote-only when Remote is the sole work type selected
+    if (workplaceTypes?.length === 1 && workplaceTypes[0] === 'Remote') {
+      params.set('remote_jobs_only', 'true')
+    }
     if (employmentTypes?.length) {
       const typeMap = { 'Full-time': 'FULLTIME', 'Part-time': 'PARTTIME', 'Contract': 'CONTRACTOR' }
       const mapped = employmentTypes.map(t => typeMap[t]).filter(Boolean)
@@ -1038,12 +1040,18 @@ exports.searchJobs = onCall({ secrets: [JSEARCH_API_KEY], cors: true, timeoutSec
           'x-rapidapi-key': JSEARCH_API_KEY.value(),
           'x-rapidapi-host': 'jsearch.p.rapidapi.com',
         },
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(25000),
       }
     )
 
     const json = await res.json()
-    if (!res.ok) return { error: json.message || `API error ${res.status}` }
+    console.log(`JSearch HTTP ${res.status} | status="${json.status}" | results=${json.data?.length ?? 'n/a'} | query="${query}"`)
+
+    if (!res.ok || json.status === 'FAILED') {
+      console.error('JSearch error body:', JSON.stringify(json).slice(0, 300))
+      if (res.status === 429) return { error: 'RATE_LIMITED' }
+      return { error: json.message || json.error || `API error ${res.status}` }
+    }
 
     const jobs = (json.data || []).map(j => ({
       id: j.job_id || '',
@@ -1069,17 +1077,16 @@ exports.searchJobs = onCall({ secrets: [JSEARCH_API_KEY], cors: true, timeoutSec
       easyApply: j.job_apply_is_direct || false,
       summary: (j.job_description || '').replace(/\s+/g, ' ').trim().slice(0, 220),
     }))
-    // Optionally filter remote-only after the fact if requested
-    const filtered = workplaceTypes?.includes('Remote') ? jobs.filter(j => j.isRemote) : jobs
+    const filtered = jobs.slice(0, 9)
 
     return {
       jobs: filtered,
-      total: json.data?.length ? filtered.length * 10 : 0,  // JSearch doesn't return total count
-      page: page || 1,
-      pageCount: 10,  // JSearch supports up to page 10
+      // JSearch doesn't expose total pages — assume 10 pages max; frontend trims when results run out
+      total: filtered.length > 0 ? 10 * 9 : 0,
+      pageCount: 10,
     }
   } catch (err) {
-    console.error('searchJobs error:', err)
+    console.error('searchJobs exception:', err?.name, err?.message)
     return { error: 'SEARCH_FAILED' }
   }
 })
