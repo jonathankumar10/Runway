@@ -9,7 +9,7 @@ import { db } from '../lib/firebase'
 import { useAuth } from '../context/auth'
 import { useJobs } from '../context/jobs'
 import { useAI } from '../hooks/useAI'
-import { extractSkills, extractStyleMap, fileToBase64, formatBytes } from '../utils/resumeUtils'
+import { extractSkills, extractStyleMap, fileToBase64, formatBytes } from '../lib/resumeUtils'
 import './ResumePage.css'
 
 export default function ResumeDetailPage() {
