@@ -1,5 +1,6 @@
 export const DESCRIPTION_LIMIT = 5000
 
+/** Collapses whitespace and trims a string. Optionally truncates to a character limit. */
 export function cleanText(value, limit = null) {
   const text = typeof value === 'string'
     ? value.replace(/\s+/g, ' ').trim()
@@ -7,81 +8,45 @@ export function cleanText(value, limit = null) {
   return limit ? text.slice(0, limit) : text
 }
 
-export function slugToName(slug) {
-  return cleanText(slug)
-    .replace(/[-_]+/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase())
-}
-
+/** Returns 'linkedin' if the URL is a LinkedIn URL, otherwise empty string. */
 export function detectPlatformFromUrl(url) {
   try {
     const { hostname } = new URL(url)
     if (hostname === 'www.linkedin.com' || hostname === 'linkedin.com') return 'linkedin'
-    if (hostname.includes('greenhouse.io')) return 'greenhouse'
-    if (hostname === 'jobs.lever.co') return 'lever'
-    if (hostname === 'jobs.ashbyhq.com') return 'ashby'
-    if (hostname.includes('myworkdayjobs.com')) return 'workday'
-    if (hostname.endsWith('.taleo.net')) return 'taleo'
-    if (hostname.endsWith('.icims.com')) return 'icims'
-    if (hostname.endsWith('.bamboohr.com')) return 'bamboohr'
-    if (hostname === 'jobs.smartrecruiters.com') return 'smartrecruiters'
-    if (hostname === 'ats.rippling.com') return 'rippling'
-    if (hostname.endsWith('.breezy.hr')) return 'breezy'
-    if (hostname === 'jobs.jobvite.com') return 'jobvite'
-    if (hostname.endsWith('.recruitee.com')) return 'recruitee'
   } catch {
     return ''
   }
   return ''
 }
 
+/** Returns true if the job payload has enough data to be worth saving. */
 export function hasEnoughJobData(job) {
   return Boolean(cleanText(job?.role) || cleanText(job?.jobDescription))
 }
 
-export function inferCompanyDomain({ company = '', jobUrl = '', atsPlatform = '' } = {}) {
-  const fromUrl = domainFromAtsUrl(jobUrl, atsPlatform)
-  if (fromUrl) return fromUrl
-
+/**
+ * Guesses a company domain from the company name (e.g. "Stripe Inc" → "stripe.com").
+ * Used as a fallback for logo lookup when no explicit domain is available.
+ */
+export function inferCompanyDomain({ company = '' } = {}) {
   const normalizedCompany = cleanText(company)
     .toLowerCase()
     .replace(/&/g, 'and')
     .replace(/\b(inc|llc|ltd|co|corp|corporation|company|technologies|technology|systems|group)\b\.?/g, '')
     .replace(/[^a-z0-9]+/g, '')
-
   return normalizedCompany ? `${normalizedCompany}.com` : ''
 }
 
+/** Builds a Google Favicons URL for a given domain, used to display company logos. */
 export function buildLogoUrl(domain) {
   const cleaned = cleanText(domain).replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '')
   return cleaned ? `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(cleaned)}` : ''
 }
 
-function domainFromAtsUrl(jobUrl, atsPlatform) {
-  try {
-    const url = new URL(jobUrl)
-    const segments = url.pathname.split('/').filter(Boolean)
-
-    switch (atsPlatform || detectPlatformFromUrl(jobUrl)) {
-      case 'greenhouse':
-      case 'lever':
-      case 'ashby':
-      case 'smartrecruiters':
-        return segments[0] ? `${segments[0].toLowerCase()}.com` : ''
-      case 'bamboohr':
-      case 'workday':
-      case 'taleo':
-        return url.hostname.split('.')[0] ? `${url.hostname.split('.')[0].replace(/^careers-/, '').toLowerCase()}.com` : ''
-      case 'icims':
-        return url.hostname.split('.')[0] ? `${url.hostname.split('.')[0].replace(/^careers-/, '').toLowerCase()}.com` : ''
-      default:
-        return ''
-    }
-  } catch {
-    return ''
-  }
-}
-
+/**
+ * Parses a salary range from free text (e.g. "$120K – $160K/yr").
+ * Returns salaryMin and salaryMax as integers in full dollar amounts, or null if not found.
+ */
 export function extractSalaryRange(text) {
   const source = cleanText(text)
   if (!source) return { salaryMin: null, salaryMax: null }
@@ -114,12 +79,13 @@ function normalizeNullableNumber(value) {
   return Number.isFinite(number) ? number : null
 }
 
+/** Normalizes a raw ADD_JOB message payload into the shape stored in Firestore. */
 export function normalizeJobPayload(payload = {}) {
   const jobUrl = cleanText(payload.jobUrl)
   const atsPlatform = cleanText(payload.atsPlatform) || detectPlatformFromUrl(jobUrl)
   const inferredSalary = extractSalaryRange(payload.jobDescription)
   const company = cleanText(payload.company)
-  const logoDomain = inferCompanyDomain({ company, jobUrl, atsPlatform })
+  const logoDomain = inferCompanyDomain({ company })
 
   return {
     company,

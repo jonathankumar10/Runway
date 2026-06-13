@@ -1,5 +1,3 @@
-import { setRunwayButtonContent } from './button-ui.js'
-
 const AVATAR_PALETTE = [
   ['#FEE4E2', '#B42318'],
   ['#FEF3C7', '#92400E'],
@@ -490,12 +488,16 @@ export function createRunwayPanel({ getContext, actions }) {
       panel.appendChild(wrap)
     }
 
+    panel.appendChild(buildSection('📋', 'Your Autofill Information', buildAutofillInfoBody, true))
+    panel.appendChild(buildSection('📄', 'Resume', () => buildResumeBody(context), true))
+    panel.appendChild(buildSection('✉', 'Cover Letter', buildCoverLetterBody, false))
+
     const autofillSection = document.createElement('div')
     autofillSection.className = 'rp-autofill-section'
     const autofillBtn = document.createElement('button')
     autofillBtn.type = 'button'
     autofillBtn.className = 'rp-autofill-btn'
-    autofillBtn.textContent = 'Autofill'
+    autofillBtn.textContent = 'Autofill Application'
     autofillBtn.addEventListener('click', async () => {
       autofillBtn.disabled = true
       autofillBtn.textContent = 'Autofilling…'
@@ -506,15 +508,11 @@ export function createRunwayPanel({ getContext, actions }) {
         setStatusMsg(err.message || 'Autofill failed.')
       } finally {
         autofillBtn.disabled = false
-        autofillBtn.textContent = 'Autofill'
+        autofillBtn.textContent = 'Autofill Application'
       }
     })
     autofillSection.appendChild(autofillBtn)
     panel.appendChild(autofillSection)
-
-    panel.appendChild(buildSection('📋', 'Your Autofill Information', buildAutofillInfoBody))
-    panel.appendChild(buildSection('📄', 'Upload Resume', () => buildResumeBody(context)))
-    panel.appendChild(buildSection('✉', 'Upload Cover Letter', buildCoverLetterBody))
 
     const statusEl = document.createElement('p')
     statusEl.className = 'rp-status'
@@ -524,7 +522,7 @@ export function createRunwayPanel({ getContext, actions }) {
     bottom.className = 'rp-bottom'
     for (const [label, handler, isAsync] of [
       ['Draft answer', actions.draftAnswer, true],
-      ['Autofill for Another Job', actions.openRunway, false],
+      ['Open in Runway', actions.openRunway, false],
     ]) {
       if (typeof handler !== 'function') continue
       const btn = document.createElement('button')
@@ -543,14 +541,14 @@ export function createRunwayPanel({ getContext, actions }) {
   }
 
   function buildJobCard(app) {
-    const card = document.createElement('div')
-    card.className = 'rp-job-card'
+    const header = document.createElement('div')
+    header.className = 'rp-apply-header'
 
     const topRow = document.createElement('div')
-    topRow.className = 'rp-job-card__top'
+    topRow.className = 'rp-apply-header__top'
 
     const avatar = document.createElement('div')
-    avatar.className = 'rp-avatar'
+    avatar.className = 'rp-avatar rp-avatar--square'
     const initial = (app.company || '?')[0].toUpperCase()
     const [bg, fg] = avatarColor(app.company || '')
     if (app.logoUrl) {
@@ -564,37 +562,44 @@ export function createRunwayPanel({ getContext, actions }) {
       avatar.style.cssText = `background:${bg};color:${fg}`
     }
 
-    const nameEl = document.createElement('div')
-    nameEl.className = 'rp-job-card__company'
-    nameEl.textContent = app.company || ''
+    const meta = document.createElement('div')
+    meta.className = 'rp-apply-header__meta'
 
-    topRow.append(avatar, nameEl)
+    const companyEl = document.createElement('div')
+    companyEl.className = 'rp-apply-header__company'
+    companyEl.textContent = app.company || ''
+    meta.appendChild(companyEl)
+
+    topRow.append(avatar, meta)
 
     if (app.matchScore) {
+      const score = Math.round(app.matchScore)
       const badge = document.createElement('span')
-      badge.className = 'rp-match-badge'
-      badge.textContent = `${Math.round(app.matchScore)}%`
+      badge.className = `rp-match-badge${score >= 70 ? ' rp-match-badge--good' : score < 50 ? ' rp-match-badge--poor' : ''}`
+      badge.textContent = `${score}%`
       topRow.appendChild(badge)
     }
 
-    card.appendChild(topRow)
+    header.appendChild(topRow)
 
     if (app.role) {
       const roleEl = document.createElement('div')
-      roleEl.className = 'rp-job-card__role'
+      roleEl.className = 'rp-apply-header__role'
       roleEl.textContent = app.role
-      card.appendChild(roleEl)
+      header.appendChild(roleEl)
     }
 
-    return card
+    return header
   }
 
-  function buildSection(icon, title, buildBody) {
+  function buildSection(icon, title, buildBody, startsOpen = true) {
     const section = document.createElement('div')
     section.className = 'rp-section'
 
     const row = document.createElement('div')
     row.className = 'rp-section__row'
+    row.setAttribute('role', 'button')
+    row.setAttribute('tabindex', '0')
 
     const iconEl = document.createElement('span')
     iconEl.className = 'rp-section__icon'
@@ -615,6 +620,17 @@ export function createRunwayPanel({ getContext, actions }) {
     body.className = 'rp-section__body'
     body.appendChild(buildBody())
     section.appendChild(body)
+
+    let open = startsOpen
+    const sync = () => {
+      body.style.display = open ? '' : 'none'
+      arrow.style.transform = open ? 'rotate(90deg)' : ''
+    }
+    sync()
+
+    const toggle = () => { open = !open; sync() }
+    row.addEventListener('click', toggle)
+    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle() } })
 
     return section
   }
