@@ -510,6 +510,44 @@ exports.prepareApplication = onCall({
   const app = appSnap.data()
   if (!app.role) return { error: 'MISSING_ROLE' }
 
+  // Parse raw JD into structured blocks using Haiku (cheap, fast)
+  if (app.jobDescription && !app.jobDescriptionBlocks) {
+    try {
+      const haiku = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() })
+      const jdMsg = await haiku.messages.create({
+        model: 'claude-haiku-4-5',
+        max_tokens: 2048,
+        messages: [{
+          role: 'user',
+          content: `Parse this job description into structured JSON. Return ONLY valid JSON — no markdown fences, no explanation.
+
+The JSON must be an array of block objects. Each block has one of these shapes:
+  {"type":"header","text":"..."}
+  {"type":"bullets","items":["...","..."]}
+  {"type":"paragraph","text":"..."}
+
+Rules:
+- Divide the content into logical sections and give each a clear header block, even if the original text has no headings. Use plain, concise labels like: "About the Role", "Responsibilities", "Requirements", "Nice to Have", "About the Company", "Compensation & Benefits", "Interview Process".
+- Group related sentences/bullets under the most appropriate section header.
+- Bullet points and list items → bullets block (group consecutive bullets together under the same header).
+- Prose sentences that belong together → paragraph block.
+- Do NOT invent content — only reorganize and label what is already in the text.
+- Every section must start with a header block.
+
+Job description:
+${app.jobDescription.slice(0, 6000)}`,
+        }],
+      })
+      const raw = jdMsg.content[0]?.text?.trim() ?? ''
+      const blocks = JSON.parse(raw)
+      if (Array.isArray(blocks)) {
+        await appRef.set({ jobDescriptionBlocks: blocks, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true })
+      }
+    } catch (err) {
+      console.warn('JD block parsing failed (non-fatal):', err.message)
+    }
+  }
+
   await appRef.set({
     aiPrepStatus: 'matching',
     aiPrepStartedAt: admin.firestore.FieldValue.serverTimestamp(),

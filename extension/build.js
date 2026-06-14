@@ -12,7 +12,7 @@ const OUTPUT_CONTENT_CSS = path.join(OUTPUT_DIR, 'content.css')
 const DEFAULT_RUNWAY_APP_URL = 'http://localhost:5173'
 const SOURCE_ENTRY_FILES = [
   'background.js',
-  'content-jobs.js',
+  'linkedin-jobs.js',
   'content-profile.js',
   'popup.js',
 ]

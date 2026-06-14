@@ -323,6 +323,47 @@ function extractLocation(pane, topCardLocation) {
  * Extracts the full job description text, capped at 5000 characters.
  * Three-tier fallback: known description selectors → "About the job" heading walk-up → largest text block.
  */
+/**
+ * Walks a DOM subtree and produces structured plain text, preserving headings,
+ * paragraphs, and list items as newline-separated content. More reliable than
+ * innerText when LinkedIn uses flexbox or inline layouts that suppress newlines.
+ */
+function domToStructuredText(root) {
+  const parts = []
+
+  function walk(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const t = node.textContent
+      if (t.trim()) parts.push(t)
+      return
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return
+
+    const tag = node.tagName.toLowerCase()
+    if (['script', 'style', 'button', 'svg', 'noscript'].includes(tag)) return
+
+    if (tag === 'li') {
+      parts.push('\n• ')
+      for (const child of node.childNodes) walk(child)
+      return
+    }
+    if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
+      parts.push('\n\n')
+      for (const child of node.childNodes) walk(child)
+      parts.push('\n')
+      return
+    }
+    if (['p', 'div', 'section', 'article', 'br'].includes(tag)) {
+      parts.push('\n')
+    }
+
+    for (const child of node.childNodes) walk(child)
+  }
+
+  walk(root)
+  return parts.join('').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
+}
+
 function extractDescription(pane) {
   const descriptionEl =
     document.querySelector('#job-details') ||
@@ -332,7 +373,7 @@ function extractDescription(pane) {
     document.querySelector('[class*="jobs-description"]') ||
     pane.querySelector('[class*="description__text"]') ||
     document.querySelector('[class*="description__text"]')
-  if (descriptionEl) return (descriptionEl.innerText || '').trim().slice(0, 5000)
+  if (descriptionEl) return domToStructuredText(descriptionEl).slice(0, 5000)
 
   // Walk up from the "About the job" heading to find its parent content block.
   const root = pane === document ? document.body : pane
@@ -342,7 +383,7 @@ function extractDescription(pane) {
     let el = aboutHeading.parentElement
     for (let i = 0; i < 8; i++) {
       if (!el || el === document.body) break
-      const text = el.innerText?.trim() || ''
+      const text = domToStructuredText(el)
       if (text.length > 200) return text.replace(/^about the job\s*/i, '').trim().slice(0, 5000)
       el = el.parentElement
     }
@@ -352,10 +393,10 @@ function extractDescription(pane) {
   if (pane !== document) {
     const largestBlock = [...pane.querySelectorAll('div, section, article')]
       .filter(el => !el.querySelector('[class*="top-card"], [class*="unified-top-card"]'))
-      .map(el => ({ el, length: (el.innerText || '').trim().length }))
+      .map(el => ({ el, length: domToStructuredText(el).length }))
       .filter(({ length }) => length > 200)
       .sort((a, b) => b.length - a.length)[0]
-    if (largestBlock) return largestBlock.el.innerText.trim().slice(0, 5000)
+    if (largestBlock) return domToStructuredText(largestBlock.el).slice(0, 5000)
   }
 
   return ''

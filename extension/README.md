@@ -63,14 +63,14 @@ Reload the extension in `chrome://extensions` after each build (click the refres
 
 ### Build system (`build.js`)
 
-- **esbuild** bundles all entry points: `background.js`, `content-jobs.js`, `content-profile.js`, `popup.js`
+- **esbuild** bundles all entry points: `background.js`, `linkedin-jobs.js`, `content-profile.js`, `popup.js`
 - Firebase config is injected at compile time from the root `.env` via esbuild `define` — no secrets in source
 - Watch mode produces inline sourcemaps; production builds are minified
 - `content.css` is copied directly to `dist/` (not bundled)
 
 ---
 
-### Job scraping — LinkedIn (`content-jobs.js`)
+### Job scraping — LinkedIn (`linkedin-jobs.js`)
 
 Runs on all `linkedin.com` pages. Detects job context and populates the sidebar panel.
 

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { doc, updateDoc, getDoc, getDocs, collection, query, where } from 'firebase/firestore'
+import { doc, updateDoc, getDoc, getDocs, addDoc, collection, query, where, serverTimestamp } from 'firebase/firestore'
 import {
   ArrowLeft, ExternalLink, Pencil, Sparkles, Loader2,
   CheckCircle2, Circle, Plus, Trash2, FileText,
@@ -14,12 +14,105 @@ import { useAI } from '../hooks/useAI'
 import { useJobMutations } from '../hooks/useJobMutations'
 import { useNow } from '../hooks/useNow'
 import { STAGE_MAP } from '../constants/stages'
+import { buildEmailSubject, buildEmailBody, buildLinkedInMessage, buildFollowUpSubject, buildFollowUpBody } from '../constants/outreachTemplates'
 import ApplicationModal from '../components/modals/ApplicationModal'
 import TailoredResumeModal from '../components/modals/TailoredResumeModal'
 import './ApplicationDetailPage.css'
 
 const ROUND_TYPES = ['Phone Screen', 'Technical Interview', 'System Design', 'Behavioral', 'Final Round', 'Other']
 const ROUND_RESULTS = ['Pending', 'Passed', 'Failed']
+
+// Inserts newlines before common job posting section headers that get run together
+// when innerText collapses block spacing (e.g. flex/inline layouts).
+const SECTION_HEADER_RE = /(?<!\n)(?=\b(About\s+(?:the\s+|[A-Z])|A\s+Day\s+in\s+the\s+Life|The\s+(?:Impact|Role|Team|Position|Opportunity)|Who\s+You\s+Are|What\s+You(?:'ll|\s+Will|\s+Do)|What\s+We(?:'re|\s+Are)\s+Looking|What\s+We\s+(?:Offer|Value|Need)|Why\s+(?:Join|Us|[A-Z])|Requirements?(?:\s*:)?|Qualifications?(?:\s*:)?|Responsibilities(?:\s*:)?|Key\s+Responsibilities|Nice\s+to\s+Have|Preferred(?:\s+Qualifications?)?|Benefits?(?:\s*:)?|Compensation(?:\s*:)?|Perks(?:\s*:)?|Our\s+(?:Mission|Team|Stack|Culture|Values?|Benefits?)|Tech(?:nology)?\s+Stack|How\s+We\s+Work|Interview\s+[Pp]rocess|Ideal\s+Experiences?|Outcomes?(?:\s*:)?|Equal\s+Opportunity|Method\s+of\s+Application|Application\s+Window|Other\s+Types\s+of\s+Pay|Day\s+in\s+the\s+Life)\b)/g
+
+function parseJobDescription(raw) {
+  const text = raw.replace(SECTION_HEADER_RE, '\n\n')
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+
+  // If the text is still a single unstructured block, group into ~3-sentence paragraphs.
+  if (lines.length === 1) {
+    const sentences = lines[0].match(/[^.!?]+[.!?]+(?:\s|$)/g) || [lines[0]]
+    const blocks = []
+    for (let i = 0; i < sentences.length; i += 3) {
+      const chunk = sentences.slice(i, i + 3).join('').trim()
+      if (chunk) blocks.push({ type: 'paragraph', text: chunk })
+    }
+    return blocks.length ? blocks : [{ type: 'paragraph', text: lines[0] }]
+  }
+
+  const blocks = []
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i]
+
+    // Bullet: starts with •, -, *, or "N." / "N)"
+    if (/^[•\-*]\s+/.test(line) || /^\d+[.)]\s+/.test(line)) {
+      const items = []
+      while (i < lines.length && (/^[•\-*]\s+/.test(lines[i]) || /^\d+[.)]\s+/.test(lines[i]))) {
+        items.push(lines[i].replace(/^[•\-*]\s+/, '').replace(/^\d+[.)]\s+/, ''))
+        i++
+      }
+      blocks.push({ type: 'bullets', items })
+      continue
+    }
+
+    // Header: short line, no trailing sentence punctuation, not a full sentence
+    const wordCount = line.split(/\s+/).length
+    const looksLikeHeader =
+      line.length < 80 &&
+      wordCount <= 12 &&
+      !/[.;,]$/.test(line) &&
+      !/^(the|a|an|in|at|by|for|of|to|and|or|but|with|from)\b/i.test(line)
+
+    if (looksLikeHeader && i + 1 < lines.length) {
+      blocks.push({ type: 'header', text: line })
+      i++
+      continue
+    }
+
+    // Long unstructured paragraphs: group into ~3-sentence chunks for readability.
+    if (line.length > 400) {
+      const sentences = line.match(/[^.!?]+[.!?]+(?:\s|$)/g) || [line]
+      for (let s = 0; s < sentences.length; s += 3) {
+        const chunk = sentences.slice(s, s + 3).join('').trim()
+        if (chunk) blocks.push({ type: 'paragraph', text: chunk })
+      }
+    } else {
+      blocks.push({ type: 'paragraph', text: line })
+    }
+    i++
+  }
+
+  return blocks
+}
+
+function JobDescriptionRenderer({ text, blocks: preBlocks, collapsed }) {
+  const heuristicBlocks = useMemo(() => parseJobDescription(text ?? ''), [text])
+  const blocks = preBlocks ?? heuristicBlocks
+
+  return (
+    <div className={`text-sm text-zinc-300 space-y-2 ${collapsed ? 'max-h-36 overflow-hidden' : ''}`}>
+      {blocks.map((block, i) => {
+        if (block.type === 'header') return (
+          <p key={i} className="text-xs font-semibold uppercase tracking-wider text-zinc-400 pt-4 first:pt-0 border-t border-zinc-800 first:border-0">{block.text}</p>
+        )
+        if (block.type === 'bullets') return (
+          <ul key={i} className="space-y-1 pl-1">
+            {block.items.map((item, j) => (
+              <li key={j} className="flex gap-2 leading-relaxed">
+                <span className="text-zinc-500 shrink-0 mt-0.5">•</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )
+        return <p key={i} className="leading-relaxed">{block.text}</p>
+      })}
+    </div>
+  )
+}
 
 function getDomainFromJob(job) {
   if (!job) return ''
@@ -354,11 +447,80 @@ export default function ApplicationDetailPage() {
           return { recruiter: r, ...result }
         })
       )
-      setOutreachDrafts(drafts.filter(d => !d.error))
+      const successful = drafts.filter(d => !d.error)
+      setOutreachDrafts(successful)
+      // Save each drafted recruiter to the outreach collection
+      await Promise.allSettled(
+        successful.map(d => {
+          const comp = job.company ?? ''
+          const rl = job.role ?? ''
+          const r = d.recruiter
+          return addDoc(collection(db, 'users', user.uid, 'outreach'), {
+            company: comp,
+            role: rl,
+            jobId: job.id,
+            jobUrl: job.jobUrl ?? null,
+            recruiterName: r.name,
+            recruiterEmail: r.email,
+            recruiterTitle: r.title ?? '',
+            recruiterLinkedIn: '',
+            emailSubject: d.emailSubject ?? buildEmailSubject(rl, comp),
+            emailBody: d.emailBody ?? buildEmailBody(r.name, comp, rl),
+            linkedInMessage: d.linkedInMessage ?? buildLinkedInMessage(r.name, comp, rl),
+            followUpSubject: buildFollowUpSubject(rl, comp),
+            followUpBody: buildFollowUpBody(r.name, comp, rl),
+            emailSent: false,
+            linkedInSent: false,
+            followUpSent: false,
+            createdAt: serverTimestamp(),
+          })
+        })
+      )
     } catch {
       alert('Failed to draft some messages. Try again.')
     } finally {
       setDraftingOutreach(false)
+    }
+  }
+
+  async function upsertOutreachForJob({ name, email, title = '', linkedin = '' }) {
+    const comp = job.company ?? ''
+    const rl = job.role ?? ''
+    const existing = await getDocs(
+      query(collection(db, 'users', user.uid, 'outreach'), where('jobId', '==', job.id))
+    )
+    if (!existing.empty) {
+      await updateDoc(doc(db, 'users', user.uid, 'outreach', existing.docs[0].id), {
+        recruiterName: name,
+        recruiterEmail: email,
+        recruiterTitle: title,
+        recruiterLinkedIn: linkedin,
+        emailSubject: buildEmailSubject(rl, comp),
+        emailBody: buildEmailBody(name, comp, rl),
+        linkedInMessage: buildLinkedInMessage(name, comp, rl),
+        followUpSubject: buildFollowUpSubject(rl, comp),
+        followUpBody: buildFollowUpBody(name, comp, rl),
+      })
+    } else {
+      await addDoc(collection(db, 'users', user.uid, 'outreach'), {
+        company: comp,
+        role: rl,
+        jobId: job.id,
+        jobUrl: job.jobUrl ?? null,
+        recruiterName: name,
+        recruiterEmail: email,
+        recruiterTitle: title,
+        recruiterLinkedIn: linkedin,
+        emailSubject: buildEmailSubject(rl, comp),
+        emailBody: buildEmailBody(name, comp, rl),
+        linkedInMessage: buildLinkedInMessage(name, comp, rl),
+        followUpSubject: buildFollowUpSubject(rl, comp),
+        followUpBody: buildFollowUpBody(name, comp, rl),
+        emailSent: false,
+        linkedInSent: false,
+        followUpSent: false,
+        createdAt: serverTimestamp(),
+      })
     }
   }
 
@@ -369,6 +531,11 @@ export default function ApplicationDetailPage() {
       recruiterTitle: r.title ?? '',
       recruiterLinkedIn: '',
     })
+    try {
+      await upsertOutreachForJob({ name: r.name, email: r.email, title: r.title ?? '' })
+    } catch (err) {
+      console.error('Failed to sync recruiter to outreach:', err)
+    }
     setFinderResults(null)
   }
 
@@ -389,6 +556,16 @@ export default function ApplicationDetailPage() {
       recruiterTitle: recruiterEdit.title,
       recruiterLinkedIn: recruiterEdit.linkedin,
     })
+    try {
+      await upsertOutreachForJob({
+        name: recruiterEdit.name,
+        email: recruiterEdit.email,
+        title: recruiterEdit.title,
+        linkedin: recruiterEdit.linkedin,
+      })
+    } catch (err) {
+      console.error('Failed to sync recruiter to outreach:', err)
+    }
     setEditingRecruiter(false)
   }
 
@@ -491,9 +668,12 @@ export default function ApplicationDetailPage() {
             <Section title="Job Description" icon={FileText}>
               {job.jobDescription ? (
                 <div>
-                  <p className={`text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap ${!jdExpanded ? 'line-clamp-6' : ''}`}>
-                    {job.jobDescription}
-                  </p>
+                  <div className={`relative ${!jdExpanded ? 'max-h-48 overflow-hidden' : ''}`}>
+                    <JobDescriptionRenderer text={job.jobDescription} blocks={job.jobDescriptionBlocks} />
+                    {!jdExpanded && (
+                      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-zinc-900 to-transparent pointer-events-none" />
+                    )}
+                  </div>
                   <button onClick={() => setJdExpanded(x => !x)} className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 mt-2 transition-colors">
                     {jdExpanded ? <><ChevronUp size={12} /> Show less</> : <><ChevronDown size={12} /> Show more</>}
                   </button>
